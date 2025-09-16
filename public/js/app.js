@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 
+		let hasPlayed = false;
+		const videoContainer = video.closest('.video-container');
 		video.addEventListener('play', function() {
 			playIcon.classList.remove('bi-play-fill');
 			playIcon.classList.add('bi-pause-fill');
@@ -53,15 +55,24 @@ document.addEventListener('DOMContentLoaded', function() {
 			playBtn.style.display = 'none';
 			video.style.opacity = '1';
 			video.style.filter = 'none';
+			hasPlayed = true;
+			videoOverlay.classList.add('no-blur');
+			if (videoContainer) videoContainer.classList.add('has-played');
 		});
 
 		video.addEventListener('pause', function() {
 			playIcon.classList.remove('bi-pause-fill');
 			playIcon.classList.add('bi-play-fill');
-			videoOverlay.style.display = 'flex';
-			playBtn.style.display = 'block';
-			video.style.opacity = '0.5';
-			video.style.filter = 'blur(2px)';
+			if (!hasPlayed) {
+				videoOverlay.style.display = 'flex';
+				playBtn.style.display = 'block';
+			} else {
+				videoOverlay.style.display = 'none';
+				playBtn.style.display = 'none';
+				videoOverlay.classList.add('no-blur');
+			}
+			video.style.opacity = '1';
+			video.style.filter = 'none';
 		});
 	}
 

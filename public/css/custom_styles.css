@@ -2147,12 +2147,27 @@ code {
     position: relative;
 }
 
+
 .video-overlay {
     background: rgba(0, 0, 0, 0.3);
     cursor: pointer;
     visibility: visible;
     transition: all 0.3s ease;
     backdrop-filter: blur(2px);
+}
+
+.video-overlay.no-blur {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    pointer-events: none;
+}
+
+.video-container.has-played:hover .video-overlay.no-blur {
+    display: flex !important;
+    pointer-events: auto;
+}
+.video-container.has-played:hover .btn-video-play {
+    display: block !important;
 }
 
 .btn-video-play {

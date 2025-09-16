@@ -33,7 +33,8 @@ class DashboardController
         $body = $this->twig->getEnvironment()->render('dashboard.html.twig', [
             'user_name' => $_SESSION['user_name'] ?? null,
             'user_role' => $_SESSION['user_role'] ?? null,
-            'csrf' => $csrf
+            'csrf' => $csrf,
+            'current_route' => 'dashboard'
         ]);
         $response->getBody()->write($body);
         return $response;

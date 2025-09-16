@@ -73,7 +73,8 @@ class OnboardingController
             'form' => $data,
             'errors' => $errors,
             'success' => $success,
-            'csrf' => $csrf
+            'csrf' => $csrf,
+            'current_route' => 'onboarding'
         ]);
         $response->getBody()->write($body);
         return $response;

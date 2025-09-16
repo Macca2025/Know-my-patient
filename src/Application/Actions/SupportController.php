@@ -80,7 +80,8 @@ class SupportController
             'errors' => $errors,
             'success' => $success,
             'support_route' => 'support',
-            'csrf' => $csrf
+            'csrf' => $csrf,
+            'current_route' => 'support'
         ]);
         $response->getBody()->write($body);
         return $response;

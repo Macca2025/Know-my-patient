@@ -1,12 +1,22 @@
 {% extends 'layouts/base.html.twig' %}
 {% block content %}
-<div class="d-flex flex-column min-vh-100">
-    <main class="flex-grow-1 d-flex justify-content-center align-items-center register-main py-5 main-content">    
-    <div class="container-fluid">
-            <div class="row justify-content-center">
-                <div class="col-12">
-                    <div class="register-card">
-                        <div class="register-card-body">
+<div class="d-flex flex-column min-vh-100 section-gradient-light">
+        <main class="flex-grow-1 d-flex justify-content-center align-items-center py-5 main-content">
+                <div class="register-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0" style="min-width:380px;max-width:540px;width:100%; box-shadow:none;">
+<style>
+@media (max-width: 576px) {
+    .register-card {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+}
+@media (max-width: 400px) {
+    .register-card {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
+</style>
     {# Success and error messages #}
     {% if success is defined and success %}
         <div class="alert alert-success text-center">Registration successful! You can now log in.</div>
@@ -30,7 +40,7 @@
                                 <div class="register-logo-wrapper mb-4">
                                     <img src="{{ companyLogo|default('images/logo.png') }}" alt="{{ app_name|default('Know My Patient') }}" class="register-logo">
                                 </div>
-                                <h2 class="register-title fw-bold mb-3">Create Your Account</h2>
+                                <h2 class="register-title fw-bold mb-3 text-purple-primary">Create Your Account</h2>
                                 <p class="register-subtitle text-muted">Join the Digital Hospital Passport platform</p>
                             </div>
                         <form method="post" action="{{ url_for('register') }}" id="registrationForm" class="register-form">
@@ -137,16 +147,17 @@
                             <!-- Terms and Conditions -->
                             <div class="form-group-modern mb-4">
                                 <div class="custom-checkbox">
-                                    <input type="checkbox" class="checkbox-input" id="termsCheck" required>
+                                    <input type="checkbox" class="checkbox-input" id="termsCheck" name="termsCheck" required>
                                     <label class="checkbox-label" for="termsCheck">
                                         <span class="checkbox-custom"></span>
                                         I agree to the <a href="#" class="link-primary-modern">Terms of Service</a> 
                                         and <a href="#" class="link-primary-modern">Privacy Policy</a>
                                     </label>
+                                    
                                 </div>
                             </div>
                             
-                            <button type="submit" class="btn-modern-outline-primary w-100 mb-4" id="registerBtn">
+                            <button type="submit" class="btn-modern-outline-primary w-100 mb-4" id="registerBtn" >
                                 <i class="bi bi-person-plus me-2"></i>Create Account
                             </button>
                         </form>
@@ -160,10 +171,7 @@
                     
                         </div>
                     </div>
-                </div>
+                </main>
             </div>
-        </div>
-    </main>
-</div>
 
 {% endblock %}

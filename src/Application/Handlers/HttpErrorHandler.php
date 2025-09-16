@@ -59,12 +59,13 @@ class HttpErrorHandler extends SlimErrorHandler
             $twig = $this->container->get(Twig::class);
             $response = $this->responseFactory->createResponse($statusCode);
             try {
-                $body = $twig->fetch($template, [
+                $response = $twig->render($response, $template, [
                     'exception' => $exception,
                     'statusCode' => $statusCode,
+                    'current_route' => 'error',
+                    'session' => $_SESSION ?? [],
                 ]);
-                $response->getBody()->write($body);
-                return $response->withHeader('Content-Type', 'text/html');
+                return $response->withStatus($statusCode)->withHeader('Content-Type', 'text/html');
             } catch (\Throwable $e) {
                 // Fallback: plain error message
                 $response->getBody()->write('An error occurred rendering the error page.');

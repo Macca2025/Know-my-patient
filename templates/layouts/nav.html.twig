@@ -33,25 +33,25 @@
                 {% if not session.user_id %}
                     <!-- Guest Navigation -->
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'home' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
                             <i class="bi bi-house nav-icon" aria-hidden="true"></i>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('onboarding') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'onboarding' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('onboarding') }}" role="menuitem">
                             <i class="bi bi-building nav-icon" aria-hidden="true"></i>
                             <span>Onboarding</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('register') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'register' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('register') }}" role="menuitem">
                             <i class="bi bi-person-plus nav-icon" aria-hidden="true"></i>
                             <span>Register</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('login') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'login' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('login') }}" role="menuitem">
                             <i class="bi bi-box-arrow-in-right nav-icon" aria-hidden="true"></i>
                             <span>Login</span>
                         </a>
@@ -59,32 +59,41 @@
                 {% else %}
                     <!-- Authenticated Navigation -->
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'home' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
                             <i class="bi bi-house nav-icon" aria-hidden="true"></i>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('dashboard') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'dashboard' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('dashboard') }}" role="menuitem">
                             <i class="bi bi-speedometer2 nav-icon" aria-hidden="true"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('logout') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'logout' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('logout') }}" role="menuitem">
                             <i class="bi bi-box-arrow-right nav-icon" aria-hidden="true"></i>
                             <span>Logout</span>
                         </a>
                     </li>
                 {% endif %}
 
-                 <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('support') }}" role="menuitem">
-                            <i class="bi bi-question-circle nav-icon" aria-hidden="true"></i>
-                            <span>Support</span>
+                <li class="nav-item-modern" role="none">
+                    <a class="nav-link-modern{% if current_route is defined and current_route == 'support' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('support') }}" role="menuitem">
+                        <i class="bi bi-question-circle nav-icon" aria-hidden="true"></i>
+                        <span>Support</span>
                         </a>
                     </li>
             </ul>
+<style>
+.active-nav-link {
+    background: linear-gradient(90deg, #ede7f6 0%, #e3f2fd 100%);
+    color: #5f2dab !important;
+    border-radius: 0.75rem;
+    font-weight: 600;
+}
+</style>
+                
         </div>
     </div>
 </nav>

@@ -72,7 +72,8 @@ class AuthController
             'error' => $error,
             'form' => $form,
             'csrf' => $csrf,
-            'registered' => $registered
+            'registered' => $registered,
+            'current_route' => 'login'
         ]);
         $response->getBody()->write($body);
         return $response;
@@ -149,7 +150,8 @@ class AuthController
             'form' => $data,
             'errors' => $errors,
             'success' => $success,
-            'csrf' => $csrf
+            'csrf' => $csrf,
+            'current_route' => 'register'
         ]);
         $response->getBody()->write($body);
         return $response;

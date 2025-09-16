@@ -1,19 +1,29 @@
 {% extends 'layouts/base.html.twig' %}
 {% block content %}
-{% set csrf = csrf|default({'keys': {'name': 'csrf_name', 'value': 'csrf_value'}, 'name': '', 'value': ''}) %}
 
-<div class="d-flex flex-column min-vh-100">
-	<main class="flex-grow-1 d-flex justify-content-center align-items-center login-main py-5 main-content">
-		<div class="container">
-			<div class="row justify-content-center">
-				<div class="col-12 col-sm-10 col-md-8 col-lg-6">
-					<div class="login-card card shadow p-4 p-lg-5 my-5">
+<div class="d-flex flex-column min-vh-100 section-gradient-light">
+	<main class="flex-grow-1 d-flex justify-content-center align-items-center py-5 main-content">
+		<div class="login-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0" style="min-width:380px;max-width:540px;width:100%;">
+		<style>
+		@media (max-width: 576px) {
+			.login-card {
+				padding-left: 1.25rem !important;
+				padding-right: 1.25rem !important;
+			}
+		}
+		@media (max-width: 400px) {
+			.login-card {
+				padding-left: 0.5rem !important;
+				padding-right: 0.5rem !important;
+			}
+		}
+		</style>
 						<!-- Logo and Welcome Section -->
 						<div class="text-center mb-4">
 							<div class="login-logo-wrapper mb-4">
 								<img src="{{ companyLogo|default('images/logo.png') }}" alt="{{ app_name|default('Know My Patient') }}" class="login-logo">
 							</div>
-							<h2 class="login-title fw-bold mb-3">Welcome Back</h2>
+							<h2 class="login-title fw-bold mb-3 text-purple-primary">Welcome Back</h2>
 							{% if registered == '1' %}
 								<div class="alert alert-success">Registration successful! Please log in.</div>
 							{% endif %}
@@ -70,8 +80,8 @@
 							</div>
 
 							<div class="d-grid">
-								<button type="submit" name="submit_login" value="1" class="btn btn-primary">
-									<i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+								<button type="submit" name="submit_login" value="1" class="btn-modern-outline-primary w-100 mb-4">
+								<i class="bi bi-box-arrow-in-right me-2"></i>Sign In
 								</button>
 							</div>
 						</form>
