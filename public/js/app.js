@@ -92,4 +92,17 @@ document.addEventListener('DOMContentLoaded', function() {
 		setInterval(nextTestimonial, 5000);
 	}
 
+	
+	// Password visibility toggle for login/register
+	const passwordInput = document.getElementById('password');
+	const togglePasswordBtn = document.getElementById('togglePassword');
+	const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+	if (passwordInput && togglePasswordBtn && togglePasswordIcon) {
+		togglePasswordBtn.addEventListener('click', function() {
+			const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+			passwordInput.setAttribute('type', type);
+			togglePasswordIcon.classList.toggle('bi-eye');
+			togglePasswordIcon.classList.toggle('bi-eye-slash');
+		});
+	}
 });

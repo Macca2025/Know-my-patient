@@ -43,7 +43,10 @@ class HttpErrorHandler extends SlimErrorHandler
 
         // Map exception to template
         $template = 'errors/error_500.html.twig';
-        if ($exception instanceof HttpNotFoundException) {
+        if (
+            $exception instanceof HttpNotFoundException ||
+            $exception instanceof HttpMethodNotAllowedException
+        ) {
             $statusCode = 404;
             $template = 'errors/error_404.html.twig';
         } elseif ($exception instanceof HttpForbiddenException) {
@@ -55,12 +58,18 @@ class HttpErrorHandler extends SlimErrorHandler
             /** @var Twig $twig */
             $twig = $this->container->get(Twig::class);
             $response = $this->responseFactory->createResponse($statusCode);
-            $body = $twig->fetch($template, [
-                'exception' => $exception,
-                'statusCode' => $statusCode,
-            ]);
-            $response->getBody()->write($body);
-            return $response->withHeader('Content-Type', 'text/html');
+            try {
+                $body = $twig->fetch($template, [
+                    'exception' => $exception,
+                    'statusCode' => $statusCode,
+                ]);
+                $response->getBody()->write($body);
+                return $response->withHeader('Content-Type', 'text/html');
+            } catch (\Throwable $e) {
+                // Fallback: plain error message
+                $response->getBody()->write('An error occurred rendering the error page.');
+                return $response->withHeader('Content-Type', 'text/plain');
+            }
         }
 
         // Fallback to JSON for API clients

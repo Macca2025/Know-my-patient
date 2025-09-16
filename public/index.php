@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-
-// Set secure session cookie parameters
+// DEBUG: Log every request to confirm Slim is reached
+error_log('INDEX.PHP REACHED: ' . ($_SERVER['REQUEST_URI'] ?? '')); // Remove after debugging
 $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443;
 session_set_cookie_params([
 	'lifetime' => 0,

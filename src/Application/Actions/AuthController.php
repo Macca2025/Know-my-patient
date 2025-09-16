@@ -67,10 +67,12 @@ class AuthController
                 'value' => 'csrf_value'
             ]
         ];
+        $registered = $request->getQueryParams()['registered'] ?? null;
         $body = $this->twig->getEnvironment()->render('login.html.twig', [
             'error' => $error,
             'form' => $form,
-            'csrf' => $csrf
+            'csrf' => $csrf,
+            'registered' => $registered
         ]);
         $response->getBody()->write($body);
         return $response;
@@ -127,8 +129,8 @@ class AuthController
                         $hashedPassword,
                         $role
                     ]);
-                    $success = true;
-                    $data = [];
+                    // Redirect to login with success alert
+                    return $response->withHeader('Location', '/login?registered=1')->withStatus(302);
                 } catch (\Throwable $e) {
                     $errors['general'] = 'Could not register user. Please try again later.';
                 }

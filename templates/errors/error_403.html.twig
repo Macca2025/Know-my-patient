@@ -1,7 +1,74 @@
 {% extends 'layouts/base.html.twig' %}
+{% set session = session|default({}) %}
+{% set title = title|default('403 Forbidden') %}
+{% set description = description|default('You do not have permission to access this page.') %}
+{% set keywords = keywords|default('') %}
+{% set canonical_url = canonical_url|default('/') %}
+{% set app_name = app_name|default('Know My Patient') %}
+{% set is_error_page = true %}
 {% block content %}
-<div class="container py-5 text-center">
-    <h1 class="display-4">403 Forbidden</h1>
-    <p class="lead">You do not have permission to access this page.</p>
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-grow-1 d-flex align-items-center">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="error-page">
+                        <h1 class="display-1 text-warning fw-bold mb-3">403</h1>
+                        <h2 class="h3 mb-4 text-dark">Forbidden</h2>
+                        <p class="lead text-muted mb-4">
+                            You do not have permission to access this page.<br>
+                            If you believe this is an error, please contact support.
+                        </p>
+                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center mb-4">
+                            <a href="{{ is_error_page ? '/' : url_for('home') }}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-house-fill me-2"></i>Go to Homepage
+                            </a>
+                            <button onclick="history.back()" class="btn btn-outline-secondary btn-sm w-100">
+                                <i class="bi bi-arrow-left me-2"></i>Go Back
+                            </button>
+                        </div>
+                        <div class="mt-5">
+                            <h5 class="text-muted mb-3">You might be looking for:</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <a href="{{ is_error_page ? '/' : url_for('login') }}" class="text-decoration-none">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-box-arrow-in-right fs-1 text-primary mb-2"></i>
+                                                <h6 class="card-title">NHS Staff Login</h6>
+                                                <p class="card-text small text-muted">Access patient information</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{{ is_error_page ? '/' : url_for('register') }}" class="text-decoration-none">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-person-plus fs-1 text-success mb-2"></i>
+                                                <h6 class="card-title">Create Profile</h6>
+                                                <p class="card-text small text-muted">Register new account</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{{ is_error_page ? '/' : url_for('support') }}" class="text-decoration-none">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-question-circle fs-1 text-info mb-2"></i>
+                                                <h6 class="card-title">Get Support</h6>
+                                                <p class="card-text small text-muted">Need help or assistance?</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </div>
 {% endblock %}

@@ -36,7 +36,7 @@ return function (ContainerBuilder $containerBuilder) {
                 'auto_reload' => true
             ]
         );
-        },
+    },
         // Bind Slim ResponseFactory to PSR-17 ResponseFactoryInterface for CSRF
     \Psr\Http\Message\ResponseFactoryInterface::class => function(ContainerInterface $c): \Psr\Http\Message\ResponseFactoryInterface {
             /** @var \Slim\App $app */

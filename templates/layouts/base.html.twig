@@ -1,4 +1,6 @@
 
+{% set csrf = csrf|default({'keys': {'name': 'csrf_name', 'value': 'csrf_value'}, 'name': '', 'value': ''}) %}
+{% set session = session|default({}) %}
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -1,7 +1,10 @@
 <nav class="navbar-modern navbar-expand-lg fixed-top" role="navigation" aria-label="Main navigation">
     <div class="container d-flex align-items-center">
         <!-- Brand Logo -->
-    <a class="navbar-brand-modern d-flex align-items-center" href="{{ url_for('home') }}" aria-label="Know My Patient Home">
+     {# Patch: Use '/' for brand link on error pages to avoid url_for error #}
+     <a class="navbar-brand-modern d-flex align-items-center"
+         href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}"
+         aria-label="Know My Patient Home">
             <div class="brand-logo-wrapper">
                 <img src="/images/logo.png"
                      alt="Know My Patient Logo"
@@ -30,25 +33,25 @@
                 {% if not session.user_id %}
                     <!-- Guest Navigation -->
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('home') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
                             <i class="bi bi-house nav-icon" aria-hidden="true"></i>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('onboarding') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('onboarding') }}" role="menuitem">
                             <i class="bi bi-building nav-icon" aria-hidden="true"></i>
                             <span>Onboarding</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('register') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('register') }}" role="menuitem">
                             <i class="bi bi-person-plus nav-icon" aria-hidden="true"></i>
                             <span>Register</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('login') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('login') }}" role="menuitem">
                             <i class="bi bi-box-arrow-in-right nav-icon" aria-hidden="true"></i>
                             <span>Login</span>
                         </a>
@@ -56,19 +59,19 @@
                 {% else %}
                     <!-- Authenticated Navigation -->
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('home') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
                             <i class="bi bi-house nav-icon" aria-hidden="true"></i>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('dashboard') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('dashboard') }}" role="menuitem">
                             <i class="bi bi-speedometer2 nav-icon" aria-hidden="true"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('logout') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('logout') }}" role="menuitem">
                             <i class="bi bi-box-arrow-right nav-icon" aria-hidden="true"></i>
                             <span>Logout</span>
                         </a>
@@ -76,7 +79,7 @@
                 {% endif %}
 
                  <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern" href="{{ url_for('support') }}" role="menuitem">
+                        <a class="nav-link-modern" href="{{ (is_error_page ?? false) ? '#' : url_for('support') }}" role="menuitem">
                             <i class="bi bi-question-circle nav-icon" aria-hidden="true"></i>
                             <span>Support</span>
                         </a>

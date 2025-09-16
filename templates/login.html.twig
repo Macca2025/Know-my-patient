@@ -1,5 +1,7 @@
 {% extends 'layouts/base.html.twig' %}
 {% block content %}
+{% set csrf = csrf|default({'keys': {'name': 'csrf_name', 'value': 'csrf_value'}, 'name': '', 'value': ''}) %}
+
 <div class="d-flex flex-column min-vh-100">
 	<main class="flex-grow-1 d-flex justify-content-center align-items-center login-main py-5 main-content">
 		<div class="container">
@@ -12,6 +14,9 @@
 								<img src="{{ companyLogo|default('images/logo.png') }}" alt="{{ app_name|default('Know My Patient') }}" class="login-logo">
 							</div>
 							<h2 class="login-title fw-bold mb-3">Welcome Back</h2>
+							{% if registered == '1' %}
+								<div class="alert alert-success">Registration successful! Please log in.</div>
+							{% endif %}
 							<p class="login-subtitle text-muted">Sign in to access your patient dashboard</p>
 						</div>
 
