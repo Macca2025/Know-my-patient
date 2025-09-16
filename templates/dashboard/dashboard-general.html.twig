@@ -1,0 +1,84 @@
+{# =============================
+   General Dashboard Section (for all users)
+   ============================= #}
+
+<div class="dashboard-card-modern card-info">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-person-circle text-primary"></i>
+        </div>
+        <h5 class="card-title">My Profile</h5>
+        <p class="card-text">View and update your personal information and account settings.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('my_profile') }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>Edit Profile
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-heart"></i>Health Information</small>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-card-modern card-info">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-shield-lock text-info"></i>
+        </div>
+        <h5 class="card-title">Privacy &amp; Security</h5>
+        <p class="card-text">Control your privacy settings, data sharing preferences, and security options.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('privacy_policy')}}" class="btn btn-outline-info">
+                <i class="bi bi-gear me-2"></i>Privacy Settings
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-heart"></i>Health Information</small>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-card-modern card-danger">
+        <div class="card-body">
+                <div class="card-icon">
+                        <i class="bi bi-trash text-danger"></i>
+                </div>
+                <h5 class="card-title">Delete Account</h5>
+                <p class="card-text">Permanently delete your account and all associated records.</p>
+                <div class="card-actions">
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                <i class="bi bi-exclamation-triangle me-2"></i>Delete Account
+                        </button>
+                </div>
+                <div class="card-footer-info">
+                        <small><i class="bi bi-exclamation-triangle"></i>Irreversible Action</small>
+                </div>
+        </div>
+</div>
+
+{# Delete Account Confirmation Modal #}
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAccountModalLabel"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Account Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('delete_account') }}">
+                <div class="modal-body">
+                    <p>Are you sure you want to <strong>permanently delete</strong> your account? This action cannot be undone.</p>
+                    <input type="hidden" name="confirm_delete" value="1">
+                    {# CSRF token if available #}
+                    {% if csrf is defined %}
+                        <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+                        <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

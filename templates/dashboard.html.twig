@@ -1,0 +1,79 @@
+{# =============================
+    Main Dashboard Template
+    Shows role-based dashboard by including the correct partial
+    ============================= #}
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+<div class="container py-5">
+    {# =============================
+       Dashboard Header
+       ============================= #}
+
+ <div class="admin-header mb-4">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="fw-bold text-purple-primary mb-2">
+                <i class="bi bi-person-badge-fill me-2"></i>
+                {% set role = session.user_role|default(user_role|default('')) %}
+                {% if role == 'nhs_user' %}
+                    NHS Staff Dashboard
+                {% elseif role == 'admin' %}
+                    Admin Dashboard
+                {% else %}
+                    User Dashboard
+                {% endif %}
+            </h1>
+            <p class="lead text-secondary mb-0">
+                Welcome, {{ currentUser.first_name ~ ' ' ~ currentUser.surname }}
+                {% if role == 'nhs_user' %}
+                    Access patient records and NHS tools.
+                {% elseif role == 'admin' %}
+                    Manage the system and user accounts.
+                {% else %}
+                    Manage your account, privacy, and records all in one place.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+    {# =============================
+       Determine User Role
+       ============================= #}
+    {% set effective_role = user_role|default(session.user_role) %}
+    {% if effective_role %}
+    {% endif %}
+
+    {# =============================
+       Role-based Dashboard Section
+       Includes the correct dashboard partial for the user's role
+       ============================= #}
+    {% if session.user_id %}
+    <div class="dashboard-cards-grid">
+    {# General user dashboard cards (profile, privacy, delete) #}
+    {% include 'dashboard/dashboard-general.html.twig' with { csrf: csrf } %}
+        {# Admin Dashboard #}
+        {% if role == 'admin' %}
+            {% include 'dashboard/dashboard_admin.html.twig' %}
+        {# NHS User Dashboard #}
+        {% elseif role == 'nhs_user' %}
+            {% include 'dashboard/dashboard_nhs_user.html.twig' %}
+        {# Patient Dashboard #}
+        {% elseif role == 'patient' %}
+            {% include 'dashboard/dashboard_patient.html.twig' %}
+        {# Family Dashboard #}
+        {% elseif role == 'family' %}
+            {% include 'dashboard/dashboard_family.html.twig' %}
+        {# Healthcare Worker Dashboard #}
+        {% elseif role == 'healthcare_worker' %}
+            {% include 'dashboard/dashboard_healthcare_worker.html.twig' %}
+        {# Fallback for unknown roles #}
+        {% else %}
+            <div class="alert alert-light">General User Section: Welcome to your dashboard.</div>
+        {% endif %}
+    {# Not logged in #}
+    {% else %}
+        <div class="alert alert-danger">You are not logged in.</div>
+    {% endif %}
+    </div>
+</div>
+{% endblock %}

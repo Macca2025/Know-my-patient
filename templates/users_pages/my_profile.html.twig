@@ -1,0 +1,324 @@
+{# templates/users_pages/my_profile.html.twig #}
+{% extends 'layouts/base.html.twig' %}
+
+{% block content %}
+
+<div class="d-flex flex-column min-vh-100 admin-main">
+    <main class="flex-grow-1 main-content">
+        <div class="container-xxl py-4">
+            <!-- Header Section -->
+            <div class="admin-header mb-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="fw-bold text-purple-primary mb-2">
+                            <i class="bi bi-person-circle me-2"></i>My Profile
+                        </h1>
+                        <p class="lead text-secondary mb-0">
+                            Manage your account information and settings
+                        </p>
+                    </div>
+                    <div class="admin-header-actions">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {# Alert Messages #}
+            {% if message is defined and message %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-{{ messageType|default('info') }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-{{ messageType == 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Profile Management Accordion -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="accordion" id="profileAccordion">
+                        
+                        <!-- Account Information Section -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="accountInfoHeading">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#accountInfoCollapse" aria-expanded="true" aria-controls="accountInfoCollapse">
+                                    <i class="bi bi-person-fill me-2"></i>
+                                    <strong>Account Information</strong>
+                                    <span class="ms-2 text-muted">Update your personal details</span>
+                                </button>
+                            </h2>
+                            <div id="accountInfoCollapse" class="accordion-collapse collapse show" aria-labelledby="accountInfoHeading" data-bs-parent="#profileAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-4">
+                                        <!-- Profile Form -->
+                                        <div class="col-lg-8">
+                                            <div class="card border-0 shadow-sm profile-card">
+                                                <div class="card-header bg-light">
+                                                    <h6 class="mb-0 text-primary">
+                                                        <i class="bi bi-pencil-square me-2"></i>Edit Profile Information
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <form method="POST" id="profileForm">
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label for="first_name" class="form-label fw-semibold">
+                                                                    <i class="bi bi-person me-1"></i>First Name *
+                                                                </label>
+                                                                <input type="text" 
+                                                                       class="form-control" 
+                                                                       id="first_name" 
+                                                                       name="first_name" 
+                                                                       value="{{ currentUser.first_name|e }}" 
+                                                                       required 
+                                                                       maxlength="100">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label for="surname" class="form-label fw-semibold">
+                                                                    <i class="bi bi-person me-1"></i>Surname *
+                                                                </label>
+                                                                <input type="text" 
+                                                                       class="form-control" 
+                                                                       id="surname" 
+                                                                       name="surname" 
+                                                                       value="{{ currentUser.surname|e }}" 
+                                                                       required 
+                                                                       maxlength="100">
+                                                            </div>
+                                                            <div class="col-12">
+                                                                <label for="email" class="form-label fw-semibold">
+                                                                    <i class="bi bi-envelope me-1"></i>Email Address *
+                                                                </label>
+                                                                <input type="email" 
+                                                                       class="form-control" 
+                                                                       id="email" 
+                                                                       name="email" 
+                                                                       value="{{ currentUser.email|e }}" 
+                                                                       required 
+                                                                       maxlength="191">
+                                                                <div class="form-text">
+                                                                    <i class="bi bi-info-circle me-1"></i>
+                                                                    This email is used for login and important notifications.
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <hr class="my-4">
+                                                        <div class="d-flex justify-content-end">
+                                                            <button type="submit" name="update_profile" class="btn btn-outline-primary">
+                                                                <i class="bi bi-check-lg me-2"></i>Update Profile
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Account Summary -->
+                                        <div class="col-lg-4">
+                                            <div class="card border-0 shadow-sm h-100 profile-card">
+                                                <div class="card-header bg-info text-white">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="bi bi-info-circle me-2"></i>Account Summary
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-flex flex-column gap-3">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="fw-semibold text-muted">User ID:</span>
+                                                            <span class="badge bg-secondary">#{{ currentUser.user_id|e }}</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="fw-semibold text-muted">Role:</span>
+                                                            <span class="badge bg-primary">{{ currentUser.role|default(userRole)|title }}</span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="fw-semibold text-muted">Status:</span>
+                                                            <span class="badge bg-{{ (currentUser.is_verified|default(1)) ? 'success' : 'warning' }}">
+                                                                {{ (currentUser.is_verified|default(1)) ? 'Active' : 'Pending' }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="fw-semibold text-muted">Member Since:</span>
+                                                            <span class="text-dark">
+                                                                {% if currentUser.created_at is defined and currentUser.created_at %}
+                                                                    {{ currentUser.created_at|date('M j, Y') }}
+                                                                {% else %}
+                                                                    Date unavailable
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings Section -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="securityHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#securityCollapse" aria-expanded="false" aria-controls="securityCollapse">
+                                    <i class="bi bi-shield-lock me-2"></i>
+                                    <strong>Security & Privacy</strong>
+                                    <span class="ms-2 text-muted">Manage password and privacy settings</span>
+                                </button>
+                            </h2>
+                            <div id="securityCollapse" class="accordion-collapse collapse" aria-labelledby="securityHeading" data-bs-parent="#profileAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <div class="card border-0 shadow-sm h-100 profile-card">
+                                                <div class="card-header bg-warning text-dark">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="bi bi-lock me-2"></i>Password Security
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted mb-3">Keep your account secure with a strong password.</p>
+                                                    <div class="d-grid">
+                                                        <button type="button" 
+                                                                class="btn btn-warning" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#changePasswordModal">
+                                                            <i class="bi bi-key me-1"></i>Change Password
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card border-0 shadow-sm h-100 profile-card">
+                                                <div class="card-header bg-info text-white">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="bi bi-shield-check me-2"></i>Privacy Settings
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted mb-3">Review our privacy policy and data handling practices.</p>
+                                                    <div class="d-grid">
+                                                        <a href="{{ url_for('privacy_policy') }}" class="btn btn-info">
+                                                            <i class="bi bi-eye me-1"></i>View Privacy Policy
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Support & Help Section -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="supportHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#supportCollapse" aria-expanded="false" aria-controls="supportCollapse">
+                                    <i class="bi bi-question-circle me-2"></i>
+                                    <strong>Support & Help</strong>
+                                    <span class="ms-2 text-muted">Get assistance and support resources</span>
+                                </button>
+                            </h2>
+                            <div id="supportCollapse" class="accordion-collapse collapse" aria-labelledby="supportHeading" data-bs-parent="#profileAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-8">
+                                            <div class="card border-0 shadow-sm profile-card">
+                                                <div class="card-header bg-success text-white">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="bi bi-headset me-2"></i>Get Support
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="mb-3">Need help? Our support team is here to assist you with any questions or issues.</p>
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-6">
+                                                            <a href="{{ url_for('support') }}" class="btn btn-success w-100">
+                                                                <i class="bi bi-chat-dots me-1"></i>Contact Support
+                                                            </a>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                            <a href="mailto:support@knowmypatient.info" class="btn btn-outline-success w-100">
+                                                                <i class="bi bi-envelope me-1"></i>Email Us
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card border-0 shadow-sm h-100 profile-card">
+                                                <div class="card-header bg-light">
+                                                    <h6 class="card-title mb-0 text-muted">
+                                                        <i class="bi bi-info-square me-2"></i>Quick Links
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="d-grid gap-2">
+                                                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-sm">
+                                                            <i class="bi bi-house me-1"></i>Dashboard
+                                                        </a>
+                                                        <a href="{{ url_for('privacy_policy') }}" class="btn btn-outline-secondary btn-sm">
+                                                            <i class="bi bi-file-text me-1"></i>Privacy Policy
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Management Section -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="accountMgmtHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#accountMgmtCollapse" aria-expanded="false" aria-controls="accountMgmtCollapse">
+                                    <i class="bi bi-gear me-2"></i>
+                                    <strong>Account Management</strong>
+                                    <span class="ms-2 text-muted">Advanced account settings and actions</span>
+                                </button>
+                            </h2>
+                            <div id="accountMgmtCollapse" class="accordion-collapse collapse" aria-labelledby="accountMgmtHeading" data-bs-parent="#profileAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-4">
+                                        <div class="col-12">
+                                            <div class="card border-danger shadow-sm profile-card">
+                                                <div class="card-header bg-danger text-white">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="bi bi-exclamation-triangle me-2"></i>Danger Zone
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row align-items-center">
+                                                        <div class="col-md-8">
+                                                            <h6 class="text-danger mb-2">Delete Account</h6>
+                                                            <p class="text-muted mb-0">
+                                                                Permanently delete your account and all associated data. 
+                                                                <strong>This action cannot be undone.</strong>
+                                                            </p>
+                                                        </div>
+                                                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                                            <a href="#" class="btn btn-danger">
+                                                                <i class="bi bi-trash me-1"></i>Delete Account
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}

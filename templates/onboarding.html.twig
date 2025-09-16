@@ -1,0 +1,371 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+<!-- Main Layout -->
+<div class="d-flex flex-column min-vh-100 navbar-offset">
+    <!-- Hero Section -->
+    <section class="bg-gradient-primary text-white py-5 onboarding-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">
+                        Partner with Know My Patient
+                    </h1>
+                    <p class="lead mb-4">
+                        Join the digital healthcare revolution. Integrate our secure patient passport system 
+                        into your healthcare organization and improve patient care outcomes.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-shield-check fs-4 me-2"></i>
+                            <span>NHS Compliant</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-lock fs-4 me-2"></i>
+                            <span>GDPR Secure</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-graph-up fs-4 me-2"></i>
+                            <span>Proven ROI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="flex-grow-1 py-5 main-content">
+        <div class="container-fluid">
+            
+            <!-- Benefits Section -->
+            <section class="mb-5 section-gradient-light py-5 px-4">
+                <div class="row">
+                    <div class="col-12 text-center mb-5">
+                        <h2 class="display-6 fw-bold text-purple-primary mb-3">Why Choose Know My Patient?</h2>
+                        <p class="lead text-muted">Transform your healthcare delivery with our comprehensive digital patient passport solution</p>
+                    </div>
+                </div>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-clock-history display-4 text-primary mb-4"></i>
+                                <h5 class="card-title">Reduce Admin Time</h5>
+                                <p class="card-text">Cut patient data collection time by up to 75% with instant QR code access to comprehensive patient profiles.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-heart-pulse display-4 text-success mb-4"></i>
+                                <h5 class="card-title">Improve Patient Care</h5>
+                                <p class="card-text">Access critical medical information instantly, including allergies, medications, and emergency contacts.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-shield-check display-4 text-info mb-4"></i>
+                                <h5 class="card-title">Enhanced Security</h5>
+                                <p class="card-text">Bank-level encryption, NHS compliance, and comprehensive audit trails for all patient data access.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-graph-up-arrow display-4 text-warning mb-4"></i>
+                                <h5 class="card-title">Cost Effective</h5>
+                                <p class="card-text">Reduce operational costs with streamlined patient onboarding and reduced data collection errors.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-phone display-4 text-danger mb-4"></i>
+                                <h5 class="card-title">Mobile Ready</h5>
+                                <p class="card-text">Works seamlessly on all devices - tablets, smartphones, and desktop computers with responsive design.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-puzzle display-4 text-purple mb-4"></i>
+                                <h5 class="card-title">Easy Implementation</h5>
+                                <p class="card-text">Simple setup process to get your organization started. Comprehensive training and dedicated support.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Enquiry Form -->
+            <section id="enquiry-form" class="section-gradient-light py-5 px-4">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-xl-8">
+                        <div class="card shadow-lg border-0 rounded-4">
+                            <div class="card-header bg-primary text-white text-center py-4">
+                                <h3 class="mb-2 fw-bold fs-4 fs-md-3 fs-lg-2">
+                                    <i class="bi bi-building me-2"></i>Start Your Partnership Journey
+                                </h3>
+                                <p class="mb-0 opacity-90">Tell us about your organization and we'll get back to you within 2 business days</p>
+                            </div>
+                            <div class="card-body p-5">
+                                
+                        
+
+                                <form method="post" action="{{ url_for('onboarding') }}" id="onboardingForm" class="needs-validation" novalidate>
+                                    {# CSRF token fields #}
+                                    {% if csrf is defined %}
+                                        <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+                                        <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+                                    {% endif %}
+            {% if success is defined and success %}
+                <div class="alert alert-success">Thank you for your enquiry! We will contact you soon.</div>
+            {% elseif errors is defined and errors %}
+                {% if errors.general is defined %}
+                    <div class="alert alert-danger">{{ errors.general }}</div>
+                {% endif %}
+            {% endif %}
+                                    
+                                    <!-- Accordion Form Sections -->
+                                    <div class="accordion" id="onboardingAccordion">
+                                        
+                                        <!-- Company Information Accordion -->
+                                        <div class="accordion-item border-0 rounded-4 mb-3 shadow-sm">
+                                            <h2 class="accordion-header" id="companyHeading">
+                                                <button class="accordion-button rounded-4 bg-primary bg-opacity-10" type="button" data-bs-toggle="collapse" data-bs-target="#companyCollapse" aria-expanded="true" aria-controls="companyCollapse">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="bg-primary rounded-circle p-2 me-3">
+                                                            <i class="bi bi-building text-white"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="mb-0 text-primary fw-bold">Company Information</h5>
+                                                            <small class="text-muted">Tell us about your organization</small>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="companyCollapse" class="accordion-collapse collapse show" aria-labelledby="companyHeading" data-bs-parent="#onboardingAccordion">
+                                                <div class="accordion-body p-4">
+                                                    <div class="row g-4">
+                                                        <div class="col-md-6">
+                                                            <label for="company_name" class="form-label fw-semibold">Company/Organization Name <span class="text-danger">*</span></label>
+                                                            <input type="text" 
+                                                                   class="form-control form-control-lg rounded-4" 
+                                                                   id="company_name"
+                                            name="company_name" 
+                                            value="{{ form.company_name|default('') }}"
+                                                                   required>
+                    {% if errors.company_name is defined %}
+                        <div class="invalid-feedback d-block">{{ errors.company_name }}</div>
+                    {% endif %}
+                                                            <div class="invalid-feedback">Please provide your company name.</div>
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <label for="company_website" class="form-label fw-semibold">Company Website</label>
+                                                            <input type="url" 
+                                                                   class="form-control form-control-lg rounded-4" 
+                                                                   id="company_website"
+                                       name="company_website" 
+                                       placeholder="https://..."
+                                       value="{{ form.company_website|default('') }}">
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <label for="organization_type" class="form-label fw-semibold">Organization Type <span class="text-danger">*</span></label>
+                                                            <select class="form-select form-select-lg rounded-4" id="organization_type" name="organization_type" required>
+                                                                <option value="">Select organization type</option>
+                                                                    <option value="nhs_trust" {{ form.organization_type is defined and form.organization_type == 'nhs_trust' ? 'selected' : '' }}>NHS Trust</option>
+                                                                    <option value="private_hospital" {{ form.organization_type is defined and form.organization_type == 'private_hospital' ? 'selected' : '' }}>Private Hospital</option>
+                                                                    <option value="gp_practice" {{ form.organization_type is defined and form.organization_type == 'gp_practice' ? 'selected' : '' }}>GP Practice</option>
+                                                                    <option value="care_home" {{ form.organization_type is defined and form.organization_type == 'care_home' ? 'selected' : '' }}>Care Home</option>
+                                                                    <option value="clinic" {{ form.organization_type is defined and form.organization_type == 'clinic' ? 'selected' : '' }}>Clinic</option>
+                                                                    <option value="healthcare_software" {{ form.organization_type is defined and form.organization_type == 'healthcare_software' ? 'selected' : '' }}>Healthcare Software Provider</option>
+                                                                    <option value="other" {{ form.organization_type is defined and form.organization_type == 'other' ? 'selected' : '' }}>Other</option>
+                                                            </select>
+                    <div class="invalid-feedback">Please select your organization type.</div>
+                    {% if errors.organization_type is defined %}
+                        <div class="invalid-feedback d-block">{{ errors.organization_type }}</div>
+                    {% endif %}
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <label for="organization_size" class="form-label fw-semibold">Organization Size</label>
+                                                            <select class="form-select form-select-lg rounded-4" id="organization_size" name="organization_size">
+                                                                <option value="">Select size</option>
+                                                                    <option value="1-10" {{ form.organization_size is defined and form.organization_size == '1-10' ? 'selected' : '' }}>1-10 employees</option>
+                                                                    <option value="11-50" {{ form.organization_size is defined and form.organization_size == '11-50' ? 'selected' : '' }}>11-50 employees</option>
+                                                                    <option value="51-200" {{ form.organization_size is defined and form.organization_size == '51-200' ? 'selected' : '' }}>51-200 employees</option>
+                                                                    <option value="201-1000" {{ form.organization_size is defined and form.organization_size == '201-1000' ? 'selected' : '' }}>201-1000 employees</option>
+                                                                    <option value="1000+" {{ form.organization_size is defined and form.organization_size == '1000+' ? 'selected' : '' }}>1000+ employees</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Contact Information Accordion -->
+                                        <div class="accordion-item border-0 rounded-4 mb-3 shadow-sm">
+                                            <h2 class="accordion-header" id="contactHeading">
+                                                <button class="accordion-button collapsed rounded-4 bg-primary bg-opacity-10" type="button" data-bs-toggle="collapse" data-bs-target="#contactCollapse" aria-expanded="false" aria-controls="contactCollapse">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="bg-primary rounded-circle p-2 me-3">
+                                                            <i class="bi bi-person text-white"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="mb-0 text-primary fw-bold">Contact Information</h5>
+                                                            <small class="text-muted">How can we reach you?</small>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="contactCollapse" class="accordion-collapse collapse" aria-labelledby="contactHeading" data-bs-parent="#onboardingAccordion">
+                                                <div class="accordion-body p-4">
+                                                    <div class="row g-4">
+                                                        <div class="col-md-6">
+                                                            <label for="contact_person" class="form-label fw-semibold">Contact Person <span class="text-danger">*</span></label>
+                                                            <input type="text" 
+                                                                   class="form-control form-control-lg rounded-4" 
+                                                                   id="contact_person"
+                                            name="contact_person" 
+                                            value="{{ form.contact_person|default('') }}"
+                                                                   required>
+                    {% if errors.contact_person is defined %}
+                        <div class="invalid-feedback d-block">{{ errors.contact_person }}</div>
+                    {% endif %}
+                                                            <div class="invalid-feedback">Please provide the contact person's name.</div>
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <label for="job_title" class="form-label fw-semibold">Job Title</label>
+                                                            <input type="text" 
+                                                                   class="form-control form-control-lg rounded-4" 
+                                                                   id="job_title"
+                                       name="job_title" 
+                                       value="{{ form.job_title|default('') }}">
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                                                            <input type="email" 
+                                                                   class="form-control form-control-lg rounded-4" 
+                                                                   id="email"
+                                            name="email" 
+                                            value="{{ form.email|default('') }}"
+                                                                   required>
+                    {% if errors.email is defined %}
+                        <div class="invalid-feedback d-block">{{ errors.email }}</div>
+                    {% endif %}
+                                                            <div class="invalid-feedback">Please provide a valid email address.</div>
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                                                            <input type="tel" 
+                                                                   class="form-control form-control-lg rounded-4" 
+                                                                   id="phone"
+                                       name="phone" 
+                                       value="{{ form.phone|default('') }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Consent and Legal Accordion -->
+                                        <div class="accordion-item border-0 rounded-4 mb-4 shadow-sm">
+                                            <h2 class="accordion-header" id="consentHeading">
+                                                <button class="accordion-button collapsed rounded-4 bg-primary bg-opacity-10" type="button" data-bs-toggle="collapse" data-bs-target="#consentCollapse" aria-expanded="false" aria-controls="consentCollapse">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="bg-primary rounded-circle p-2 me-3">
+                                                            <i class="bi bi-shield-check text-white"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="mb-0 text-primary fw-bold">Consent & Legal</h5>
+                                                            <small class="text-muted">Data protection and privacy</small>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            </h2>
+                                            <div id="consentCollapse" class="accordion-collapse collapse" aria-labelledby="consentHeading" data-bs-parent="#onboardingAccordion">
+                                                <div class="accordion-body p-4">
+                                                    <div class="bg-light rounded-4 p-4">
+                                                        <div class="form-check mb-4">
+                                                            <input class="form-check-input" 
+                                                                   type="checkbox" 
+                                                                   id="gdpr_consent" 
+                                                                   name="gdpr_consent" 
+                                                                   value="1"
+                                                                       {{ form.gdpr_consent is defined and form.gdpr_consent ? 'checked' : '' }}
+                                                                   required>
+                    {% if errors.gdpr_consent is defined %}
+                        <div class="invalid-feedback d-block">{{ errors.gdpr_consent }}</div>
+                    {% endif %}
+                                                            <label class="form-check-label fw-semibold" for="gdpr_consent">
+                                                                GDPR Consent (Required) <span class="text-danger">*</span><br>
+                                                                <small class="text-muted fw-normal">
+                                                                    I consent to Know My Patient processing my personal data to respond to this enquiry and provide information about our services. 
+                                                                    Your data will be stored securely and used only for the purpose of this enquiry.
+                                                                </small>
+                                                            </label>
+                                                            <div class="invalid-feedback">You must consent to data processing to submit this enquiry.</div>
+                                                        </div>
+                                                        
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" 
+                                                                   type="checkbox" 
+                                                                   id="marketing_consent" 
+                                                                   name="marketing_consent" 
+                                                                   value="1"
+                                                                       {{ form.marketing_consent is defined and form.marketing_consent ? 'checked' : '' }}>
+                                                            <label class="form-check-label fw-semibold" for="marketing_consent">
+                                                                Marketing Communications (Optional)<br>
+                                                                <small class="text-muted fw-normal">
+                                                                    I would like to receive updates about Know My Patient features, case studies, and healthcare industry insights. 
+                                                                    You can unsubscribe at any time.
+                                                                </small>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="d-grid mb-4">
+                                        <button type="submit" class="btn btn-outline-primary btn-lg rounded-4 py-3 fw-bold">
+                                            <i class="bi bi-send me-2"></i>Submit Partnership Enquiry
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="text-center">
+                                        <div class="bg-primary bg-opacity-10 rounded-4 p-3">
+                                            <small class="text-primary fw-semibold">
+                                                <i class="bi bi-clock me-2"></i>
+                                                We'll respond within 2 business days with next steps and pricing information.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+{% endblock %}

@@ -1,0 +1,90 @@
+{# =============================
+    Patient Dashboard Cards
+    ============================= #}
+
+<div class="dashboard-card-modern card-success">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-plus-circle text-success"></i>
+        </div>
+        <h5 class="card-title">Add Patient Information</h5>
+        <p class="card-text">Add or update your health and hospital passport details to help care teams provide the best support.</p>
+        <div class="card-actions">
+            <a href="add_patient_info.php" class="btn btn-outline-success">
+                <i class="bi bi-plus me-2"></i>Add Information
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-heart"></i>Health Information</small>
+        </div>
+    </div>
+</div>
+
+{# Share My Records Card #}
+{% set shareRecordsText = shareRecordsText|default({
+    'title': 'Share My Records',
+    'description': 'Share your medical records securely with healthcare professionals using your unique QR code.'
+}) %}
+<div class="dashboard-card-modern card-success">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-qr-code text-success"></i>
+        </div>
+        <h5 class="card-title">{{ shareRecordsText.title }}</h5>
+        <p class="card-text">{{ shareRecordsText.description }}</p>
+        <div class="card-actions">
+            <a href="display.php" class="btn btn-outline-success">
+                <i class="bi bi-share me-2"></i>Share Now
+            </a>
+        </div>
+       <div class="card-footer-info">
+            <small><i class="bi bi-exclamation-triangle"></i>Irreversible Action</small>
+        </div>
+    </div>
+</div>
+
+{# Physical Patient Card #}
+<div class="dashboard-card-modern card-warning">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-credit-card-2-front text-warning"></i>
+        </div>
+        <h5 class="card-title">Physical Patient Card</h5>
+        {% if pendingCardRequest is defined and pendingCardRequest %}
+            <!-- Show status if request exists -->
+            <p class="card-text">Your card request is being processed.</p>
+            <div class="card-status status-warning">
+                <div class="mb-2">
+                    <strong>Status:</strong> {{ pendingCardRequest.status|capitalize }}
+                </div>
+                <div class="mb-2">
+                    <strong>Patient:</strong> {{ pendingCardRequest.patient_name }}
+                </div>
+                <div>
+                    <small>Requested: {{ pendingCardRequest.request_date|date('M j, Y') }}</small>
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-secondary disabled">
+                    <i class="bi bi-hourglass-split me-2"></i>Request in Progress
+                </button>
+            </div>
+        {% else %}
+            <!-- Show order button if no pending request -->
+            <p class="card-text">Order a physical membership card with your unique QR code for easy NHS access.</p>
+            <div class="card-actions">
+                <form method="POST" class="full-width-form">
+                    <input type="hidden" name="action" value="request_patient_card">
+                    <button type="submit" class="btn btn-outline-warning" 
+                            onclick="return confirm('Are you sure you want to order a patient card? This will start the production process.')">
+                        <i class="bi bi-credit-card me-2"></i>Order My Card
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+        <div class="card-footer-info">
+            <small><i class="bi bi-truck"></i>Free delivery within 5-7 days</small>
+        </div>
+    </div>
+</div>
+

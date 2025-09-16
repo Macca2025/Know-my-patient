@@ -1,0 +1,299 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+<!-- Main Layout -->
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-grow-1 main-content">
+        <!-- Hero Section -->
+        <section class="hero-modern text-white py-5 mb-4">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-xl-8 text-center">
+                        <div class="hero-content">
+                            <h1 class="display-4 fw-bold mb-4 hero-title">
+                                Digital Hospital Passport
+                            </h1>
+                            <p class="lead mb-4 hero-subtitle">
+                                Enabling healthcare professionals to provide person-centred care for patients with learning disabilities,
+                                dementia, cognitive impairments, elderly adults, or those recovering from a stroke.
+                            </p>
+                            <div class="hero-features mb-5">
+                                <div class="row g-3 text-center">
+                                    <div class="col-md-4">
+                                        <div class="feature-item">
+                                            <i class="bi bi-shield-lock-fill fs-3 mb-2 text-warning"></i>
+                                            <p class="small mb-0"><strong>GDPR Compliant</strong><br>Secure & Private</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="feature-item">
+                                            <i class="bi bi-people-fill fs-3 mb-2 text-info"></i>
+                                            <p class="small mb-0"><strong>Secure Access</strong><br>Unique Code Required</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="feature-item">
+                                            <i class="bi bi-heart-pulse fs-3 mb-2 text-success"></i>
+                                            <p class="small mb-0"><strong>Person-Centred</strong><br>Improved Care</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Hero Actions -->
+                            <div class="hero-actions">
+                                <a href="/register" class="btn btn-light btn-lg px-5 py-3 me-3 mb-3 fw-semibold hero-btn-primary">
+                                    <i class="bi bi-pencil-square me-2"></i>Create Digital Passport
+                                </a>
+                                <a href="/login" class="btn btn-outline-light btn-lg px-5 py-3 mb-3 fw-semibold hero-btn-secondary">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Healthcare Login
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    <!-- Info & Video Section -->
+        <section class="info-video-section py-5 mb-5 section-gradient-light">
+            <div class="container">
+                <div class="row align-items-center g-5">
+                    <div class="col-lg-6 mb-4 mb-lg-0">
+                        <div class="info-content">
+                            <h2 class="display-6 fw-bold mb-4 index-section-title">
+                                <span class="title-highlight">See How</span> Digital Hospital Passports 
+                                <span class="text-primary">Transform Health Care</span>
+                            </h2>
+                            <p class="lead text-muted mb-4">
+                                Watch how our secure, person-centred digital hospital passport improves care for patients with learning disabilities, dementia, or cognitive impairment. 
+                                healthcare staff can access up-to-date information, preferences, medical history, and more empowering better outcomes and communication.
+                            </p>
+                            <div class="benefits-list">
+                                <div class="benefit-item d-flex align-items-center mb-3">
+                                    <div class="benefit-icon">
+                                        <i class="bi bi-lightning-charge-fill text-warning"></i>
+                                    </div>
+                                    <span class="fw-semibold">Instant access for healthcare staff</span>
+                                </div>
+                                <div class="benefit-item d-flex align-items-center mb-3">
+                                    <div class="benefit-icon">
+                                        <i class="bi bi-people-fill text-info"></i>
+                                    </div>
+                                    <span class="fw-semibold">Family and NOK can update information</span>
+                                </div>
+                                <div class="benefit-item d-flex align-items-center mb-3">
+                                    <div class="benefit-icon">
+                                        <i class="bi bi-shield-check-fill text-success"></i>
+                                    </div>
+                                    <span class="fw-semibold">GDPR compliant and secure</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 text-center">
+                        <div class="video-container">
+                            <div class="ratio ratio-16x9 rounded-4 shadow-lg position-relative overflow-hidden">
+                                <video id="intro-video" class="rounded-4" width="100%" height="315" preload="metadata">
+                                    <source src="images/intro-video.mp4" type="video/mp4">
+                                    Your browser does not support the video tag. Please use a modern browser to view this content.
+                                </video>
+                                <!-- Custom Play/Pause Button -->
+                                <div id="video-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center video-overlay">
+                                    <button id="play-pause-btn" class="btn-video-play">
+                                        <i id="play-icon" class="bi bi-play-fill"></i>
+                                        <i id="pause-icon" class="bi bi-pause-fill d-none"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    <!-- Features Section -->
+        <section class="features-section py-5 mb-5 section-gradient-medium">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="display-6 fw-bold mb-3 index-section-title">
+                        <span class="text-primary">Powerful Features</span> for Better Care
+                    </h2>
+                    <p class="lead text-muted mx-auto lead-max-width">
+                        Everything healthcare staff need to provide exceptional, person-centred care in one secure platform
+                    </p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="feature-card h-100">
+                            <div class="feature-card-body">
+                                <div class="feature-icon-wrapper mb-4">
+                                    <i class="bi bi-people-fill feature-icon text-primary"></i>
+                                </div>
+                                <h5 class="feature-title fw-bold mb-3">NOK & Contacts</h5>
+                                <p class="feature-description text-muted">Next of Kin and emergency contacts always available for staff with instant access to critical contact information.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="feature-card h-100">
+                            <div class="feature-card-body">
+                                <div class="feature-icon-wrapper mb-4">
+                                    <i class="bi bi-heart-fill feature-icon text-danger"></i>
+                                </div>
+                                <h5 class="feature-title fw-bold mb-3">Likes & Dislikes</h5>
+                                <p class="feature-description text-muted">Food, fluids, and personal preferences documented for tailored, person-centred care delivery.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="feature-card h-100">
+                            <div class="feature-card-body">
+                                <div class="feature-icon-wrapper mb-4">
+                                    <i class="bi bi-file-medical-fill feature-icon text-success"></i>
+                                </div>
+                                <h5 class="feature-title fw-bold mb-3">Medical & Social History</h5>
+                                <p class="feature-description text-muted">Comprehensive allergies, diagnoses, medications, occupation, hobbies, and personal memories.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="feature-card h-100">
+                            <div class="feature-card-body">
+                                <div class="feature-icon-wrapper mb-4">
+                                    <i class="bi bi-person-check-fill feature-icon text-info"></i>
+                                </div>
+                                <h5 class="feature-title fw-bold mb-3">Legal & Consent</h5>
+                                <p class="feature-description text-muted">Power of Attorney, consent documentation, and safeguarding information readily accessible.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="feature-card h-100">
+                            <div class="feature-card-body">
+                                <div class="feature-icon-wrapper mb-4">
+                                    <i class="bi bi-hospital-fill feature-icon text-primary"></i>
+                                </div>
+                                <h5 class="feature-title fw-bold mb-3">Care Needs</h5>
+                                <p class="feature-description text-muted">Detailed pressure damage risk, cognitive impairment levels, and communication needs assessment.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="feature-card h-100">
+                            <div class="feature-card-body">
+                                <div class="feature-icon-wrapper mb-4">
+                                    <i class="bi bi-shield-lock-fill feature-icon text-warning"></i>
+                                </div>
+                                <h5 class="feature-title fw-bold mb-3">Secure & Private</h5>
+                                <p class="feature-description text-muted">Access monitoring, GDPR compliance, and secure access for healthcare staff with unique verification codes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    <!-- Company Onboarding Call-to-Action Section -->
+        <section class="company-onboarding-cta py-5 mb-5 section-gradient-light">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 text-center">
+                        <div class="cta-content p-5 rounded-4 shadow-sm">
+                            <div class="mb-4">
+                                <i class="fas fa-building text-primary cta-icon"></i>
+                            </div>
+                            <h2 class="display-6 fw-bold mb-3 index-section-title text-purple-primary">
+                                Healthcare Organization?
+                            </h2>
+                            <p class="lead mb-4 text-muted">
+                                Join the growing network of healthcare providers using Know My Patient to improve patient care and streamline information sharing.
+                            </p>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="cta-feature">
+                                        <i class="fas fa-handshake text-primary mb-2"></i>
+                                        <h6 class="fw-bold">Partnership</h6>
+                                        <small class="text-muted">Seamless integration with your existing systems</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cta-feature">
+                                        <i class="fas fa-chart-line text-primary mb-2"></i>
+                                        <h6 class="fw-bold">Efficiency</h6>
+                                        <small class="text-muted">Reduce paperwork and improve patient flow</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="cta-feature">
+                                        <i class="fas fa-shield-alt text-primary mb-2"></i>
+                                        <h6 class="fw-bold">Security</h6>
+                                        <small class="text-muted">GDPR compliant and NHS approved standards</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('onboarding') }}" class="btn btn-outline-primary btn-lg px-5 py-3 rounded-pill shadow-sm">
+                                <i class="fas fa-rocket me-2"></i>
+                                Get Started Today
+                            </a>
+                            <p class="mt-3 mb-0">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Takes just 2 minutes to enquire
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="testimonials-section py-5 mb-5 section-gradient-medium">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <h2 class="display-6 fw-bold mb-3 index-section-title">
+                        What <span class="text-white fw-bold">Healthcare Professionals</span> Say
+                    </h2>
+                    <p class="lead text-muted mx-auto lead-max-width">
+                        Real feedback from healthcare staff who are transforming patient care with digital hospital passports
+                    </p>
+                </div>
+                {% if testimonials|length > 0 %}
+                    <div id="testimonial-slider" class="position-relative">
+                        {% for testimonial in testimonials %}
+                            <div class="testimonial-card mx-auto slide-testimonial{% if loop.first %} active{% endif %}">
+                                <div class="testimonial-content">
+                                    <div class="quote-icon mb-4">
+                                        <i class="bi bi-quote text-primary"></i>
+                                    </div>
+                                    <blockquote class="testimonial-text mb-4">
+                                        "{{ testimonial.testimonial }}"
+                                    </blockquote>
+                                    <div class="testimonial-author">
+                                        <div class="author-avatar">
+                                            <i class="bi bi-person-circle text-primary"></i>
+                                        </div>
+                                        <div class="author-info">
+                                            <h6 class="author-name fw-bold mb-0">{{ testimonial.name }}</h6>
+                                            {% if testimonial.role %}
+                                                <small class="author-role text-muted">{{ testimonial.role }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="empty-state">
+                            <i class="bi bi-chat-square-quote display-1 text-muted mb-4"></i>
+                            <h4 class="text-muted mb-3">No testimonials available</h4>
+                            <p class="text-muted">We're gathering feedback from healthcare professionals. Check back soon!</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+    </main>
+{% endblock %}

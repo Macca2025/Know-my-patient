@@ -1,0 +1,11 @@
+.idea/
+.vscode/
+/coverage/
+/vendor/
+/logs/*
+!/logs/README.md
+.phpunit.result.cache
+# Ignore environment files
+.env
+# Ignore Twig cache
+/var/cache/twig/

@@ -1,0 +1,277 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-grow-1 privacy-main main-content">
+        <div class="container-fluid py-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-8">
+                    <!-- Header Section -->
+                    <div class="text-center mb-5">
+                        <h1 class="display-6 fw-bold text-purple-primary mb-3 mt-5">Privacy Policy &amp; Terms of Service</h1>
+                        
+                    </div>
+
+                    <!-- Introduction Card -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center mb-3 mb-md-0">
+                                    <i class="bi bi-shield-check text-success privacy-shield-icon"></i>
+                                </div>
+                                <div class="col-md-10">
+                                    <h3 class="card-title text-success mb-3 text-center">Your Privacy is Our Priority</h3>
+                                    <p class="card-text text-center">
+                                        <strong>Know My Patient</strong> is committed to protecting your privacy and ensuring your personal information 
+                                        is handled securely and in accordance with UK GDPR, Data Protection Act 2018, and healthcare standards.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Principles -->
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <h2 class="h4 text-purple-primary mb-4">
+                                <i class="bi bi-star-fill me-2"></i>Our Key Privacy Principles
+                            </h2>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-lock-fill text-primary mb-3 privacy-principle-icon"></i>
+                                    <h5 class="card-title">Secure Storage</h5>
+                                    <p class="card-text">Your data is encrypted and stored securely, accessible only by authorized healthcare staff.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-people-fill text-primary mb-3 privacy-principle-icon"></i>
+                                    <h5 class="card-title">Minimal Data Collection</h5>
+                                    <p class="card-text">We collect only the information necessary for your care and support.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-pencil-square text-primary mb-3 privacy-principle-icon"></i>
+                                    <h5 class="card-title">Your Control</h5>
+                                    <p class="card-text">You can update, access, or request removal of your information at any time.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-eye-fill text-primary mb-3 privacy-principle-icon"></i>
+                                    <h5 class="card-title">Monitored Access</h5>
+                                    <p class="card-text">All access to your digital hospital passport is monitored and logged for security.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Sections -->
+                    <div class="accordion" id="privacyAccordion">
+                        <!-- Data Collection -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="dataCollection">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDataCollection">
+                                    <i class="bi bi-collection me-2"></i>
+                                    What Information We Collect
+                                </button>
+                            </h2>
+                            <div id="collapseDataCollection" class="accordion-collapse collapse show" data-bs-parent="#privacyAccordion">
+                                <div class="accordion-body">
+                                    <h5>Personal Information:</h5>
+                                    <ul class="mb-3">
+                                        <li>Name, email address, and staff ID (if applicable)</li>
+                                        <li>Medical conditions, allergies, and medications</li>
+                                        <li>Emergency contact information</li>
+                                        <li>Dietary preferences and care instructions</li>
+                                    </ul>
+                                    <h5>Technical Information:</h5>
+                                    <ul>
+                                        <li>IP addresses and browser information (for security)</li>
+                                        <li>Login timestamps and access logs</li>
+                                        <li>Device information for QR code generation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- How We Use Data -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="dataUse">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDataUse">
+                                    <i class="bi bi-gear me-2"></i>
+                                    How We Use Your Information
+                                </button>
+                            </h2>
+                            <div id="collapseDataUse" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>We use your information to:</strong></p>
+                                    <ul>
+                                        <li>Provide personalized care through your digital hospital passport</li>
+                                        <li>Enable healthcare staff to access critical care information quickly</li>
+                                        <li>Maintain security and prevent unauthorized access</li>
+                                        <li>Improve our services and user experience</li>
+                                        <li>Comply with legal and regulatory requirements</li>
+                                    </ul>
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <strong>Legal Basis:</strong> We process your data under Article 6(1)(e) and Article 9(2)(h) of GDPR for the provision of health and social care.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Sharing -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="dataSharing">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDataSharing">
+                                    <i class="bi bi-share me-2"></i>
+                                    Data Sharing and Third Parties
+                                </button>
+                            </h2>
+                            <div id="collapseDataSharing" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                                <div class="accordion-body">
+                                    <div class="alert alert-warning">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <strong>We do NOT sell or share your data commercially.</strong>
+                                    </div>
+                                    <p><strong>We may share your information only:</strong></p>
+                                    <ul>
+                                        <li>With authorized healthcare professionals involved in your care</li>
+                                        <li>With emergency services in life-threatening situations</li>
+                                        <li>When required by law or court order</li>
+                                        <li>With trusted technical service providers (under strict data processing agreements)</li>
+                                    </ul>
+                                    <p><strong>All data sharing is logged and auditable.</strong></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Your Rights -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="yourRights">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseYourRights">
+                                    <i class="bi bi-person-check me-2"></i>
+                                    Your Rights Under GDPR
+                                </button>
+                            </h2>
+                            <div id="collapseYourRights" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>You have the right to:</h5>
+                                            <ul>
+                                                <li><strong>Access</strong> your personal data</li>
+                                                <li><strong>Rectify</strong> inaccurate information</li>
+                                                <li><strong>Erase</strong> your data (right to be forgotten)</li>
+                                                <li><strong>Restrict</strong> processing</li>
+                                                <li><strong>Data portability</strong></li>
+                                                <li><strong>Object</strong> to processing</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card bg-primary text-white">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">
+                                                        <i class="bi bi-envelope me-2"></i>Exercise Your Rights
+                                                    </h5>
+                                                    <p class="card-text">
+                                                        To exercise any of these rights, please contact our Data Protection Officer.
+                                                    </p>
+                                                    <a href="mailto:info@knowmypatient.info" class="btn btn-light btn-sm w-100">
+                                                        Contact DPO
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="security">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecurity">
+                                    <i class="bi bi-shield-lock me-2"></i>
+                                    Security Measures
+                                </button>
+                            </h2>
+                            <div id="collapseSecurity" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <h5><i class="bi bi-lock text-success me-2"></i>Technical Safeguards</h5>
+                                            <ul>
+                                                <li>256-bit SSL encryption</li>
+                                                <li>Secure password hashing</li>
+                                                <li>Regular security audits</li>
+                                                <li>Firewall protection</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <h5><i class="bi bi-people text-info me-2"></i>Organizational Safeguards</h5>
+                                            <ul>
+                                                <li>Staff training on data protection</li>
+                                                <li>Access controls and monitoring</li>
+                                                <li>Data breach response procedures</li>
+                                                <li>Regular policy updates</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Retention -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="retention">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRetention">
+                                    <i class="bi bi-calendar-event me-2"></i>
+                                    Data Retention
+                                </button>
+                            </h2>
+                            <div id="collapseRetention" class="accordion-collapse collapse" data-bs-parent="#privacyAccordion">
+                                <div class="accordion-body">
+                                    <p><strong>We retain your data in accordance with healthcare records management guidelines:</strong></p>
+                                    <ul>
+                                        <li><strong>Active accounts:</strong> Data retained while account is active</li>
+                                        <li><strong>Inactive accounts:</strong> Reviewed annually for continued necessity</li>
+                                        <li><strong>Deleted accounts:</strong> Data permanently deleted within 30 days</li>
+                                        <li><strong>Audit logs:</strong> Retained for 7 years for security and compliance</li>
+                                    </ul>
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Some data may be retained longer if required by law or for legitimate medical purposes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Notice -->
+                    <div class="text-center mt-4 text-muted">
+                        <small>
+                            This privacy policy may be updated from time to time. We will notify you of any significant changes.
+                            <br>
+                            Know My Patient is committed to healthcare values and GDPR compliance.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</div>
+
+{% endblock %}
+                

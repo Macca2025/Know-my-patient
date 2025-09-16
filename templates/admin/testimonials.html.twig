@@ -1,0 +1,14 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block content %}
+
+<div class="container py-5">
+{% if session.user_role == 'admin' %}
+    {# ...existing content... #}
+{% else %}
+    <div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>
+{% endif %}
+    <h1 class="mb-4">Testimonials Management</h1>
+    <p>This is a placeholder for the Testimonials Management admin page.</p>
+</div>
+{% endblock %}

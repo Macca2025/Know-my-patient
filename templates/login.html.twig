@@ -1,0 +1,79 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+<div class="d-flex flex-column min-vh-100">
+	<main class="flex-grow-1 d-flex justify-content-center align-items-center login-main py-5 main-content">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-12 col-sm-10 col-md-8 col-lg-6">
+					<div class="login-card card shadow p-4 p-lg-5 my-5">
+						<!-- Logo and Welcome Section -->
+						<div class="text-center mb-4">
+							<div class="login-logo-wrapper mb-4">
+								<img src="{{ companyLogo|default('images/logo.png') }}" alt="{{ app_name|default('Know My Patient') }}" class="login-logo">
+							</div>
+							<h2 class="login-title fw-bold mb-3">Welcome Back</h2>
+							<p class="login-subtitle text-muted">Sign in to access your patient dashboard</p>
+						</div>
+
+						{% if error %}
+						<div class="alert alert-danger">{{ error }}</div>
+						{% endif %}
+
+						<form method="post" action="{{ url_for('login') }}" id="loginForm" class="login-form">
+	{# CSRF token fields #}
+	{% if csrf is defined %}
+		<input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+		<input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+	{% endif %}
+							<div class="form-group-modern mb-4">
+								<label for="email" class="form-label-modern">Email Address</label>
+								<div class="input-wrapper">
+									<i class="bi bi-envelope input-icon"></i>
+									<input type="email"
+										   class="form-control-modern"
+										   id="email"
+										   name="email"
+										   placeholder="Enter your email address"
+										   value="{{ form.email|default('') }}"
+										   required>
+								</div>
+							</div>
+
+							<div class="form-group-modern mb-4">
+								<label for="password" class="form-label-modern">Password</label>
+								<div class="input-wrapper">
+									<i class="bi bi-lock input-icon"></i>
+									<input type="password"
+										   class="form-control-modern"
+										   id="password"
+										   name="password"
+										   placeholder="Enter your password"
+										   required>
+									<button class="btn-password-toggle" type="button" id="togglePassword">
+										<i class="bi bi-eye" id="togglePasswordIcon"></i>
+									</button>
+								</div>
+							</div>
+
+							<!-- Remember Me and Forgot Password -->
+							<div class="form-options mb-4 d-flex justify-content-between align-items-center">
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="remember" name="remember" {% if form.remember %}checked{% endif %}>
+									<label class="form-check-label" for="remember">Remember Me</label>
+								</div>
+								<a href="{{ url_for('forgot_password')|default('#') }}" class="forgot-password-link">Forgot password?</a>
+							</div>
+
+							<div class="d-grid">
+								<button type="submit" name="submit_login" value="1" class="btn btn-primary">
+									<i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+</div>
+{% endblock %}

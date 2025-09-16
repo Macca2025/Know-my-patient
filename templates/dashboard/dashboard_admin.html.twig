@@ -1,0 +1,136 @@
+{# =============================
+    Admin Dashboard Cards
+    ============================= #}
+
+{# User Management Card #}
+<div class="dashboard-card-modern card-primary">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-people text-primary"></i>
+        </div>
+        <h5 class="card-title">User Management</h5>
+        <p class="card-text">View and manage all registered users, their roles, and account statuses.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary">
+                <i class="bi bi-table me-2"></i>Manage Users
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-shield-lock"></i>Administrator Only</small>
+        </div>
+    </div>
+</div>
+
+{# Audit Management Card #}
+<div class="dashboard-card-modern card-success">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-shield-check text-success"></i>
+        </div>
+        <h5 class="card-title">Audit Management</h5>
+        <p class="card-text">View and manage all system audit logs, access records, and security events.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('admin_audit_dashboard') }}" class="btn btn-outline-success">
+                <i class="bi bi-clipboard-data me-2"></i>View Audits
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-shield-lock"></i>Administrator Only</small>
+        </div>
+    </div>
+</div>
+
+{# Support Messages Card #}
+<div class="dashboard-card-modern card-info">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-chat-square-text text-info"></i>
+        </div>
+        <h5 class="card-title">Support Messages</h5>
+        <p class="card-text">View and manage user support messages, inquiries, and help desk tickets.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('admin_support_messages') }}" class="btn btn-outline-info">
+                <i class="bi bi-eye me-2"></i>View Messages
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-shield-lock"></i>Administrator Only</small>
+        </div>
+    </div>
+</div>
+
+{# Card Requests Card #}
+<div class="dashboard-card-modern card-info">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-credit-card text-info"></i>
+        </div>
+        <h5 class="card-title">Card Requests</h5>
+        <p class="card-text">Manage patient card requests and track delivery status.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('admin_card_requests') }}" class="btn btn-outline-info">
+                <i class="bi bi-list-check me-2"></i>Manage Requests
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-shield-lock"></i>Administrator Only</small>
+        </div>
+    </div>
+</div>
+
+{# Testimonials Card #}
+<div class="dashboard-card-modern card-warning">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-chat-quote text-warning"></i>
+        </div>
+        <h5 class="card-title">Testimonials</h5>
+        <p class="card-text">Manage customer testimonials and reviews displayed on the website.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('admin_testimonials') }}" class="btn btn-outline-warning">
+                <i class="bi bi-chat-quote me-2"></i>Manage Testimonials
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-shield-lock"></i>Administrator Only</small>
+        </div>
+    </div>
+</div>
+
+{# Onboarding Enquiries Card #}
+<div class="dashboard-card-modern card-primary">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-building text-primary"></i>
+        </div>
+        <h5 class="card-title">Onboarding Enquiries</h5>
+        <p class="card-text">Manage company onboarding enquiries and B2B lead generation.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('admin_onboarding_enquiries') }}" class="btn btn-outline-primary">
+                <i class="bi bi-building me-2"></i>Manage Enquiries
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-shield-lock"></i>Administrator Only</small>
+        </div>
+    </div>
+</div>
+
+{# Resources Card #}
+<div class="dashboard-card-modern card-secondary">
+    <div class="card-body">
+        <div class="card-icon">
+            <i class="bi bi-file-earmark-pdf text-secondary"></i>
+        </div>
+        <h5 class="card-title">Resources</h5>
+        <p class="card-text">View and manage important resources and documentation.</p>
+        <div class="card-actions">
+            <a href="{{ url_for('admin_resources') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-eye me-2"></i>View Resources
+            </a>
+        </div>
+        <div class="card-footer-info">
+            <small><i class="bi bi-shield-lock"></i>NHS Staff &amp; Admin Only</small>
+        </div>
+    </div>
+</div>

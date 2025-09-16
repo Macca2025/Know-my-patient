@@ -1,0 +1,169 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-grow-1 d-flex justify-content-center align-items-center register-main py-5 main-content">    
+    <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <div class="register-card">
+                        <div class="register-card-body">
+    {# Success and error messages #}
+    {% if success is defined and success %}
+        <div class="alert alert-success text-center">Registration successful! You can now log in.</div>
+    {% elseif errors is defined and errors %}
+        {% if errors.general is defined %}
+            <div class="alert alert-danger text-center">{{ errors.general }}</div>
+        {% endif %}
+        {% set has_field_errors = false %}
+        {% for field, msg in errors %}
+            {% if field != 'general' %}{% set has_field_errors = true %}{% endif %}
+        {% endfor %}
+        {% if has_field_errors %}
+        <ul class="alert alert-danger" style="list-style:none;">
+            {% for field, msg in errors %}
+                {% if field != 'general' %}<li>{{ msg }}</li>{% endif %}
+            {% endfor %}
+        </ul>
+        {% endif %}
+    {% endif %}
+                            <div class="text-center mb-4">
+                                <div class="register-logo-wrapper mb-4">
+                                    <img src="{{ companyLogo|default('images/logo.png') }}" alt="{{ app_name|default('Know My Patient') }}" class="register-logo">
+                                </div>
+                                <h2 class="register-title fw-bold mb-3">Create Your Account</h2>
+                                <p class="register-subtitle text-muted">Join the Digital Hospital Passport platform</p>
+                            </div>
+                        <form method="post" action="{{ url_for('register') }}" id="registrationForm" class="register-form">
+    {# CSRF token fields #}
+    {% if csrf is defined %}
+        <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+        <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+    {% endif %}
+                            <div class="form-group-modern mb-4">
+                                <label class="form-label-modern fw-semibold">Register as:</label>
+                                <div class="select-wrapper">
+                                    <i class="bi bi-person-badge select-icon"></i>
+                                    <select class="form-select-modern" name="register_type" required>
+                                        <option value="" disabled {{ form.register_type is not defined or not form.register_type ? 'selected' : '' }}>Select registration type</option>
+                                        <option value="patient" {{ form.register_type is defined and form.register_type == 'patient' ? 'selected' : '' }}>Patient</option>
+                                        <option value="family" {{ form.register_type is defined and form.register_type == 'family' ? 'selected' : '' }}>Family Member</option>
+                                        <option value="healthcare_Worker" {{ form.register_type is defined and form.register_type == 'healthcare_Worker' ? 'selected' : '' }}>Healthcare Worker</option>
+                                        <option value="nhs_user" {{ form.register_type is defined and form.register_type == 'nhs_user' ? 'selected' : '' }}>NHS Staff</option>
+                                    </select>
+                                </div>
+                                <div class="form-hint">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        NHS Staff require official NHS email addresses
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label for="firstName" class="form-label-modern">First Name</label>
+                                        <div class="input-wrapper">
+                                            <i class="bi bi-person input-icon"></i>
+                          <input type="text"
+                              class="form-control-modern"
+                              id="firstName"
+                              name="firstName"
+                              placeholder="Enter your first name"
+                              value="{{ form.firstName|default('') }}"
+                              required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-modern">
+                                        <label for="lastName" class="form-label-modern">Last Name</label>
+                                        <div class="input-wrapper">
+                                            <i class="bi bi-person input-icon"></i>
+                          <input type="text"
+                              class="form-control-modern"
+                              id="lastName"
+                              name="lastName"
+                              placeholder="Enter your last name"
+                              value="{{ form.lastName|default('') }}"
+                              required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-modern mb-4">
+                                <label for="email" class="form-label-modern">Email Address</label>
+                                <div class="input-wrapper">
+                                    <i class="bi bi-envelope input-icon"></i>
+                     <input type="email"
+                         class="form-control-modern"
+                         id="email"
+                         name="email"
+                         placeholder="Enter your email address"
+                         value="{{ form.email|default('') }}"
+                         required>
+                                </div>
+                                <div class="form-hint">
+                                    <small id="emailHelp" class="text-muted">
+                                        <i class="bi bi-shield-check me-1"></i>
+                                        We'll never share your email with anyone else
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-modern mb-4">
+                                <label for="password" class="form-label-modern">Password</label>
+                                <div class="input-wrapper">
+                                    <i class="bi bi-lock input-icon"></i>
+                     <input type="password"
+                         class="form-control-modern"
+                         name="password"
+                         placeholder="Create a secure password"
+                         id="password"
+                         required>
+                                    <button class="btn-password-toggle" type="button" id="togglePassword">
+                                        <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                    </button>
+                                </div>
+                                <div class="form-hint">
+                                    <small class="password-requirements text-muted">
+                                        <i class="bi bi-key me-1"></i>
+                                        Must be at least 8 characters with uppercase, lowercase, and numbers
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <!-- Terms and Conditions -->
+                            <div class="form-group-modern mb-4">
+                                <div class="custom-checkbox">
+                                    <input type="checkbox" class="checkbox-input" id="termsCheck" required>
+                                    <label class="checkbox-label" for="termsCheck">
+                                        <span class="checkbox-custom"></span>
+                                        I agree to the <a href="#" class="link-primary-modern">Terms of Service</a> 
+                                        and <a href="#" class="link-primary-modern">Privacy Policy</a>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn-modern-outline-primary w-100 mb-4" id="registerBtn">
+                                <i class="bi bi-person-plus me-2"></i>Create Account
+                            </button>
+                        </form>
+                        
+                        <div class="register-footer text-center">
+                            <p class="login-link">
+                                Already have an account? 
+                                <a href="{{ url_for('login') }}" class="link-primary-modern">Sign in here</a>
+                            </p>
+                        </div>
+                    
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{% endblock %}
