@@ -36,7 +36,7 @@ return function (App $app) {
         return $res->withStatus(400);
     });
 
-    // Removed CsrfLoggingMiddleware
 
-    $app->add(new TwigGlobalsMiddleware($twig->getEnvironment()));
+
+    $app->add(\App\Application\Middleware\TwigGlobalsMiddleware::class);
 };

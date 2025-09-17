@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 namespace App\Application\Middleware;
-
+use App\Application\Services\SessionService;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as Handler;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -9,10 +10,12 @@ use Twig\Environment;
 class TwigGlobalsMiddleware
 {
     private $twig;
+    private $sessionService;
 
-    public function __construct(Environment $twig)
+    public function __construct(Environment $twig, SessionService $sessionService)
     {
         $this->twig = $twig;
+        $this->sessionService = $sessionService;
     }
 
     public function __invoke(Request $request, Handler $handler): Response
@@ -29,10 +32,10 @@ class TwigGlobalsMiddleware
 
         // Add session globals for authentication state
         $this->twig->addGlobal('session', [
-            'user_id' => $_SESSION['user_id'] ?? null,
-            'user_email' => $_SESSION['user_email'] ?? null,
-            'user_name' => $_SESSION['user_name'] ?? null,
-            'user_role' => $_SESSION['user_role'] ?? null,
+            'user_id' => $this->sessionService->get('user_id'),
+            'user_email' => $this->sessionService->get('user_email'),
+            'user_name' => $this->sessionService->get('user_name'),
+            'user_role' => $this->sessionService->get('user_role'),
         ]);
 
         return $handler->handle($request);

@@ -7,29 +7,58 @@ use Slim\Views\Twig;
 use Psr\Log\LoggerInterface;
 use Respect\Validation\Validator as v;
 
+use App\Application\Services\SessionService;
+
 class AuthController
 {
     private Twig $twig;
     private \PDO $pdo;
     private LoggerInterface $logger;
+    private SessionService $sessionService;
 
-    public function __construct(Twig $twig, \PDO $pdo, LoggerInterface $logger)
+    public function __construct(Twig $twig, \PDO $pdo, LoggerInterface $logger, SessionService $sessionService)
     {
         $this->twig = $twig;
         $this->pdo = $pdo;
         $this->logger = $logger;
+        $this->sessionService = $sessionService;
     }
 
 
     public function login(Request $request, Response $response): Response
     {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         $error = null;
         $form = [];
+
+        // 1. Check for remember me cookie if not logged in
+        if (!isset($_SESSION['user_id']) && isset($_COOKIE['rememberme'])) {
+            $cookie = $_COOKIE['rememberme'];
+            if (strpos($cookie, ':') !== false) {
+                list($userId, $token) = explode(':', $cookie, 2);
+                $stmt = $this->pdo->prepare('SELECT id, email, first_name, last_name, role, remember_token FROM users WHERE id = ? AND active = 1 LIMIT 1');
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ($user && $user['remember_token'] && password_verify($token, $user['remember_token'])) {
+                    $this->sessionService->set('user_id', $user['id']);
+                    $this->sessionService->set('user_email', $user['email']);
+                    $this->sessionService->set('user_name', $user['first_name'] . ' ' . $user['last_name']);
+                    $this->sessionService->set('user_role', $user['role'] ?? null);
+                    $this->logger->info('User auto-logged in via remember me', ['user_id' => $user['id'], 'email' => $user['email']]);
+                    return $response->withHeader('Location', '/dashboard')->withStatus(302);
+                }
+            }
+        }
+
+        // 2. Handle POST login
         if ($request->getMethod() === 'POST') {
             $data = $request->getParsedBody();
             $form = $data;
             $email = trim($data['email'] ?? '');
             $password = $data['password'] ?? '';
+            $remember = !empty($data['remember']);
             $emailValidator = v::notEmpty()->email();
             $passwordValidator = v::notEmpty()->length(8, null);
             if (!$emailValidator->validate($email)) {
@@ -49,16 +78,33 @@ class AuthController
                     $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
                     $_SESSION['user_role'] = $user['role'] ?? null;
                     $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
-                    // Redirect to dashboard
-                    return $response
-                        ->withHeader('Location', '/dashboard')
-                        ->withStatus(302);
+                    // Handle remember me
+                    if ($remember) {
+                        $token = bin2hex(random_bytes(32));
+                        $hashedToken = password_hash($token, PASSWORD_DEFAULT);
+                        $update = $this->pdo->prepare('UPDATE users SET remember_token = ? WHERE id = ?');
+                        $update->execute([$hashedToken, $user['id']]);
+                        setcookie('rememberme', $user['id'] . ':' . $token, [
+                            'expires' => time() + (86400 * 30),
+                            'path' => '/',
+                            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                            'httponly' => true,
+                            'samesite' => 'Lax',
+                        ]);
+                    } else {
+                        setcookie('rememberme', '', time() - 3600, '/');
+                        $update = $this->pdo->prepare('UPDATE users SET remember_token = NULL WHERE id = ?');
+                        $update->execute([$user['id']]);
+                    }
+                    return $response->withHeader('Location', '/dashboard')->withStatus(302);
                 } else {
                     $error = 'Invalid email or password.';
                     $this->logger->warning('Failed login attempt', ['email' => $email]);
                 }
             }
         }
+
+        // 3. Render login page
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
             'value' => $request->getAttribute('csrf_value'),
@@ -73,7 +119,11 @@ class AuthController
             'form' => $form,
             'csrf' => $csrf,
             'registered' => $registered,
-            'current_route' => 'login'
+            'session' => $this->sessionService->all(),
+            'title' => 'Login',
+            'description' => 'Login to Know My Patient',
+            'canonical_url' => '/login',
+            'app_name' => 'Know My Patient'
         ]);
         $response->getBody()->write($body);
         return $response;
@@ -150,8 +200,7 @@ class AuthController
             'form' => $data,
             'errors' => $errors,
             'success' => $success,
-            'csrf' => $csrf,
-            'current_route' => 'register'
+            'csrf' => $csrf
         ]);
         $response->getBody()->write($body);
         return $response;
@@ -160,10 +209,15 @@ class AuthController
 
     public function logout(Request $request, Response $response): Response
     {
-        // Destroy session and redirect to login
+        // Destroy session, clear remember me cookie and DB token, then redirect to login
         $this->logger->info('User logged out', ['user_id' => $_SESSION['user_id'] ?? null, 'email' => $_SESSION['user_email'] ?? null]);
-        session_unset();
-        session_destroy();
+        if ($this->sessionService->get('user_id')) {
+            $update = $this->pdo->prepare('UPDATE users SET remember_token = NULL WHERE id = ?');
+            $update->execute([$this->sessionService->get('user_id')]);
+        }
+        setcookie('rememberme', '', time() - 3600, '/');
+        $this->sessionService->clear();
+        $this->sessionService->destroy();
         return $response->withHeader('Location', '/login')->withStatus(302);
     }
 

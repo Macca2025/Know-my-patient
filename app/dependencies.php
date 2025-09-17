@@ -27,6 +27,11 @@ return function (ContainerBuilder $containerBuilder) {
                 $c->get(\Psr\Log\LoggerInterface::class)
             );
         },
+                \App\Application\Middleware\AuthMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\AuthMiddleware {
+            return new \App\Application\Middleware\AuthMiddleware(
+                $c->get(\App\Application\Services\SessionService::class)
+            );
+        },
     \App\Infrastructure\Persistence\Onboarding\DatabaseOnboardingEnquiryRepository::class => function (ContainerInterface $c): \App\Infrastructure\Persistence\Onboarding\DatabaseOnboardingEnquiryRepository {
             return new \App\Infrastructure\Persistence\Onboarding\DatabaseOnboardingEnquiryRepository($c->get(\PDO::class));
         },
@@ -55,6 +60,18 @@ return function (ContainerBuilder $containerBuilder) {
                     $logger->pushHandler($handler);
                     return $logger;
                 },
+                    \App\Application\Services\SessionService::class => function (): \App\Application\Services\SessionService {
+                    return new \App\Application\Services\SessionService();
+                },
+                \App\Application\Actions\AdminController::class => function (ContainerInterface $c): \App\Application\Actions\AdminController {
+                    return new \App\Application\Actions\AdminController(
+                        $c->get(\Slim\Views\Twig::class),
+                        $c->get(\PDO::class),
+                        $c->get(\Psr\Log\LoggerInterface::class),
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                
                 \App\Application\Actions\HomeController::class => function (ContainerInterface $c): \App\Application\Actions\HomeController {
                     return new \App\Application\Actions\HomeController(
                         $c->get(\Slim\Views\Twig::class),
@@ -90,6 +107,43 @@ return function (ContainerBuilder $containerBuilder) {
                 },
                 \App\Infrastructure\Persistence\Support\DatabaseSupportMessageRepository::class => function (ContainerInterface $c): \App\Infrastructure\Persistence\Support\DatabaseSupportMessageRepository {
                     return new \App\Infrastructure\Persistence\Support\DatabaseSupportMessageRepository($c->get(\PDO::class));
+                },
+                \App\Application\Middleware\AdminOnlyMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\AdminOnlyMiddleware {
+                    return new \App\Application\Middleware\AdminOnlyMiddleware(
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                \App\Application\Middleware\NhsUserOnlyMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\NhsUserOnlyMiddleware {
+                    return new \App\Application\Middleware\NhsUserOnlyMiddleware(
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                \App\Application\Middleware\PatientOnlyMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\PatientOnlyMiddleware {
+                    return new \App\Application\Middleware\PatientOnlyMiddleware(
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                \App\Application\Middleware\FamilyOnlyMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\FamilyOnlyMiddleware {
+                    return new \App\Application\Middleware\FamilyOnlyMiddleware(
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                \App\Application\Middleware\GuestOnlyMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\GuestOnlyMiddleware {
+                    return new \App\Application\Middleware\GuestOnlyMiddleware(
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                \App\Application\Middleware\TwigGlobalsMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\TwigGlobalsMiddleware {
+                    $slimTwig = $c->get(\Slim\Views\Twig::class);
+                    return new \App\Application\Middleware\TwigGlobalsMiddleware(
+                        $slimTwig->getEnvironment(),
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                \App\Application\Middleware\SessionMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\SessionMiddleware {
+                    return new \App\Application\Middleware\SessionMiddleware(
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
                 },
             ]);
         };

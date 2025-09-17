@@ -3,11 +3,7 @@
 {% block content %}
 
 <div class="container py-5">
-{% if session.user_role == 'admin' %}
-    {# ...existing content... #}
-{% else %}
-    <div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>
-{% endif %}
+{# ...existing content... #}
     <h1 class="mb-4">Users Management</h1>
     <p>This is a placeholder for the Users Management admin page.</p>
 </div>

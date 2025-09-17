@@ -13,55 +13,7 @@ return function (App $app) {
         return $response;
     });
 
-    $app->post('/onboarding', function (Request $request, Response $response) use ($app) {
-        $container = $app->getContainer();
-        /** @var \Slim\Views\Twig $twig */
-        $twig = $container->get('view');
-        /** @var \App\Infrastructure\Persistence\Onboarding\DatabaseOnboardingEnquiryRepository $repo */
-        $repo = $container->get(\App\Infrastructure\Persistence\Onboarding\DatabaseOnboardingEnquiryRepository::class);
-
-        $data = $request->getParsedBody();
-        $errors = [];
-        // Basic validation (required fields)
-        $required = ['company_name', 'organization_type', 'contact_person', 'email', 'gdpr_consent'];
-        foreach ($required as $field) {
-            if (empty($data[$field])) {
-                $errors[$field] = 'This field is required.';
-            }
-        }
-        if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Invalid email address.';
-        }
-
-        if (empty($errors)) {
-            try {
-                $repo->insert($data);
-                $success = true;
-            } catch (\Throwable $e) {
-                $errors['general'] = 'Could not save your enquiry. Please try again later.';
-                $success = false;
-            }
-        } else {
-            $success = false;
-        }
-
-        $csrf = [
-            'name' => $request->getAttribute('csrf_name'),
-            'value' => $request->getAttribute('csrf_value'),
-            'keys' => [
-                'name' => 'csrf_name',
-                'value' => 'csrf_value'
-            ]
-        ];
-        $body = $twig->getEnvironment()->render('onboarding.html.twig', [
-            'form' => $data,
-            'errors' => $errors,
-            'success' => $success,
-            'csrf' => $csrf
-        ]);
-        $response->getBody()->write($body);
-        return $response;
-    });
+    $app->post('/onboarding', [\App\Application\Actions\OnboardingController::class, 'submitEnquiry']);
 
 
     // --------------------

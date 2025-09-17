@@ -8,37 +8,34 @@
             <i class="bi bi-plus-circle text-success"></i>
         </div>
         <h5 class="card-title">Add Patient Information</h5>
-        <p class="card-text">Add or update your health and hospital passport details to help care teams provide the best support.</p>
+        <p class="card-text">Add or update your digital hospital passport details here.</p>
         <div class="card-actions">
             <a href="add_patient_info.php" class="btn btn-outline-success">
                 <i class="bi bi-plus me-2"></i>Add Information
             </a>
         </div>
         <div class="card-footer-info">
-            <small><i class="bi bi-heart"></i>Health Information</small>
+            <small><i class="bi bi-plus-circle"></i>Digital Hospital Passport</small>
         </div>
     </div>
 </div>
 
+
 {# Share My Records Card #}
-{% set shareRecordsText = shareRecordsText|default({
-    'title': 'Share My Records',
-    'description': 'Share your medical records securely with healthcare professionals using your unique QR code.'
-}) %}
 <div class="dashboard-card-modern card-success">
     <div class="card-body">
         <div class="card-icon">
             <i class="bi bi-qr-code text-success"></i>
         </div>
-        <h5 class="card-title">{{ shareRecordsText.title }}</h5>
-        <p class="card-text">{{ shareRecordsText.description }}</p>
+        <h5 class="card-title">Share My Records</h5>
+        <p class="card-text">Share your Digital Hospital Passport securely here.</p>
         <div class="card-actions">
             <a href="display.php" class="btn btn-outline-success">
                 <i class="bi bi-share me-2"></i>Share Now
             </a>
         </div>
        <div class="card-footer-info">
-            <small><i class="bi bi-exclamation-triangle"></i>Irreversible Action</small>
+            <small><i class="bi bi-qr-code"></i>Share Access</small>
         </div>
     </div>
 </div>
@@ -50,7 +47,7 @@
             <i class="bi bi-credit-card-2-front text-warning"></i>
         </div>
         <h5 class="card-title">Physical Patient Card</h5>
-        {% if pendingCardRequest is defined and pendingCardRequest %}
+    {% if pendingCardRequest %}
             <!-- Show status if request exists -->
             <p class="card-text">Your card request is being processed.</p>
             <div class="card-status status-warning">
@@ -71,7 +68,7 @@
             </div>
         {% else %}
             <!-- Show order button if no pending request -->
-            <p class="card-text">Order a physical membership card with your unique QR code for easy NHS access.</p>
+            <p class="card-text">Order a physical membership card with your unique QR code.</p>
             <div class="card-actions">
                 <form method="POST" class="full-width-form">
                     <input type="hidden" name="action" value="request_patient_card">

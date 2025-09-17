@@ -21,7 +21,30 @@ class OnboardingController
     }
 
 
+    // GET: Show onboarding form
     public function onboarding(Request $request, Response $response): Response
+    {
+        $csrf = [
+            'name' => $request->getAttribute('csrf_name'),
+            'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
+        ];
+        $body = $this->twig->getEnvironment()->render('onboarding.html.twig', [
+            'form' => [],
+            'errors' => [],
+            'success' => false,
+            'csrf' => $csrf,
+            'current_route' => 'onboarding'
+        ]);
+        $response->getBody()->write($body);
+        return $response;
+    }
+
+    // POST: Handle onboarding form submission
+    public function submitEnquiry(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
         $errors = [];
@@ -48,8 +71,7 @@ class OnboardingController
             $errors['gdpr_consent'] = 'GDPR consent is required.';
         }
 
-        // Only insert if POST and no errors
-        if (empty($errors) && $request->getMethod() === 'POST') {
+        if (empty($errors)) {
             try {
                 $this->onboardingRepo->insert($data);
                 $success = true;
@@ -57,8 +79,6 @@ class OnboardingController
                 $errors['general'] = 'Could not save your enquiry. Please try again later.';
                 $success = false;
             }
-        } else {
-            $success = false;
         }
 
         $csrf = [
