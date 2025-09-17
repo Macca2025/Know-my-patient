@@ -2,6 +2,22 @@
 
 A secure, role-based patient management platform built with Slim Framework 4, Twig, and PHP-DI.
 
+
+## Key Composer Packages
+
+- **slim/slim**: Core Slim Framework
+- **slim/twig-view**: Twig templating integration
+- **php-di/php-di**: Dependency injection
+- **monolog/monolog**: Logging
+- **vlucas/phpdotenv**: Environment variable management
+- **respect/validation**: Input validation
+- **slim/csrf**: CSRF protection
+- **endroid/qr-code**: QR code generation
+- **phpmailer/phpmailer**: Email sending
+- **twilio/sdk**: Twilio API integration (SMS, calls, etc.)
+
+See `composer.json` for the full list.
+
 ## Features
 
 - **Role-Based Access Control**: Admin, NHS user, Patient, and Family roles, each with custom dashboards and permissions.
