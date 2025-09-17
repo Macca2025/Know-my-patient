@@ -1,0 +1,125 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block content %}
+
+<div class="d-flex flex-column min-vh-100">
+    <main class="flex-grow-1 d-flex justify-content-center align-items-center display-main main-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+                    <div class="card shadow-lg p-5 my-5 text-center qr-card">
+                        <div class="qr-header">
+                            <h3 class="mb-4 fw-bold text-purple-primary animated-title">
+                                <i class="bi bi-qr-code me-2"></i>Your Personal Share Code
+                            </h3>
+                        </div>
+                        
+                        <!-- Security Notice -->
+                        <div class="alert alert-info mb-3 security-alert slide-in" id="securityNotice">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="security-icon me-2">
+                                    <i class="bi bi-shield-check"></i>
+                                </div>
+                                <small>For security, this code will be hidden after <span class="countdown-text">20</span> seconds.</small>
+                            </div>
+                        </div>
+                        
+                        <!-- QR Code Container -->
+                        <div class="position-relative mb-4 qr-display-container" id="qrContainer">
+                            <div class="qr-wrapper">
+                                <div class="qr-glow-effect"></div>
+                                <img src="{{ qrDataUri }}" alt="QR Code" class="img-fluid qr-image" id="qrImage">
+                                <div class="qr-scan-lines"></div>
+                            </div>
+                            
+                            <!-- Enhanced Blur Overlay -->
+                            <div class="blur-overlay d-none" id="qrBlurOverlay">
+                                <div class="blur-content">
+                                    <div class="reveal-icon-container">
+                                        <i class="bi bi-eye-slash reveal-icon"></i>
+                                        <div class="pulse-ring"></div>
+                                    </div>
+                                    <p class="reveal-text">Click to reveal QR code</p>
+                                    <div class="reveal-hint">
+                                        <small><kbd>R</kbd> key to reveal</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Enhanced Unique Code Container -->
+                        <div class="position-relative mb-4 code-display-container" id="codeContainer">
+                            <div class="code-wrapper">
+                                <div class="code-label">Your Personal Code</div>
+                                <div class="code-display fw-bold" id="uniqueCode">
+                                    <span class="code-text">{{ uniqueCode }}</span>
+                                    <div class="copy-indicator">
+                                        <i class="bi bi-clipboard copy-icon"></i>
+                                        <span class="copy-text">Click to copy</span>
+                                    </div>
+                                </div>
+                                <div class="code-border-animation"></div>
+                            </div>
+                            
+                            <!-- Enhanced Code Blur Overlay -->
+                            <div class="blur-overlay d-none" id="codeBlurOverlay">
+                                <div class="blur-content">
+                                    <div class="reveal-icon-container">
+                                        <i class="bi bi-eye-slash reveal-icon"></i>
+                                        <div class="pulse-ring"></div>
+                                    </div>
+                                    <p class="reveal-text">Click to reveal code</p>
+                                    <div class="reveal-hint">
+                                        <small><kbd>R</kbd> key to reveal</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-text mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Show this QR code or share your personal code with healthcare staff for secure access to your medical information.
+                        </div>
+                        
+                        <!-- Enhanced Action Buttons -->
+                        <div class="action-buttons mt-4">
+                            <button class="btn btn-reveal" id="revealBtn">
+                                <span class="btn-content">
+                                    <i class="bi bi-eye me-2"></i>Reveal Code
+                                </span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                            
+                            <button class="btn btn-share ms-3" id="shareBtn">
+                                <span class="btn-content">
+                                    <i class="bi bi-share me-2"></i>Share
+                                </span>
+                                <div class="btn-ripple"></div>
+                            </button>
+                        </div>
+                        
+                        <!-- Enhanced Timer Display -->
+                        <div class="timer-container mt-3">
+                            <div class="timer-display" id="timerDisplay">
+                                <div class="timer-icon">
+                                    <i class="bi bi-stopwatch"></i>
+                                </div>
+                                <span class="timer-text">Code will be hidden in <span class="countdown-number" id="countdown">20</span> seconds</span>
+                            </div>
+                            <div class="timer-progress">
+                                <div class="timer-progress-bar" id="timerProgressBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+   
+</div>
+
+        </main>
+    </div>
+</div>
+  
+{% endblock %}

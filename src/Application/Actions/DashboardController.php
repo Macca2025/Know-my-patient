@@ -21,6 +21,35 @@ class DashboardController
         $this->sessionService = $sessionService;
     }
 
+        // Display page for /display route
+    public function displayPage(Request $request, Response $response): Response
+    {
+        $userId = $this->sessionService->get('user_id');
+        $uniqueCode = '';
+        $qrDataUri = '';
+        if ($userId) {
+            $stmt = $this->pdo->prepare('SELECT uid FROM users WHERE id = ? LIMIT 1');
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($user && !empty($user['uid'])) {
+                $uniqueCode = $user['uid'];
+                // Generate QR code using endroid/qr-code v6.x
+                $appUrl = rtrim(getenv('APP_URL') ?: ($_SERVER['APP_URL'] ?? ''), '/') . '/';
+                $qrContent = $appUrl . $uniqueCode;
+                $qrCode = new \Endroid\QrCode\QrCode($qrContent);
+                $writer = new \Endroid\QrCode\Writer\PngWriter();
+                $result = $writer->write($qrCode);
+                $qrDataUri = $result->getDataUri();
+            }
+        }
+        $body = $this->twig->getEnvironment()->render('users_pages/display.html.twig', [
+            'uniqueCode' => $uniqueCode,
+            'qrDataUri' => $qrDataUri
+        ]);
+        $response->getBody()->write($body);
+        return $response;
+    }
+
 
     public function dashboard(Request $request, Response $response): Response
     {
@@ -135,12 +164,33 @@ class DashboardController
 
     public function myProfile(Request $request, Response $response): Response
     {
+        // Get user ID from session
+        $userId = $this->sessionService->get('user_id');
+        $currentUser = [
+            'first_name' => '',
+            'surname' => '',
+            'email' => '',
+            'user_id' => '',
+            'role' => '',
+            'is_verified' => 0,
+            'created_at' => null
+        ];
+        if ($userId) {
+            $stmt = $this->pdo->prepare('SELECT id, first_name, last_name, email, role, is_verified, created_at FROM users WHERE id = ? LIMIT 1');
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($user) {
+                $currentUser['first_name'] = $user['first_name'] ?? '';
+                $currentUser['surname'] = $user['last_name'] ?? '';
+                $currentUser['email'] = $user['email'] ?? '';
+                $currentUser['user_id'] = $user['id'] ?? '';
+                $currentUser['role'] = $user['role'] ?? '';
+                $currentUser['is_verified'] = $user['is_verified'] ?? 0;
+                $currentUser['created_at'] = $user['created_at'] ?? null;
+            }
+        }
         $body = $this->twig->getEnvironment()->render('users_pages/my_profile.html.twig', [
-            'currentUser' => $this->sessionService->get('currentUser', [
-                'first_name' => $this->sessionService->get('user_name', ''),
-                'surname' => '',
-                'email' => $this->sessionService->get('user_email', '')
-            ])
+            'currentUser' => $currentUser
         ]);
         $response->getBody()->write($body);
         return $response;

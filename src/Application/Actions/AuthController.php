@@ -30,8 +30,9 @@ class AuthController
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
-        $error = null;
-        $form = [];
+    $error = null;
+    $form = [];
+    $suspended = false;
 
         // 1. Check for remember me cookie if not logged in
         if (!isset($_SESSION['user_id']) && isset($_COOKIE['rememberme'])) {
@@ -68,41 +69,50 @@ class AuthController
                 $error = 'Password is required and must be at least 8 characters.';
                 $this->logger->warning('Login attempt with invalid password', ['email' => $email]);
             } else {
-                $stmt = $this->pdo->prepare('SELECT * FROM users WHERE email = ? AND active = 1 LIMIT 1');
-                $stmt->execute([$email]);
-                $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-                if ($user && password_verify($password, $user['password'])) {
-                    // Set session
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_email'] = $user['email'];
-                    $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-                    $_SESSION['user_role'] = $user['role'] ?? null;
-                    // Update last_login
-                    $updateLogin = $this->pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
-                    $updateLogin->execute([$user['id']]);
-                    $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
-                    // Handle remember me
-                    if ($remember) {
-                        $token = bin2hex(random_bytes(32));
-                        $hashedToken = password_hash($token, PASSWORD_DEFAULT);
-                        $update = $this->pdo->prepare('UPDATE users SET remember_token = ? WHERE id = ?');
-                        $update->execute([$hashedToken, $user['id']]);
-                        setcookie('rememberme', $user['id'] . ':' . $token, [
-                            'expires' => time() + (86400 * 30),
-                            'path' => '/',
-                            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-                            'httponly' => true,
-                            'samesite' => 'Lax',
-                        ]);
-                    } else {
-                        setcookie('rememberme', '', time() - 3600, '/');
-                        $update = $this->pdo->prepare('UPDATE users SET remember_token = NULL WHERE id = ?');
-                        $update->execute([$user['id']]);
-                    }
-                    return $response->withHeader('Location', '/dashboard')->withStatus(302);
+                // Check for suspended user first
+                $stmtSuspended = $this->pdo->prepare('SELECT * FROM users WHERE email = ? AND active = 0 LIMIT 1');
+                $stmtSuspended->execute([$email]);
+                $suspendedUser = $stmtSuspended->fetch(\PDO::FETCH_ASSOC);
+                if ($suspendedUser) {
+                    $suspended = true;
+                    $this->logger->warning('Suspended user login attempt', ['email' => $email]);
                 } else {
-                    $error = 'Invalid email or password.';
-                    $this->logger->warning('Failed login attempt', ['email' => $email]);
+                    $stmt = $this->pdo->prepare('SELECT * FROM users WHERE email = ? AND active = 1 LIMIT 1');
+                    $stmt->execute([$email]);
+                    $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+                    if ($user && password_verify($password, $user['password'])) {
+                        // Set session
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['user_email'] = $user['email'];
+                        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
+                        $_SESSION['user_role'] = $user['role'] ?? null;
+                        // Update last_login
+                        $updateLogin = $this->pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
+                        $updateLogin->execute([$user['id']]);
+                        $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
+                        // Handle remember me
+                        if ($remember) {
+                            $token = bin2hex(random_bytes(32));
+                            $hashedToken = password_hash($token, PASSWORD_DEFAULT);
+                            $update = $this->pdo->prepare('UPDATE users SET remember_token = ? WHERE id = ?');
+                            $update->execute([$hashedToken, $user['id']]);
+                            setcookie('rememberme', $user['id'] . ':' . $token, [
+                                'expires' => time() + (86400 * 30),
+                                'path' => '/',
+                                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                                'httponly' => true,
+                                'samesite' => 'Lax',
+                            ]);
+                        } else {
+                            setcookie('rememberme', '', time() - 3600, '/');
+                            $update = $this->pdo->prepare('UPDATE users SET remember_token = NULL WHERE id = ?');
+                            $update->execute([$user['id']]);
+                        }
+                        return $response->withHeader('Location', '/dashboard')->withStatus(302);
+                    } else {
+                        $error = 'Invalid email or password.';
+                        $this->logger->warning('Failed login attempt', ['email' => $email]);
+                    }
                 }
             }
         }
@@ -122,6 +132,7 @@ class AuthController
             'form' => $form,
             'csrf' => $csrf,
             'registered' => $registered,
+            'suspended' => $suspended,
             'session' => $this->sessionService->all(),
             'title' => 'Login',
             'description' => 'Login to Know My Patient',

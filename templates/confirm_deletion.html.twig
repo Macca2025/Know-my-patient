@@ -1,0 +1,57 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+<div class="container py-5 d-flex flex-column align-items-center justify-content-center min-vh-100">
+    <div class="card shadow-lg p-4 p-md-5" style="max-width: 480px; width: 100%;">
+        <h2 class="fw-bold text-danger mb-3 text-center">
+            <i class="bi bi-exclamation-triangle me-2"></i>Confirm Account Deletion
+        </h2>
+        <p class="mb-3 text-center">
+            Deleting your account is permanent and cannot be undone.<br>
+            Account termination may take up to <strong>30 working days</strong> to process.<br>
+            Certain files or records may be retained as required by UK GDPR and other applicable laws.
+        </p>
+        <div class="alert alert-warning small mb-4 text-center">
+            By proceeding, you acknowledge that some data may be kept for legal, regulatory, or safeguarding reasons.
+        </div>
+        <form method="post" action="{{ url_for('confirm_deletion') }}" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="confirmText" class="form-label">Type <strong>I CONFIRM MY ACCOUNT FOR DELETION</strong> to continue:</label>
+                <input type="text" id="confirmText" name="confirmText" class="form-control text-uppercase" required pattern="I CONFIRM MY ACCOUNT FOR DELETION">
+                <div class="invalid-feedback">
+                    Please type the exact phrase to confirm account deletion.
+                </div>
+            </div>
+            <button type="submit" class="btn btn-danger w-100 mt-2" id="deleteBtn" disabled>
+                <i class="bi bi-trash me-2"></i>Delete My Account
+            </button>
+        </form>
+        <div class="mt-3 text-center">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-link text-muted">Cancel and return to dashboard</a>
+        </div>
+    </div>
+</div>
+<script>
+// Enable button only if phrase matches
+const confirmInput = document.getElementById('confirmText');
+const deleteBtn = document.getElementById('deleteBtn');
+if (confirmInput && deleteBtn) {
+    confirmInput.addEventListener('input', function() {
+        deleteBtn.disabled = this.value.trim().toUpperCase() !== 'I CONFIRM MY ACCOUNT FOR DELETION';
+    });
+}
+// Bootstrap validation
+(function () {
+    'use strict';
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+})();
+</script>
+{% endblock %}

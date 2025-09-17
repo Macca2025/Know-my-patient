@@ -15,6 +15,17 @@ return function (App $app) {
 
     $app->post('/onboarding', [\App\Application\Actions\OnboardingController::class, 'submitEnquiry']);
 
+    // --------------------
+    // Display Page Route (GET)
+    // --------------------
+    $app->get('/display', [\App\Application\Actions\DashboardController::class, 'displayPage'])->setName('display_page');
+
+    // --------------------
+    // Account Deletion Confirmation Route (GET & POST)
+    // --------------------
+    $app->map(['GET', 'POST'], '/confirm-deletion', [\App\Application\Actions\User\ConfirmDeletionAction::class, '__invoke'])
+        ->add(\App\Application\Middleware\AuthMiddleware::class)
+        ->setName('confirm_deletion');
 
     // --------------------
     // Public/Home Routes

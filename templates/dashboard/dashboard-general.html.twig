@@ -46,9 +46,9 @@
                 <h5 class="card-title">Delete Account</h5>
                 <p class="card-text">Permanently delete your account and all associated records.</p>
                 <div class="card-actions">
-                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                        <a  class="btn btn-outline-danger" href="{{ url_for('confirm_deletion') }}">
                                 <i class="bi bi-exclamation-triangle me-2"></i>Delete Account
-                        </button>
+                        </a>
                 </div>
                 <div class="card-footer-info">
                         <small><i class="bi bi-exclamation-triangle"></i>Irreversible Action</small>

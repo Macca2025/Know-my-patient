@@ -27,8 +27,22 @@
 							{% if registered == '1' %}
 								<div class="alert alert-success">Registration successful! Please log in.</div>
 							{% endif %}
+							{% if app.request.get('deleted') == '1' %}
+								<div class="alert alert-success">
+									<i class="bi bi-check-circle me-2"></i>
+									Your account has been deleted. We're sorry to see you go.
+								</div>
+							{% endif %}
 							<p class="login-subtitle text-muted">Sign in to access your patient dashboard</p>
 						</div>
+
+
+						{% if suspended %}
+						<div class="alert alert-warning">
+							<i class="bi bi-exclamation-triangle me-2"></i>
+							Your account has been suspended.</br>Please <a href="{{ url_for('support')|default('#') }}" class="alert-link">contact support</a> for assistance.
+						</div>
+						{% endif %}
 
 						{% if error %}
 						<div class="alert alert-danger">{{ error }}</div>
