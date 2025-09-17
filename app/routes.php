@@ -76,13 +76,21 @@ return function (App $app) {
     // Admin Dashboard Routes (protected)
     // --------------------
     $app->group('/admin', function ($group) {
-        $group->get('/users', [\App\Application\Actions\AdminController::class, 'users'])->setName('admin_users');
-        $group->get('/audit-dashboard', [\App\Application\Actions\AdminController::class, 'auditDashboard'])->setName('admin_audit_dashboard');
-        $group->get('/support-messages', [\App\Application\Actions\AdminController::class, 'supportMessages'])->setName('admin_support_messages');
-        $group->get('/card-requests', [\App\Application\Actions\AdminController::class, 'cardRequests'])->setName('admin_card_requests');
-        $group->get('/testimonials', [\App\Application\Actions\AdminController::class, 'testimonials'])->setName('admin_testimonials');
-        $group->get('/onboarding-enquiries', [\App\Application\Actions\AdminController::class, 'onboardingEnquiries'])->setName('admin_onboarding_enquiries');
-        $group->get('/resources', [\App\Application\Actions\AdminController::class, 'resources'])->setName('admin_resources');
+    $group->get('/users', [\App\Application\Actions\AdminController::class, 'users'])->setName('admin_users');
+    $group->post('/users/delete', [\App\Application\Actions\AdminController::class, 'deleteUser'])->setName('admin_user_delete');
+    $group->post('/users/suspend', [\App\Application\Actions\AdminController::class, 'suspendUser'])->setName('admin_user_suspend');
+    $group->get('/audit-dashboard', [\App\Application\Actions\AdminController::class, 'auditDashboard'])->setName('admin_audit_dashboard');
+    $group->get('/support-messages', [\App\Application\Actions\AdminController::class, 'supportMessages'])->setName('admin_support_messages');
+    $group->post('/support-messages/status', [\App\Application\Actions\AdminController::class, 'updateSupportMessageStatus'])->setName('admin_support_message_status');
+    $group->post('/support-messages/delete', [\App\Application\Actions\AdminController::class, 'deleteSupportMessage'])->setName('admin_support_message_delete');
+    $group->get('/card-requests', [\App\Application\Actions\AdminController::class, 'cardRequests'])->setName('admin_card_requests');
+    $group->get('/testimonials', [\App\Application\Actions\AdminController::class, 'testimonials'])->setName('admin_testimonials');
+    $group->post('/testimonials/delete', [\App\Application\Actions\AdminController::class, 'deleteTestimonial'])->setName('admin_testimonial_delete');
+    $group->get('/onboarding-enquiries', [\App\Application\Actions\AdminController::class, 'onboardingEnquiries'])->setName('admin_onboarding_enquiries');
+    $group->post('/onboarding-enquiries/assign', [\App\Application\Actions\AdminController::class, 'assignOnboardingEnquiry'])->setName('admin_onboarding_enquiry_assign');
+    $group->post('/onboarding-enquiries/status', [\App\Application\Actions\AdminController::class, 'updateOnboardingEnquiryStatus'])->setName('admin_onboarding_enquiry_status');
+    $group->post('/onboarding-enquiries/delete', [\App\Application\Actions\AdminController::class, 'deleteOnboardingEnquiry'])->setName('admin_onboarding_enquiry_delete');
+    $group->get('/resources', [\App\Application\Actions\AdminController::class, 'resources'])->setName('admin_resources');
     })->add(\App\Application\Middleware\AdminOnlyMiddleware::class);
 
 

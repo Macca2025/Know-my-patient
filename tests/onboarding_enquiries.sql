@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Sep 15, 2025 at 08:20 PM
+-- Generation Time: Sep 17, 2025 at 01:24 PM
 -- Server version: 8.0.40
 -- PHP Version: 8.3.14
 
@@ -83,6 +83,16 @@ ALTER TABLE `onboarding_enquiries`
   ADD KEY `idx_status_followup` (`status`,`follow_up_date`),
   ADD KEY `idx_created_status` (`created_at`,`status`),
   ADD KEY `idx_organization_size` (`organization_type`,`organization_size`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `onboarding_enquiries`
+--
+ALTER TABLE `onboarding_enquiries`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

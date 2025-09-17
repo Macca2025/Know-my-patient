@@ -3,8 +3,172 @@
 {% block content %}
 
 <div class="container py-5">
-{# ...existing content... #}
-    <h1 class="mb-4">Audit Management</h1>
-    <p>This is a placeholder for the Audit Management admin page.</p>
+  <!-- Dashboard Header Styled Like Support Page -->
+    <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4" style="margin-top:80px">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h1 class="fw-bold text-purple-primary mb-2">
+                    <i class="bi bi-person-badge-fill me-2"></i>
+                    {{ dashboardTitle|default('Audit Management') }}
+                </h1>
+                <p class="lead text-secondary mb-0">
+                Welcome, {{ currentUser.first_name ~ ' ' ~ currentUser.surname }}
+                {{ dashboardSubtitle|default('Audit Management Dashboard.') }}
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- Audit Log Widgets -->
+    <div class="row mb-4">
+        <!-- Total Lookups -->
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="admin-stat-value h4 mb-0 me-2">{{ auditLogs|length }}</span>
+                            <span class="admin-stat-icon bg-primary bg-opacity-10 rounded-circle p-2"><i class="bi bi-search text-primary"></i></span>
+                        </div>
+                        <div class="admin-stat-label small">Total Lookups</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Unique Patients -->
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="admin-stat-value h4 mb-0 me-2">
+                                {% set patient_ids = [] %}
+                                {% for a in auditLogs %}
+                                    {% if a.target_user_id is not empty and a.target_user_id not in patient_ids %}
+                                        {% set patient_ids = patient_ids|merge([a.target_user_id]) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ patient_ids|length }}
+                            </span>
+                            <span class="admin-stat-icon bg-info bg-opacity-10 rounded-circle p-2"><i class="bi bi-person-badge text-info"></i></span>
+                        </div>
+                        <div class="admin-stat-label small">Unique Patients</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Active Users (users who performed a lookup in the last 24h) -->
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="admin-stat-value h4 mb-0 me-2">
+                                {% set active_user_ids = [] %}
+                                {% set now = "now"|date('U') %}
+                                {% for a in auditLogs %}
+                                    {% set log_time = a.timestamp|date('U') %}
+                                    {% if (now - log_time) <= 86400 and a.user_id not in active_user_ids %}
+                                        {% set active_user_ids = active_user_ids|merge([a.user_id]) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ active_user_ids|length }}
+                            </span>
+                            <span class="admin-stat-icon bg-success bg-opacity-10 rounded-circle p-2"><i class="bi bi-person-check text-success"></i></span>
+                        </div>
+                        <div class="admin-stat-label small">Active Users</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Today's Lookups -->
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="admin-stat-value h4 mb-0 me-2">
+                                {% set today = "now"|date('Y-m-d') %}
+                                {% set today_lookups = 0 %}
+                                {% for a in auditLogs %}
+                                    {% if a.timestamp|date('Y-m-d') == today %}
+                                        {% set today_lookups = today_lookups + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ today_lookups }}
+                            </span>
+                            <span class="admin-stat-icon bg-warning bg-opacity-10 rounded-circle p-2"><i class="bi bi-calendar-day text-warning"></i></span>
+                        </div>
+                        <div class="admin-stat-label small">Today's Lookups</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Audit Log Search/Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3 align-items-end" method="get">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Patient user ID, patient UID, or reason..." value="{{ search|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="from_date" class="form-label">From Date</label>
+                    <input type="text" class="form-control" id="from_date" name="from_date" placeholder="dd/mm/yyyy" value="{{ from_date|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="to_date" class="form-label">To Date</label>
+                    <input type="text" class="form-control" id="to_date" name="to_date" placeholder="dd/mm/yyyy" value="{{ to_date|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="?" class="btn btn-outline-secondary w-100">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+<!-- Audit Log Table -->
+    <div class="card mt-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Audit Log</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>NHS User</th>
+                        <th>Patient</th>
+                        <th>Patient UID</th>
+                        <th>Status</th>
+                        <th>IP Address</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if auditLogs|length > 0 %}
+                    {% for log in auditLogs %}
+                        <tr>
+                            <td>{{ log.timestamp|date('Y-m-d H:i') }}</td>
+                            <td>{{ log.user_id }}</td>
+                            <td>{{ log.target_user_id }}</td>
+                            <td>{{ log.target_user_id }}</td>
+                            <td>{{ log.activity_type|replace({'_': ' '})|capitalize }}</td>
+                            <td>{{ log.ip_address }}</td>
+                            <td>{{ log.description }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">No audit logs found.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
+
+
 {% endblock %}

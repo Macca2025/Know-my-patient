@@ -77,6 +77,9 @@ class AuthController
                     $_SESSION['user_email'] = $user['email'];
                     $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
                     $_SESSION['user_role'] = $user['role'] ?? null;
+                    // Update last_login
+                    $updateLogin = $this->pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
+                    $updateLogin->execute([$user['id']]);
                     $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
                     // Handle remember me
                     if ($remember) {
