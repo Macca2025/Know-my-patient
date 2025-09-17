@@ -18,5 +18,167 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-primary bg-opacity-10 mb-2">
+                        <i class="bi bi-people text-primary"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.total_requests|default(0) }}</div>
+                    <div class="admin-stat-label small">Total Requests</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-info bg-opacity-10 mb-2">
+                        <i class="bi bi-hourglass-split text-info"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.pending|default(0) }}</div>
+                    <div class="admin-stat-label small">Pending</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-success bg-opacity-10 mb-2">
+                        <i class="bi bi-printer text-success"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.printing|default(0) }}</div>
+                    <div class="admin-stat-label small">Printing</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-warning bg-opacity-10 mb-2">
+                        <i class="bi bi-truck text-warning"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.posted|default(0) }}</div>
+                    <div class="admin-stat-label small">Posted</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Filter/Search Section in its own card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" placeholder="Name, UID, Email, Tracking..." value="{{ filters.search|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="all" {% if filters.status is empty or filters.status == 'all' %}selected{% endif %}>All Statuses</option>
+                        <option value="pending" {% if filters.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if filters.status == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="printing" {% if filters.status == 'printing' %}selected{% endif %}>Printing</option>
+                        <option value="quality_check" {% if filters.status == 'quality_check' %}selected{% endif %}>Quality Check</option>
+                        <option value="posted" {% if filters.status == 'posted' %}selected{% endif %}>Posted</option>
+                        <option value="delivered" {% if filters.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="from_date" class="form-label">From Date</label>
+                    <input type="text" class="form-control" id="from_date" name="from_date" placeholder="dd/mm/yyyy" value="{{ filters.from_date|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="to_date" class="form-label">To Date</label>
+                    <input type="text" class="form-control" id="to_date" name="to_date" placeholder="dd/mm/yyyy" value="{{ filters.to_date|default('') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="sort_by" class="form-label">Sort By</label>
+                    <select class="form-select" id="sort_by" name="sort_by">
+                        <option value="request_date" {% if filters.sort_by == 'request_date' %}selected{% endif %}>Request Date</option>
+                        <option value="status" {% if filters.sort_by == 'status' %}selected{% endif %}>Status</option>
+                        <option value="card_type" {% if filters.sort_by == 'card_type' %}selected{% endif %}>Card Type</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label for="order" class="form-label">Order</label>
+                    <select class="form-select" id="order" name="order">
+                        <option value="desc" {% if filters.order == 'DESC' %}selected{% endif %}>Desc</option>
+                        <option value="asc" {% if filters.order == 'ASC' %}selected{% endif %}>Asc</option>
+                    </select>
+                </div>
+                <div class="col-md-12 text-end">
+                    <button type="submit" class="btn btn-modern-outline-primary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table Section in its own card -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <h3 class="mb-4">All Card Requests</h3>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Request Date</th>
+                            <th>Patient Details</th>
+                            <th>Contact Info</th>
+                            <th>Card Type</th>
+                            <th>Status</th>
+                            <th>Tracking</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if cardRequests|length > 0 %}
+                            {% for req in cardRequests %}
+                                <tr>
+                                    <td>{{ req.request_date|date('Y-m-d H:i') }}</td>
+                                    <td>
+                                        <strong>{{ req.patient_uid }}</strong><br>
+                                        <small>User ID: {{ req.user_id }}</small>
+                                    </td>
+                                    <td>
+                                        {% if req.contact_email %}<i class="bi bi-envelope"></i> {{ req.contact_email }}<br>{% endif %}
+                                        {% if req.contact_phone %}<i class="bi bi-telephone"></i> {{ req.contact_phone }}{% endif %}
+                                    </td>
+                                    <td>{{ req.card_type|capitalize }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ req.status == 'pending' ? 'secondary' : (req.status == 'printing' ? 'info' : (req.status == 'posted' ? 'primary' : (req.status == 'delivered' ? 'success' : (req.status == 'cancelled' ? 'danger' : 'warning'))) ) }}">
+                                            {{ req.status|replace({'_': ' '})|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if req.tracking_number %}
+                                            <span class="badge bg-light text-dark">{{ req.tracking_number }}</span>
+                                        {% else %}-{% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <button class="btn btn-sm btn-outline-primary p-1" title="View Details" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success p-1" title="Edit" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger p-1" title="Delete" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="7" class="text-center">No card requests found.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

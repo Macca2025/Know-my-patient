@@ -18,6 +18,52 @@
             </div>
         </div>
     </div>
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-primary bg-opacity-10 mb-2">
+                        <i class="bi bi-people text-primary"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.total_enquiries|default(0) }}</div>
+                    <div class="admin-stat-label small">Total Enquiries</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-info bg-opacity-10 mb-2">
+                        <i class="bi bi-plus-circle text-info"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.new_enquiries|default(0) }}</div>
+                    <div class="admin-stat-label small">New Enquiries</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-success bg-opacity-10 mb-2">
+                        <i class="bi bi-envelope-check text-success"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.contacted|default(0) }}</div>
+                    <div class="admin-stat-label small">Contacted</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
+            <div class="admin-stat-card card h-100">
+                <div class="card-body text-center">
+                    <div class="admin-stat-icon bg-warning bg-opacity-10 mb-2">
+                        <i class="bi bi-star-fill text-warning"></i>
+                    </div>
+                    <div class="admin-stat-value h4 mb-0">{{ stats.qualified_leads|default(0) }}</div>
+                    <div class="admin-stat-label small">Qualified Leads</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="card shadow-sm mt-4">
         <div class="card-body">
@@ -26,122 +72,117 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
                             <th>Company</th>
-                            <th>Contact</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Website</th>
-                            <th>Org Type</th>
-                            <th>Org Size</th>
+                            <th>Contact Email</th>
+                            <th>Organization</th>
+                            <th>Timeline</th>
                             <th>Status</th>
-                            <th>Priority</th>
-                            <th>Assigned</th>
                             <th>Created</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for enquiry in enquiries %}
-                            <tr>
-                                <td>{{ enquiry.id }}</td>
-                                <td><strong>{{ enquiry.company_name }}</strong></td>
-                                <td>{{ enquiry.contact_person }}<br><small>{{ enquiry.job_title }}</small></td>
-                                <td>{{ enquiry.email }}</td>
-                                <td>{{ enquiry.phone|default('-') }}</td>
-                                <td><a href="{{ enquiry.company_website }}" target="_blank">{{ enquiry.company_website|default('-') }}</a></td>
-                                <td>{{ enquiry.organization_type }}<br><small>{{ enquiry.organization_size|default('-') }}</small></td>
-                                <td>
-                                    <form method="post" action="/admin/onboarding-enquiries/status" class="d-inline-flex align-items-center">
-                                        <input type="hidden" name="id" value="{{ enquiry.id }}">
-                                        <select name="status" class="form-select form-select-sm me-2" onchange="this.form.submit()">
-                                            <option value="new" {{ enquiry.status == 'new' ? 'selected' : '' }}>New</option>
-                                            <option value="in_progress" {{ enquiry.status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                                            <option value="completed" {{ enquiry.status == 'completed' ? 'selected' : '' }}>Completed</option>
-                                            <option value="rejected" {{ enquiry.status == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                                            <option value="archived" {{ enquiry.status == 'archived' ? 'selected' : '' }}>Archived</option>
-                                        </select>
-                                    </form>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ enquiry.priority == 'high' ? 'danger' : (enquiry.priority == 'low' ? 'info' : 'warning') }}">
-                                        {{ enquiry.priority|capitalize }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <form method="post" action="/admin/onboarding-enquiries/assign" class="d-inline-flex align-items-center">
-                                        <input type="hidden" name="id" value="{{ enquiry.id }}">
-                                        <select name="assigned_to" class="form-select form-select-sm me-2" onchange="this.form.submit()">
-                                            <option value="">Unassigned</option>
-                                            {% for user in users %}
-                                                <option value="{{ user.id }}" {{ enquiry.assigned_to == user.id ? 'selected' : '' }}>{{ user.first_name }} {{ user.surname }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </form>
-                                </td>
-                                <td>{{ enquiry.created_at|date('Y-m-d H:i') }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#enquiryModal{{ enquiry.id }}">View</button>
-                                    <form method="post" action="/admin/onboarding-enquiries/delete" style="display:inline-block">
-                                        <input type="hidden" name="id" value="{{ enquiry.id }}">
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this enquiry?')">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {# Modal for full details #}
-                            <div class="modal fade" id="enquiryModal{{ enquiry.id }}" tabindex="-1" aria-labelledby="enquiryModalLabel{{ enquiry.id }}" aria-hidden="true">
-                              <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                                <div class="modal-content">
-                                  <div class="modal-header">
-                                    <h5 class="modal-title" id="enquiryModalLabel{{ enquiry.id }}">Onboarding Enquiry #{{ enquiry.id }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                  </div>
-                                  <div class="modal-body">
-                                    <dl class="row">
-                                      <dt class="col-sm-3">Company Name</dt><dd class="col-sm-9">{{ enquiry.company_name }}</dd>
-                                      <dt class="col-sm-3">Website</dt><dd class="col-sm-9"><a href="{{ enquiry.company_website }}" target="_blank">{{ enquiry.company_website }}</a></dd>
-                                      <dt class="col-sm-3">Org Type</dt><dd class="col-sm-9">{{ enquiry.organization_type }}</dd>
-                                      <dt class="col-sm-3">Org Size</dt><dd class="col-sm-9">{{ enquiry.organization_size }}</dd>
-                                      <dt class="col-sm-3">Contact Person</dt><dd class="col-sm-9">{{ enquiry.contact_person }}</dd>
-                                      <dt class="col-sm-3">Job Title</dt><dd class="col-sm-9">{{ enquiry.job_title }}</dd>
-                                      <dt class="col-sm-3">Email</dt><dd class="col-sm-9">{{ enquiry.email }}</dd>
-                                      <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">{{ enquiry.phone }}</dd>
-                                      <dt class="col-sm-3">Current Systems</dt><dd class="col-sm-9">{{ enquiry.current_systems|default('-') }}</dd>
-                                      <dt class="col-sm-3">Integration Timeline</dt><dd class="col-sm-9">{{ enquiry.integration_timeline|default('-') }}</dd>
-                                      <dt class="col-sm-3">Specific Requirements</dt><dd class="col-sm-9">{{ enquiry.specific_requirements|default('-') }}</dd>
-                                      <dt class="col-sm-3">Additional Info</dt><dd class="col-sm-9">{{ enquiry.additional_info|default('-') }}</dd>
-                                      <dt class="col-sm-3">GDPR Consent</dt><dd class="col-sm-9">{{ enquiry.gdpr_consent ? 'Yes' : 'No' }}</dd>
-                                      <dt class="col-sm-3">Marketing Consent</dt><dd class="col-sm-9">{{ enquiry.marketing_consent ? 'Yes' : 'No' }}</dd>
-                                      <dt class="col-sm-3">Status</dt><dd class="col-sm-9">{{ enquiry.status }}</dd>
-                                      <dt class="col-sm-3">Priority</dt><dd class="col-sm-9">{{ enquiry.priority }}</dd>
-                                      <dt class="col-sm-3">Assigned To</dt><dd class="col-sm-9">
-                                        {% set assignedUser = users|filter(u => u.id == enquiry.assigned_to)|first %}
-                                        {{ assignedUser ? assignedUser.first_name ~ ' ' ~ assignedUser.last_name : 'Unassigned' }}
-                                      </dd>
-                                      <dt class="col-sm-3">Estimated Value</dt><dd class="col-sm-9">{{ enquiry.estimated_value|default('-') }}</dd>
-                                      <dt class="col-sm-3">Follow Up Date</dt><dd class="col-sm-9">{{ enquiry.follow_up_date|date('Y-m-d') if enquiry.follow_up_date else '-' }}</dd>
-                                      <dt class="col-sm-3">Demo Scheduled</dt><dd class="col-sm-9">{{ enquiry.demo_scheduled|date('Y-m-d H:i') if enquiry.demo_scheduled else '-' }}</dd>
-                                      <dt class="col-sm-3">Proposal Sent</dt><dd class="col-sm-9">{{ enquiry.proposal_sent_date|date('Y-m-d') if enquiry.proposal_sent_date else '-' }}</dd>
-                                      <dt class="col-sm-3">Decision Deadline</dt><dd class="col-sm-9">{{ enquiry.decision_deadline|date('Y-m-d') if enquiry.decision_deadline else '-' }}</dd>
-                                      <dt class="col-sm-3">Notes</dt><dd class="col-sm-9">{{ enquiry.notes|default('-') }}</dd>
-                                      <dt class="col-sm-3">Lead Source</dt><dd class="col-sm-9">{{ enquiry.lead_source|default('-') }}</dd>
-                                      <dt class="col-sm-3">UTM Source</dt><dd class="col-sm-9">{{ enquiry.utm_source|default('-') }}</dd>
-                                      <dt class="col-sm-3">UTM Medium</dt><dd class="col-sm-9">{{ enquiry.utm_medium|default('-') }}</dd>
-                                      <dt class="col-sm-3">UTM Campaign</dt><dd class="col-sm-9">{{ enquiry.utm_campaign|default('-') }}</dd>
-                                      <dt class="col-sm-3">Created At</dt><dd class="col-sm-9">{{ enquiry.created_at|date('Y-m-d H:i') }}</dd>
-                                      <dt class="col-sm-3">Last Contacted</dt><dd class="col-sm-9">{{ enquiry.last_contacted|date('Y-m-d H:i') if enquiry.last_contacted else '-' }}</dd>
-                                      <dt class="col-sm-3">Created By</dt><dd class="col-sm-9">{{ enquiry.created_by|default('-') }}</dd>
-                                      <dt class="col-sm-3">Updated By</dt><dd class="col-sm-9">{{ enquiry.updated_by|default('-') }}</dd>
-                                    </dl>
+                                                {% if enquiries|length > 0 %}
+                                                    {% for enquiry in enquiries %}
+                                                        <tr>
+                                                            <td><strong>{{ enquiry.company_name }}</strong></td>
+                                                            <td>
+                                                                {{ enquiry.contact_person }}<br>
+                                                                <small>{{ enquiry.email }}</small>
+                                                            </td>
+                                                            <td>
+                                                                {{ enquiry.organization_type }}
+                                                                {% if enquiry.organization_size %}<br><small>{{ enquiry.organization_size }}</small>{% endif %}
+                                                            </td>
+                                                            <td>{{ enquiry.integration_timeline|default('-') }}</td>
+                                                            <td>
+                                                                <form method="post" action="/admin/onboarding-enquiries/status" class="d-inline align-items-center">
+                                                                    <input type="hidden" name="id" value="{{ enquiry.id }}">
+                                                                    <select name="status" class="form-select form-select-sm d-inline w-auto me-2" style="min-width:90px;" onchange="this.form.submit()">
+                                                                        <option value="new" {{ enquiry.status == 'new' ? 'selected' : '' }}>New</option>
+                                                                        <option value="in_progress" {{ enquiry.status == 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                                                                        <option value="completed" {{ enquiry.status == 'completed' ? 'selected' : '' }}>Completed</option>
+                                                                        <option value="rejected" {{ enquiry.status == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                                                        <option value="archived" {{ enquiry.status == 'archived' ? 'selected' : '' }}>Archived</option>
+                                                                    </select>
+                                                                </form>
+                                                            </td>
+                                                            <td>{{ enquiry.created_at|date('Y-m-d H:i') }}</td>
+                                                            <td>
+                                                                <div class="d-inline-flex align-items-center gap-1">
+                                                                    <button class="btn btn-sm btn-outline-primary p-1" data-bs-toggle="modal" data-bs-target="#enquiryModal{{ enquiry.id }}" title="View Details" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;">
+                                                                        <i class="bi bi-eye"></i>
+                                                                    </button>
+                                                                    <form method="post" action="/admin/onboarding-enquiries/delete" style="display:inline">
+                                                                        <input type="hidden" name="id" value="{{ enquiry.id }}">
+                                                                        <button type="submit" class="btn btn-sm btn-danger p-1" onclick="return confirm('Delete this enquiry?')" title="Delete Enquiry" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <tr><td colspan="7" class="text-center">No onboarding enquiries found.</td></tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Render all modals after the table to avoid DOM issues #}
+                            {% for enquiry in enquiries %}
+                                <div class="modal fade" id="enquiryModal{{ enquiry.id }}" tabindex="-1" aria-labelledby="enquiryModalLabel{{ enquiry.id }}" aria-hidden="true">
+                                  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="enquiryModalLabel{{ enquiry.id }}">Onboarding Enquiry #{{ enquiry.id }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                        <dl class="row">
+                                          <dt class="col-sm-3">Company Name</dt><dd class="col-sm-9">{{ enquiry.company_name }}</dd>
+                                          <dt class="col-sm-3">Website</dt><dd class="col-sm-9"><a href="{{ enquiry.company_website }}" target="_blank">{{ enquiry.company_website }}</a></dd>
+                                          <dt class="col-sm-3">Org Type</dt><dd class="col-sm-9">{{ enquiry.organization_type }}</dd>
+                                          <dt class="col-sm-3">Org Size</dt><dd class="col-sm-9">{{ enquiry.organization_size }}</dd>
+                                          <dt class="col-sm-3">Contact Person</dt><dd class="col-sm-9">{{ enquiry.contact_person }}</dd>
+                                          <dt class="col-sm-3">Job Title</dt><dd class="col-sm-9">{{ enquiry.job_title }}</dd>
+                                          <dt class="col-sm-3">Email</dt><dd class="col-sm-9">{{ enquiry.email }}</dd>
+                                          <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">{{ enquiry.phone }}</dd>
+                                          <dt class="col-sm-3">Current Systems</dt><dd class="col-sm-9">{{ enquiry.current_systems|default('-') }}</dd>
+                                          <dt class="col-sm-3">Integration Timeline</dt><dd class="col-sm-9">{{ enquiry.integration_timeline|default('-') }}</dd>
+                                          <dt class="col-sm-3">Specific Requirements</dt><dd class="col-sm-9">{{ enquiry.specific_requirements|default('-') }}</dd>
+                                          <dt class="col-sm-3">Additional Info</dt><dd class="col-sm-9">{{ enquiry.additional_info|default('-') }}</dd>
+                                          <dt class="col-sm-3">GDPR Consent</dt><dd class="col-sm-9">{{ enquiry.gdpr_consent ? 'Yes' : 'No' }}</dd>
+                                          <dt class="col-sm-3">Marketing Consent</dt><dd class="col-sm-9">{{ enquiry.marketing_consent ? 'Yes' : 'No' }}</dd>
+                                          <dt class="col-sm-3">Status</dt><dd class="col-sm-9">{{ enquiry.status }}</dd>
+                                          <dt class="col-sm-3">Priority</dt><dd class="col-sm-9">{{ enquiry.priority }}</dd>
+                                          <dt class="col-sm-3">Assigned To</dt><dd class="col-sm-9">
+                                            {% set assignedUser = users|filter(u => u.id == enquiry.assigned_to)|first %}
+                                            {{ assignedUser ? assignedUser.first_name ~ ' ' ~ assignedUser.last_name : 'Unassigned' }}
+                                          </dd>
+                                          <dt class="col-sm-3">Estimated Value</dt><dd class="col-sm-9">{{ enquiry.estimated_value|default('-') }}</dd>
+                                          <dt class="col-sm-3">Follow Up Date</dt><dd class="col-sm-9">{% if enquiry.follow_up_date %}{{ enquiry.follow_up_date|date('Y-m-d') }}{% else %}-{% endif %}</dd>
+                                          <dt class="col-sm-3">Demo Scheduled</dt><dd class="col-sm-9">{% if enquiry.demo_scheduled %}{{ enquiry.demo_scheduled|date('Y-m-d H:i') }}{% else %}-{% endif %}</dd>
+                                          <dt class="col-sm-3">Proposal Sent</dt><dd class="col-sm-9">{% if enquiry.proposal_sent_date %}{{ enquiry.proposal_sent_date|date('Y-m-d') }}{% else %}-{% endif %}</dd>
+                                          <dt class="col-sm-3">Decision Deadline</dt><dd class="col-sm-9">{% if enquiry.decision_deadline %}{{ enquiry.decision_deadline|date('Y-m-d') }}{% else %}-{% endif %}</dd>
+                                          <dt class="col-sm-3">Notes</dt><dd class="col-sm-9">{{ enquiry.notes|default('-') }}</dd>
+                                          <dt class="col-sm-3">Lead Source</dt><dd class="col-sm-9">{{ enquiry.lead_source|default('-') }}</dd>
+                                          <dt class="col-sm-3">UTM Source</dt><dd class="col-sm-9">{{ enquiry.utm_source|default('-') }}</dd>
+                                          <dt class="col-sm-3">UTM Medium</dt><dd class="col-sm-9">{{ enquiry.utm_medium|default('-') }}</dd>
+                                          <dt class="col-sm-3">UTM Campaign</dt><dd class="col-sm-9">{{ enquiry.utm_campaign|default('-') }}</dd>
+                                          <dt class="col-sm-3">Created At</dt><dd class="col-sm-9">{{ enquiry.created_at|date('Y-m-d H:i') }}</dd>
+                                          <dt class="col-sm-3">Last Contacted</dt><dd class="col-sm-9">{% if enquiry.last_contacted %}{{ enquiry.last_contacted|date('Y-m-d H:i') }}{% else %}-{% endif %}</dd>
+                                          <dt class="col-sm-3">Created By</dt><dd class="col-sm-9">{{ enquiry.created_by|default('-') }}</dd>
+                                          <dt class="col-sm-3">Updated By</dt><dd class="col-sm-9">{{ enquiry.updated_by|default('-') }}</dd>
+                                        </dl>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </div>
-                        {% else %}
-                            <tr><td colspan="8" class="text-center">No onboarding enquiries found.</td></tr>
-                        {% endfor %}
+                            {% endfor %}
                     </tbody>
                 </table>
             </div>
