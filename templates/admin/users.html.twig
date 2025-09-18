@@ -5,7 +5,7 @@
   
 <div class="container py-5">
   <!-- Dashboard Header Styled Like Support Page -->
-    <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4" style="margin-top:80px">
+    <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4 mt-80">
         <div class="d-flex align-items-center justify-content-between">
             <div>
                 <h1 class="fw-bold text-purple-primary mb-2">
@@ -153,19 +153,19 @@
                         <td>
                             {% if user.role != 'admin' %}
                                 {% if user.active == 0 %}
-                                <form method="post" action="/admin/users/suspend" style="display:inline">
+                                <form method="post" action="/admin/users/suspend" class="inline-form">
                                     <input type="hidden" name="user_id" value="{{ user.id }}">
                                     <input type="hidden" name="action" value="unsuspend">
                                     <button type="submit" class="btn btn-sm btn-outline-success" title="Reactivate Account"><i class="bi bi-check-circle"></i></button>
                                 </form>
                                 {% else %}
-                                <form method="post" action="/admin/users/suspend" style="display:inline">
+                                <form method="post" action="/admin/users/suspend" class="inline-form">
                                     <input type="hidden" name="user_id" value="{{ user.id }}">
                                     <input type="hidden" name="action" value="suspend">
                                     <button type="submit" class="btn btn-sm btn-outline-warning" title="Suspend Account"><i class="bi bi-ban"></i></button>
                                 </form>
                                 {% endif %}
-                                <form method="post" action="/admin/users/delete" style="display:inline">
+                                <form method="post" action="/admin/users/delete" class="inline-form">
                                     <input type="hidden" name="user_id" value="{{ user.id }}">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Account" onclick="return confirm('Are you sure you want to permanently delete this user account? This action cannot be undone!');"><i class="bi bi-trash"></i></button>
                                 </form>

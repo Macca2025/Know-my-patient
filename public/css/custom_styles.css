@@ -1,3 +1,91 @@
+/* No box shadow for register-card in register.html.twig */
+.no-box-shadow {
+    box-shadow: none !important;
+}
+/* No list style for alert in register.html.twig */
+.no-list-style {
+    list-style: none;
+}
+/* Max width 600px for home.html.twig */
+.maxw-600 {
+    max-width: 600px;
+}
+/* Circle 56px button for onboarding.html.twig */
+.btn-circle-56 {
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Margin top 25px for support.html.twig */
+.mt-25 {
+    margin-top: 25px !important;
+}
+/* Inline form for admin/users.html.twig */
+.inline-form {
+    display: inline;
+}
+/* Inline block for forms in testimonials.html.twig */
+.inline-block {
+    display: inline-block;
+}
+/* Testimonial cell max width and wrapping for testimonials.html.twig */
+.testimonial-cell {
+    max-width: 350px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+/* Square 32px buttons for onboarding_enquiries.html.twig */
+.btn-square-32 {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Min width 90px for select in onboarding_enquiries.html.twig */
+.minw-90 {
+    min-width: 90px;
+}
+/* Font size small for pre in error_500.html.twig */
+.font-small {
+    font-size: 0.9em;
+}
+/* Pre-wrap for error messages in error_500.html.twig */
+.pre-wrap {
+    white-space: pre-wrap;
+}
+/* Hero button gradient for home.html.twig */
+.btn-hero-gradient {
+    background: linear-gradient(90deg, #764ba2, #667eea) !important;
+    border: none !important;
+    color: #fff !important;
+}
+/* Max width 480px for confirm_deletion.html.twig */
+.maxw-480 {
+    max-width: 480px;
+    width: 100%;
+}
+/* Login card width for login.html.twig */
+.login-card-width {
+    min-width: 380px;
+    max-width: 540px;
+    width: 100%;
+}
+/* ============================= */
+/* Custom Styles for Inline CSS Removal (Twig Templates) */
+/* ============================= */
+
+/* Margin top 80px for admin headers */
+.mt-80 {
+    margin-top: 80px !important;
+}
+
+/* Gradient background for purple-pink cards */
+.gradient-purple-pink {
+    background: linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%) !important;
+}
 /* Responsive adjustments for Display Page (QR/Code) */
 @media (max-width: 576px) {
     .qr-card {

@@ -1,12 +1,15 @@
 {% extends 'layouts/base.html.twig' %}
 
 {% block content %}
+{# Message and messageType can still be set by the controller if needed, but no POST logic in Twig #}
+{% set message = message|default(null) %}
+{% set messageType = messageType|default('info') %}
 <div class="d-flex flex-column min-vh-100 admin-main bg-light">
     <main class="flex-grow-1 main-content">
         <div class="container-xxl py-4">
 
             <!-- Modern Header Section -->
-            <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4" style="margin-top:80px">
+            <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4 mt-80">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h1 class="fw-bold text-purple-primary mb-2">
@@ -82,7 +85,7 @@
                 <!-- Account Summary Card -->
                 <div class="col-lg-4">
                     <div class="card border-0 shadow-sm h-100">
-                        <div class="card-header bg-gradient bg-purple-primary text-white border-bottom-0" style="background: linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%) !important;">
+                        <div class="card-header bg-gradient bg-purple-primary text-white border-bottom-0 gradient-purple-pink">
                             <h6 class="mb-0 fw-semibold">
                                 <i class="bi bi-info-circle me-2"></i>Account Summary
                             </h6>

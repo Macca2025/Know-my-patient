@@ -20,12 +20,12 @@
                             Sorry, something went wrong on our end. Please try again later or contact support if the problem persists.
                         </p>
                         {% if exception is defined and exception is not null %}
-                        <div class="alert alert-danger text-start mt-4" style="white-space: pre-wrap;">
+                        <div class="alert alert-danger text-start mt-4 pre-wrap">
                             <strong>Error:</strong> {{ exception.message }}<br>
                             <strong>File:</strong> {{ exception.file }}<br>
                             <strong>Line:</strong> {{ exception.line }}<br>
                             <strong>Trace:</strong>
-                            <pre style="font-size: 0.9em;">{{ exception.traceAsString|default('') }}</pre>
+                            <pre class="font-small">{{ exception.traceAsString|default('') }}</pre>
                         </div>
                         {% endif %}
                

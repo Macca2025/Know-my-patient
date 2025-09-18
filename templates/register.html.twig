@@ -2,7 +2,7 @@
 {% block content %}
 <div class="d-flex flex-column min-vh-100 section-gradient-light">
         <main class="flex-grow-1 d-flex justify-content-center align-items-center py-5 main-content">
-                <div class="register-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0" style="min-width:380px;max-width:540px;width:100%; box-shadow:none;">
+                <div class="register-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0 login-card-width no-box-shadow">
 <style>
 @media (max-width: 576px) {
     .register-card {
@@ -29,7 +29,7 @@
             {% if field != 'general' %}{% set has_field_errors = true %}{% endif %}
         {% endfor %}
         {% if has_field_errors %}
-        <ul class="alert alert-danger" style="list-style:none;">
+    <ul class="alert alert-danger no-list-style">
             {% for field, msg in errors %}
                 {% if field != 'general' %}<li>{{ msg }}</li>{% endif %}
             {% endfor %}
