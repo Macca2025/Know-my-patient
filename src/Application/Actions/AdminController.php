@@ -123,9 +123,15 @@ class AdminController
         }
         $data = $request->getParsedBody();
         $userId = isset($data['user_id']) ? (int)$data['user_id'] : 0;
+        $action = isset($data['action']) ? $data['action'] : 'suspend';
         if ($userId > 0) {
-            $stmt = $this->pdo->prepare('UPDATE users SET suspended_at = NOW(), active = 0 WHERE id = :id');
-            $stmt->execute(['id' => $userId]);
+            if ($action === 'unsuspend') {
+                $stmt = $this->pdo->prepare('UPDATE users SET active = 1, suspended_at = NULL WHERE id = :id');
+                $stmt->execute(['id' => $userId]);
+            } else {
+                $stmt = $this->pdo->prepare('UPDATE users SET suspended_at = NOW(), active = 0 WHERE id = :id');
+                $stmt->execute(['id' => $userId]);
+            }
         }
         return $response->withHeader('Location', '/admin/users')->withStatus(302);
     }

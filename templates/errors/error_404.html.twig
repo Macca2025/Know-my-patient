@@ -1,73 +1,27 @@
-{% extends 'layouts/base.html.twig' %}
-{% set session = session|default({}) %}
-{% set title = title|default('404 Not Found') %}
-{% set description = description|default('The page you are looking for could not be found.') %}
-{% set keywords = keywords|default('') %}
-{% set canonical_url = canonical_url|default('/') %}
-{% set app_name = app_name|default('Know My Patient') %}
-{% set is_error_page = true %}
-{% block content %}
-<div class="d-flex flex-column min-vh-100">
-    <main class="flex-grow-1 d-flex align-items-center">
-        <div class="container text-center">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="error-page">
-                        <h1 class="display-1 text-danger fw-bold mb-3">404</h1>
-                        <h2 class="h3 mb-4 text-dark">Oops! Page Not Found</h2>
-                        <p class="lead text-muted mb-4">
-                            The page you are looking for might have been moved, deleted, or doesn't exist.
-                        </p>
-                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center mb-4">
-                            <a href="{{ is_error_page ? '/' : url_for('home') }}" class="btn-modern-outline-primary w-100">
-                                <i class="bi bi-house-fill me-2"></i>Go to Homepage
-                            </a>
-                                <button onclick="history.back()" class="btn-modern-outline-primary w-100 ">
-                                    <i class="bi bi-arrow-left me-2"></i>Go Back
-                                </button>
-                        </div>
-                        <div class="mt-5">
-                            <h5 class="text-muted mb-3">You might be looking for:</h5>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <a href="{{ is_error_page ? '/' : url_for('login') }}" class="text-decoration-none">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-box-arrow-in-right fs-1 text-primary mb-2"></i>
-                                                <h6 class="card-title">NHS Staff Login</h6>
-                                                <p class="card-text small text-muted">Access patient information</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="col-md-4">
-                                    <a href="{{ is_error_page ? '/' : url_for('register') }}" class="text-decoration-none">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-person-plus fs-1 text-success mb-2"></i>
-                                                <h6 class="card-title">Create Profile</h6>
-                                                <p class="card-text small text-muted">Register new account</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="col-md-4">
-                                    <a href="{{ is_error_page ? '/' : url_for('support') }}" class="text-decoration-none">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-question-circle fs-1 text-info mb-2"></i>
-                                                <h6 class="card-title">Get Support</h6>
-                                                <p class="card-text small text-muted">Need help or assistance?</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>404 Not Found</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8f9fa; color: #222; margin: 0; padding: 0; }
+        .center { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .code { font-size: 6rem; font-weight: bold; color: #dc3545; }
+        .msg { font-size: 1.5rem; margin-bottom: 2rem; }
+        .actions a, .actions button { margin: 0 0.5rem; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; background: #fff; color: #0d6efd; text-decoration: none; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; }
+        .actions a:hover, .actions button:hover { background: #e3f2fd; }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <div class="code">404 Whoops</div>
+        <div class="msg">Oops! Page Not Found</div>
+        <div class="actions">
+            <a href="/">Go to Homepage</a>
+            <button onclick="history.back()">Go Back</button>
         </div>
-    </main>
-</div>
-{% endblock %}
+    </div>
+</body>
+</html>
+    

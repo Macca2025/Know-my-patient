@@ -41,7 +41,7 @@ class HttpErrorHandler extends SlimErrorHandler
         $acceptHeader = $request->getHeaderLine('Accept');
         $wantsHtml = strpos($acceptHeader, 'text/html') !== false;
 
-        // Map exception to template
+        // Map exception to template or static file
         $template = 'errors/error_500.html.twig';
         if (
             $exception instanceof HttpNotFoundException ||
@@ -54,7 +54,7 @@ class HttpErrorHandler extends SlimErrorHandler
             $template = 'errors/error_403.html.twig';
         }
 
-        if ($wantsHtml) {
+        if ($wantsHtml && $template) {
             /** @var Twig $twig */
             $twig = $this->container->get(Twig::class);
             $response = $this->responseFactory->createResponse($statusCode);

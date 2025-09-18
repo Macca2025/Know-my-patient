@@ -1,9 +1,10 @@
+{% set is_error_page = is_error_page|default(false) %}
 <nav class="navbar-modern navbar-expand-lg fixed-top" role="navigation" aria-label="Main navigation">
     <div class="container d-flex align-items-center">
         <!-- Brand Logo -->
      {# Patch: Use '/' for brand link on error pages to avoid url_for error #}
      <a class="navbar-brand-modern d-flex align-items-center"
-         href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}"
+         href="{{ is_error_page ? '/' : (url_for is defined ? url_for('home') : '/') }}"
          aria-label="Know My Patient Home">
             <div class="brand-logo-wrapper">
                 <img src="/images/logo.png"
@@ -33,25 +34,25 @@
                 {% if not session.user_id %}
                     <!-- Guest Navigation -->
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern{% if current_route is defined and current_route == 'home' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'home' %} active-nav-link{% endif %}" href="{{ is_error_page ? '/' : (url_for is defined ? url_for('home') : '/') }}" role="menuitem">
                             <i class="bi bi-house nav-icon" aria-hidden="true"></i>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern{% if current_route is defined and current_route == 'onboarding' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('onboarding') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'onboarding' %} active-nav-link{% endif %}" href="{{ is_error_page ? '#' : (url_for is defined ? url_for('onboarding') : '/onboarding') }}" role="menuitem">
                             <i class="bi bi-building nav-icon" aria-hidden="true"></i>
                             <span>Onboarding</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern{% if current_route is defined and current_route == 'register' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('register') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'register' %} active-nav-link{% endif %}" href="{{ is_error_page ? '#' : (url_for is defined ? url_for('register') : '/register') }}" role="menuitem">
                             <i class="bi bi-person-plus nav-icon" aria-hidden="true"></i>
                             <span>Register</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern{% if current_route is defined and current_route == 'login' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('login') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'login' %} active-nav-link{% endif %}" href="{{ is_error_page ? '#' : (url_for is defined ? url_for('login') : '/login') }}" role="menuitem">
                             <i class="bi bi-box-arrow-in-right nav-icon" aria-hidden="true"></i>
                             <span>Login</span>
                         </a>
@@ -59,19 +60,19 @@
                 {% else %}
                     <!-- Authenticated Navigation -->
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern{% if current_route is defined and current_route == 'home' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '/' : url_for('home') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'home' %} active-nav-link{% endif %}" href="{{ is_error_page ? '/' : (url_for is defined ? url_for('home') : '/') }}" role="menuitem">
                             <i class="bi bi-house nav-icon" aria-hidden="true"></i>
                             <span>Home</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern{% if current_route is defined and current_route == 'dashboard' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('dashboard') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'dashboard' %} active-nav-link{% endif %}" href="{{ is_error_page ? '#' : (url_for is defined ? url_for('dashboard') : '/dashboard') }}" role="menuitem">
                             <i class="bi bi-speedometer2 nav-icon" aria-hidden="true"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item-modern" role="none">
-                        <a class="nav-link-modern{% if current_route is defined and current_route == 'logout' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('logout') }}" role="menuitem">
+                        <a class="nav-link-modern{% if current_route is defined and current_route == 'logout' %} active-nav-link{% endif %}" href="{{ is_error_page ? '#' : (url_for is defined ? url_for('logout') : '/logout') }}" role="menuitem">
                             <i class="bi bi-box-arrow-right nav-icon" aria-hidden="true"></i>
                             <span>Logout</span>
                         </a>
@@ -79,7 +80,7 @@
                 {% endif %}
 
                 <li class="nav-item-modern" role="none">
-                    <a class="nav-link-modern{% if current_route is defined and current_route == 'support' %} active-nav-link{% endif %}" href="{{ (is_error_page ?? false) ? '#' : url_for('support') }}" role="menuitem">
+                    <a class="nav-link-modern{% if current_route is defined and current_route == 'support' %} active-nav-link{% endif %}" href="{{ is_error_page ? '#' : (url_for is defined ? url_for('support') : '/support') }}" role="menuitem">
                         <i class="bi bi-question-circle nav-icon" aria-hidden="true"></i>
                         <span>Support</span>
                         </a>

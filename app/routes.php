@@ -13,6 +13,13 @@ return function (App $app) {
         return $response;
     });
 
+    // --------------------
+    // Patient Passport Lookup (NHS User)
+    // --------------------
+    $app->map(['GET', 'POST'], '/patient-passport', [\App\Application\Actions\Healthcare\PatientPassportAction::class, '__invoke'])
+        ->add(\App\Application\Middleware\AuthMiddleware::class)
+        ->setName('patient_passport');
+
     $app->post('/onboarding', [\App\Application\Actions\OnboardingController::class, 'submitEnquiry']);
 
     // --------------------

@@ -1,0 +1,193 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+
+        <div class="container py-5">
+  <!-- Dashboard Header Styled Like Support Page -->
+    <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4" style="margin-top:80px">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h1 class="fw-bold text-purple-primary mb-2">
+                    <i class="bi bi-person-badge-fill me-2"></i>
+                    {{ dashboardTitle|default('Patient Passport Lookup') }}
+                </h1>
+                <p class="lead text-secondary mb-0">
+                Welcome, {{ currentUser.first_name ~ ' ' ~ currentUser.surname }}
+                {{ dashboardSubtitle|default('Patient Passport Lookup Dashboard.') }}
+                </p>
+            </div>
+        </div>
+    </div>
+                <div class="row g-4">
+                    <!-- Lookup Form -->
+                    <div class="col-12 col-lg-4">
+                        <div class="card h-100 shadow border-0">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-qr-code-scan me-2"></i>Patient Lookup
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Patient Lookup Accordion -->
+                                <div class="accordion" id="patientLookupAccordion">
+                                    <!-- QR Scanner Section -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingQRScanner">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQRScanner" aria-expanded="true" aria-controls="collapseQRScanner">
+                                                <i class="bi bi-camera me-2"></i>QR Code Scanner
+                                            </button>
+                                        </h2>
+                                        <div id="collapseQRScanner" class="accordion-collapse collapse show" aria-labelledby="headingQRScanner" data-bs-parent="#patientLookupAccordion">
+                                            <div class="accordion-body">
+                                                <!-- Permission Status Indicator -->
+                                                <div id="permissionStatus" class="mb-3">
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        <span id="permissionStatusText">Checking camera permissions...</span>
+                                                    </small>
+                                                </div>
+                                                <div class="text-center mb-3">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" id="startScanBtn">
+                                                        <i class="bi bi-camera me-2"></i>Start QR Scanner
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-info btn-sm w-100 mb-2" id="requestPermissionBtn">
+                                                        <i class="bi bi-shield-check me-2"></i>Enable Camera Permission
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-warning btn-sm w-100 mb-2 lookup-force-permission-btn" id="forcePermissionBtn">
+                                                        <i class="bi bi-exclamation-triangle me-2"></i>Force Camera Request
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="testCameraBtn">
+                                                        <i class="bi bi-gear me-2"></i>Test Camera
+                                                    </button>
+                                                </div>
+                                                <!-- Camera preview -->
+                                                <div id="qr-reader" class="lookup-qr-reader"></div>
+                                                <div id="qr-reader-results" class="mt-2"></div>
+                                                <!-- Camera troubleshooting guide -->
+                                                <div class="mt-3">
+                                                    <small class="text-muted">
+                                                        <strong>Camera Troubleshooting:</strong><br>
+                                                        <strong>1. Permissions:</strong> Click "Enable Camera Permission" first<br>
+                                                        <strong>2. Browser:</strong> Look for camera icon in address bar<br>
+                                                        <strong>3. Security:</strong> HTTPS required (not localhost)<br>
+                                                        <strong>4. Testing:</strong> Use "Test Camera" to verify functionality<br>
+                                                        <strong>5. Fallback:</strong> Use manual UID entry if camera fails
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Manual Entry Section -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingManualEntry">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManualEntry" aria-expanded="false" aria-controls="collapseManualEntry">
+                                                <i class="bi bi-keyboard me-2"></i>Manual UID Entry
+                                            </button>
+                                        </h2>
+                                        <div id="collapseManualEntry" class="accordion-collapse collapse" aria-labelledby="headingManualEntry" data-bs-parent="#patientLookupAccordion">
+                                            <div class="accordion-body">
+                                                <form method="POST" id="lookupForm">
+                                                    <input type="hidden" id="accessMethod" name="access_method" value="manual">
+                                                    <div class="mb-3">
+                                                        <label for="uid" class="form-label">Patient UID</label>
+                                                        <input type="text"
+                                                               class="form-control form-control-lg"
+                                                               id="uid"
+                                                               name="uid"
+                                                               placeholder="Enter patient UID"
+                                                               value="{{ uid|default('') }}"
+                                                               required>
+                                                        <div class="form-text">
+                                                            <i class="bi bi-info-circle me-1"></i>
+                                                            Enter the unique identifier from the patient's QR code
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-grid">
+                                                        <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                                            <i class="bi bi-search me-2"></i>Look Up Patient
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Instructions Section -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingInstructions">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInstructions" aria-expanded="false" aria-controls="collapseInstructions">
+                                                <i class="bi bi-question-circle me-2"></i>Instructions & Help
+                                            </button>
+                                        </h2>
+                                        <div id="collapseInstructions" class="accordion-collapse collapse" aria-labelledby="headingInstructions" data-bs-parent="#patientLookupAccordion">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-12">
+                                                        <div class="card bg-light border-0">
+                                                            <div class="card-body text-center py-3">
+                                                                <i class="bi bi-qr-code-scan display-6 text-primary mb-2"></i>
+                                                                <h6 class="mb-2">QR Code Scanning</h6>
+                                                                <small class="text-muted">Point your camera at the patient's QR code for instant lookup</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="card bg-light border-0">
+                                                            <div class="card-body text-center py-3">
+                                                                <i class="bi bi-keyboard display-6 text-success mb-2"></i>
+                                                                <h6 class="mb-2">Manual Entry</h6>
+                                                                <small class="text-muted">Enter the patient UID directly if QR scanning isn't available</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="alert alert-info mb-0">
+                                                            <i class="bi bi-shield-check me-2"></i>
+                                                            <strong>Security Notice:</strong> All patient lookups are logged for audit and security purposes.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Patient Lookup Accordion -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- No Patient Selected Card (col-lg-8, sibling to lookup form) -->
+                    <div class="col-12 col-lg-8">
+                        <div class="card shadow border-0 h-100">
+                            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
+                                <i class="bi bi-person-slash display-1 text-muted mb-3"></i>
+                                <h4 class="text-muted mb-3">No Patient Selected</h4>
+                                <p class="text-muted mb-4">
+                                    Use the QR scanner or enter a patient UID to view their profile.
+                                </p>
+                                <div class="text-center">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="card bg-light">
+                                                <div class="card-body text-center">
+                                                    <i class="bi bi-qr-code-scan display-6 text-primary mb-2"></i>
+                                                    <h6>QR Code Scanning</h6>
+                                                    <small class="text-muted">Quick and secure patient identification</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-sm-6">
+                                            <div class="card bg-light">
+                                                <div class="card-body text-center">
+                                                    <i class="bi bi-keyboard display-6 text-success mb-2"></i>
+                                                    <h6>Manual Entry</h6>
+                                                    <small class="text-muted">Enter UID directly if QR is not available</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                            
+                    
+{% endblock %}

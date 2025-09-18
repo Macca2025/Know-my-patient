@@ -110,7 +110,8 @@ return function (ContainerBuilder $containerBuilder) {
                 },
                 \App\Application\Middleware\AdminOnlyMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\AdminOnlyMiddleware {
                     return new \App\Application\Middleware\AdminOnlyMiddleware(
-                        $c->get(\App\Application\Services\SessionService::class)
+                        $c->get(\App\Application\Services\SessionService::class),
+                        $c->get(\Slim\Views\Twig::class)
                     );
                 },
                 \App\Application\Middleware\NhsUserOnlyMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\NhsUserOnlyMiddleware {

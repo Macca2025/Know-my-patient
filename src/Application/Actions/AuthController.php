@@ -126,12 +126,15 @@ class AuthController
                 'value' => 'csrf_value'
             ]
         ];
-        $registered = $request->getQueryParams()['registered'] ?? null;
+        $queryParams = $request->getQueryParams();
+        $registered = $queryParams['registered'] ?? null;
+        $deleted = $queryParams['deleted'] ?? null;
         $body = $this->twig->getEnvironment()->render('login.html.twig', [
             'error' => $error,
             'form' => $form,
             'csrf' => $csrf,
             'registered' => $registered,
+            'deleted' => $deleted,
             'suspended' => $suspended,
             'session' => $this->sessionService->all(),
             'title' => 'Login',

@@ -19,25 +19,25 @@
                         <nav aria-label="Footer navigation" class="footer-nav">
                             <div class="row g-2">
                                 <div class="col-sm-6">
-                                    <a href="{{ url_for('dashboard') }}" class="footer-link" aria-label="Go to My Account dashboard">
+                                    <a href="{{ url_for is defined ? url_for('dashboard') : '/dashboard' }}" class="footer-link" aria-label="Go to My Account dashboard">
                                         <i class="bi bi-person-circle footer-link-icon" aria-hidden="true"></i>
                                         <span>My Account</span>
                                     </a>
                                 </div>
                                 <div class="col-sm-6">
-                                    <a href="{{ url_for('privacy_policy') }}" class="footer-link" aria-label="Read our Privacy Policy">
+                                    <a href="{{ url_for is defined ? url_for('privacy_policy') : '/privacy-policy' }}" class="footer-link" aria-label="Read our Privacy Policy">
                                         <i class="bi bi-shield-lock footer-link-icon" aria-hidden="true"></i>
                                         <span>Privacy Policy</span>
                                     </a>
                                 </div>
                                 <div class="col-sm-6">
-                                    <a href="{{ url_for('support') }}" class="footer-link" aria-label="Get support and help">
+                                    <a href="{{ url_for is defined ? url_for('support') : '/support' }}" class="footer-link" aria-label="Get support and help">
                                         <i class="bi bi-question-circle footer-link-icon" aria-hidden="true"></i>
                                         <span>Support</span>
                                     </a>
                                 </div>
                                 <div class="col-sm-6">
-                                    <a href="#" class="footer-link" id="accessibilityStatement" aria-label="Accessibility information">
+                                    <a href="/accessibility" class="footer-link" id="accessibilityStatement" aria-label="Accessibility information">
                                         <i class="bi bi-universal-access footer-link-icon" aria-hidden="true"></i>
                                         <span>Accessibility</span>
                                     </a>

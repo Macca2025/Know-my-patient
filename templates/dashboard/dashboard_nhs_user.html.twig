@@ -8,34 +8,16 @@
             <div class="card-icon">
                 <i class="bi bi-qr-code-scan text-primary"></i>
             </div>
-            <h5 class="card-title">NHS Staff Access</h5>
-            <p class="card-text">Scan patient QR codes or enter access codes to view digital passport.</p>
+            <h5 class="card-title">Patient's Passport</h5>
+            <p class="card-text">Scan patient's QR code to view patient's digital passport.</p>
             <div class="card-actions">
-                <a href="patient_lookup.php" class="btn btn-outline-primary">
-                    <i class="bi bi-camera me-2"></i>Access Records
+                <a href="{{url_for('patient_passport')}}" class="btn btn-outline-primary">
+                    <i class="bi bi-camera me-2"></i>Lookup Passport
                 </a>
             </div>
             <div class="card-footer-info">
-                <small><i class="bi bi-shield-check"></i>Secure NHS Staff Only</small>
+                <small><i class="bi bi-shield-check"></i>Secure Healthcare Staff Only</small>
             </div>
         </div>
     </div>
-
-    <div class="dashboard-card-modern card-info">
-        <div class="card-body">
-            <div class="card-icon">
-                <i class="bi bi-envelope-check text-info"></i>
-            </div>
-            <h5 class="card-title">NHS Email Verification</h5>
-            <p class="card-text">Verify your NHS staff email address to access all NHS-specific features and communications.</p>
-            <div class="card-actions">
-                <a href="nhs-verify.php" class="btn btn-outline-info">
-                    <i class="bi bi-shield-check me-2"></i>Verify Now
-                </a>
-            </div>
-            <div class="card-footer-info">
-                <small><i class="bi bi-hospital"></i>NHS Staff &amp; Admin Only</small>
-            </div>
-        </div>
     </div>
-
