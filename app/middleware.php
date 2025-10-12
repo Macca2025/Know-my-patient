@@ -15,7 +15,10 @@ return function (App $app) {
     $container = $app->getContainer();
     $twig = $container->get(\Slim\Views\Twig::class);
     
-    // Add Sentry error monitoring (first to catch all errors)
+    // Add HTTPS enforcement (first priority - security)
+    $app->add(\App\Application\Middleware\HttpsMiddleware::class);
+    
+    // Add Sentry error monitoring (second to catch all errors)
     $app->add(SentryMiddleware::class);
     
     // Add session middleware

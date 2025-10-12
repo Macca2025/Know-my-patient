@@ -248,5 +248,21 @@ return function (ContainerBuilder $containerBuilder) {
                     }
                     return new \App\Application\Middleware\RateLimitMiddleware(3, 30, $cacheDir);
                 },
+                \App\Application\Middleware\HttpsMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\HttpsMiddleware {
+                    $settings = $c->get(SettingsInterface::class);
+                    $environment = $settings->get('environment');
+                    
+                    // Only enforce HTTPS in production
+                    $enforceHttps = ($environment === 'production');
+                    
+                    // Enable HSTS in production for 1 year (31536000 seconds)
+                    $enableHSTS = ($environment === 'production');
+                    
+                    return new \App\Application\Middleware\HttpsMiddleware(
+                        $enforceHttps,
+                        $enableHSTS,
+                        31536000 // 1 year
+                    );
+                },
             ]);
         };
