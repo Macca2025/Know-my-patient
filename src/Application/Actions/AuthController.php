@@ -70,14 +70,14 @@ class AuthController
                 $this->logger->warning('Login attempt with invalid password', ['email' => $email]);
             } else {
                 // Check for suspended user first
-                $stmtSuspended = $this->pdo->prepare('SELECT id, email, name, role, active FROM users WHERE email = ? AND active = 0 LIMIT 1');
+                $stmtSuspended = $this->pdo->prepare('SELECT id, email, first_name, last_name, role, active FROM users WHERE email = ? AND active = 0 LIMIT 1');
                 $stmtSuspended->execute([$email]);
                 $suspendedUser = $stmtSuspended->fetch(\PDO::FETCH_ASSOC);
                 if ($suspendedUser) {
                     $suspended = true;
                     $this->logger->warning('Suspended user login attempt', ['email' => $email]);
                 } else {
-                    $stmt = $this->pdo->prepare('SELECT id, email, password, name, role, active, remember_token FROM users WHERE email = ? AND active = 1 LIMIT 1');
+                    $stmt = $this->pdo->prepare('SELECT id, email, password, first_name, last_name, role, active, remember_token FROM users WHERE email = ? AND active = 1 LIMIT 1');
                     $stmt->execute([$email]);
                     $user = $stmt->fetch(\PDO::FETCH_ASSOC);
                     if ($user && password_verify($password, $user['password'])) {

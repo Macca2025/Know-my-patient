@@ -31,7 +31,7 @@ class AdminController
             return $response;
         }
         // Fetch all users
-        $stmt = $this->pdo->query('SELECT id, email, name, role, active, created_at, updated_at FROM users ORDER BY created_at DESC');
+        $stmt = $this->pdo->query('SELECT id, email, first_name, last_name, role, active, created_at, updated_at FROM users ORDER BY created_at DESC');
         $allUsers = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         // Get selected role from GET param
