@@ -47,6 +47,7 @@ class AuthController
                     $this->sessionService->set('user_email', $user['email']);
                     $this->sessionService->set('user_name', $user['first_name'] . ' ' . $user['last_name']);
                     $this->sessionService->set('user_role', $user['role'] ?? null);
+                    $_SESSION['_last_activity'] = time(); // Initialize session timeout tracking
                     $this->logger->info('User auto-logged in via remember me', ['user_id' => $user['id'], 'email' => $user['email']]);
                     return $response->withHeader('Location', '/dashboard')->withStatus(302);
                 }
@@ -86,10 +87,13 @@ class AuthController
                         $_SESSION['user_email'] = $user['email'];
                         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
                         $_SESSION['user_role'] = $user['role'] ?? null;
+                        $_SESSION['_last_activity'] = time(); // Initialize session timeout tracking
+                        
                         // Update last_login
                         $updateLogin = $this->pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
                         $updateLogin->execute([$user['id']]);
                         $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
+                        
                         // Handle remember me
                         if ($remember) {
                             $token = bin2hex(random_bytes(32));

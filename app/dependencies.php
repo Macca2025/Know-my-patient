@@ -119,6 +119,24 @@ return function (ContainerBuilder $containerBuilder) {
                     \App\Application\Services\SessionService::class => function (): \App\Application\Services\SessionService {
                     return new \App\Application\Services\SessionService();
                 },
+                \App\Application\Services\ErrorMessageService::class => function (ContainerInterface $c): \App\Application\Services\ErrorMessageService {
+                    $settings = $c->get(SettingsInterface::class);
+                    $environment = $settings->get('environment') ?? 'production';
+                    $isProduction = ($environment === 'production');
+                    
+                    return new \App\Application\Services\ErrorMessageService(
+                        $c->get(LoggerInterface::class),
+                        $isProduction
+                    );
+                },
+                \App\Application\Actions\PasswordResetController::class => function (ContainerInterface $c): \App\Application\Actions\PasswordResetController {
+                    return new \App\Application\Actions\PasswordResetController(
+                        $c->get(\PDO::class),
+                        $c->get(\App\Application\Services\SessionService::class),
+                        $c->get(\Slim\Views\Twig::class),
+                        $c->get(\Psr\Log\LoggerInterface::class)
+                    );
+                },
                 \App\Application\Actions\AdminController::class => function (ContainerInterface $c): \App\Application\Actions\AdminController {
                     return new \App\Application\Actions\AdminController(
                         $c->get(\Slim\Views\Twig::class),

@@ -1,16 +1,72 @@
 <?php
 declare(strict_types=1);
-// DEBUG: Log every request to confirm Slim is reached
-$isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $_SERVER['SERVER_PORT'] == 443;
+
+// Configure secure session cookies
+// NHS DCB0129 Compliance: Hazard H-003 (Unauthorized Access Prevention)
+$isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
+    || $_SERVER['SERVER_PORT'] == 443
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+// Load environment to check if production
+$isProduction = (($_ENV['APP_ENV'] ?? 'production') === 'production');
+
 session_set_cookie_params([
-	'lifetime' => 0,
-	'path' => '/',
-	'domain' => '',
-	'secure' => $isSecure,
-	'httponly' => true,
-	'samesite' => 'Lax',
+    'lifetime' => 0,                    // Session cookie (expires when browser closes)
+    'path' => '/',                      // Available across entire domain
+    'domain' => '',                     // Current domain only
+    'secure' => $isSecure,              // HTTPS only in production (auto-detected)
+    'httponly' => true,                 // Not accessible via JavaScript (XSS protection)
+    'samesite' => $isProduction ? 'Strict' : 'Lax', // Strict in production, Lax in dev
 ]);
+
+// Regenerate session ID on first request (session fixation protection)
 session_start();
+if (!isset($_SESSION['_session_started'])) {
+    session_regenerate_id(true);
+    $_SESSION['_session_started'] = time();
+    $_SESSION['_user_ip'] = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $_SESSION['_user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+}
+
+// Session timeout: Logout users after 5 minutes of inactivity
+// NHS DCB0129 Compliance: Hazard H-003 (Unauthorized Access Prevention)
+if (isset($_SESSION['user_id'])) {
+    $sessionTimeout = 300; // 5 minutes in seconds (300 seconds)
+    
+    // Check if last activity timestamp exists
+    if (isset($_SESSION['_last_activity'])) {
+        $inactiveTime = time() - $_SESSION['_last_activity'];
+        
+        if ($inactiveTime > $sessionTimeout) {
+            // Session has expired due to inactivity
+            $userId = $_SESSION['user_id'];
+            $userEmail = $_SESSION['user_email'] ?? 'unknown';
+            
+            // Log the timeout event
+            error_log("Session timeout: User $userId ($userEmail) logged out after $inactiveTime seconds of inactivity");
+            
+            // Clear session data
+            session_unset();
+            session_destroy();
+            
+            // Start new session for the timeout message
+            session_start();
+            $_SESSION['timeout_message'] = 'Your session has expired due to inactivity. Please login again.';
+            $_SESSION['timeout_redirect'] = true;
+            
+            // Redirect to login page
+            header('Location: /login');
+            exit;
+        }
+    }
+    
+    // Update last activity timestamp for authenticated users
+    $_SESSION['_last_activity'] = time();
+}
+
+// Note: Session hijacking protection (IP/User-Agent validation) should be done
+// at login time in AuthController, not on every request, to avoid CSRF token issues
+// and false positives from legitimate IP changes (mobile networks, VPNs, etc.)
 
 use Slim\Views\TwigMiddleware;
 

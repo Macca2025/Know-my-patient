@@ -146,9 +146,13 @@ class CardRequestsController
             }
             
         } catch (\Exception $e) {
+            // Log detailed error information for debugging (not exposed to users)
             error_log("Card request exception: " . $e->getMessage());
+            error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
             error_log("Stack trace: " . $e->getTraceAsString());
-            $this->sessionService->set('flash_message', 'An error occurred: ' . $e->getMessage());
+            
+            // Generic user-friendly message
+            $this->sessionService->set('flash_message', 'An error occurred while processing your card request. Please try again.');
             $this->sessionService->set('flash_type', 'danger');
         }
         

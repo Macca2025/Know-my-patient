@@ -246,8 +246,13 @@ class AddPatientController
             return $response->withHeader('Location', '/add-patient?patient_uid=' . $patientUid)->withStatus(302);
             
         } catch (\Exception $e) {
-            $this->logger->error("Error saving patient: " . $e->getMessage(), ['exception' => $e]);
-            $this->sessionService->set('flash_message', 'Error saving patient profile: ' . $e->getMessage());
+            $this->logger->error("Error saving patient: " . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->sessionService->set('flash_message', 'An error occurred while saving the patient profile. Please try again.');
             $this->sessionService->set('flash_type', 'danger');
             return $response->withHeader('Location', '/add-patient')->withStatus(302);
         }
@@ -501,10 +506,14 @@ class AddPatientController
             ]));
             
         } catch (\Exception $e) {
-            $this->logger->error('Error saving patient section: ' . $e->getMessage(), ['exception' => $e]);
+            $this->logger->error('Error saving patient section: ' . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             $response->getBody()->write(json_encode([
                 'success' => false,
-                'message' => 'Error saving data: ' . $e->getMessage()
+                'message' => 'An error occurred while saving. Please try again.'
             ]));
         }
         

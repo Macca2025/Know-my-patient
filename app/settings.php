@@ -17,6 +17,7 @@ return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
         SettingsInterface::class => function () use ($isProduction, $appEnv) {
             return new Settings([
+                'environment'         => $appEnv, // Add environment to settings
                 'displayErrorDetails' => !$isProduction, // False in production
                 'logError'            => true,
                 'logErrorDetails'     => true,

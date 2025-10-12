@@ -47,11 +47,14 @@ class HealthCheckAction
         } catch (\Exception $e) {
             $health['checks']['database'] = [
                 'status' => 'error',
-                'message' => 'Database connection failed: ' . $e->getMessage()
+                'message' => 'Database connection failed'
             ];
             $health['status'] = 'unhealthy';
+            // Log full error details for debugging (not exposed in response)
             $this->logger->error('Health check: Database connection failed', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
         }
 

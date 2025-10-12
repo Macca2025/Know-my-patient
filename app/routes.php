@@ -64,6 +64,17 @@ return function (App $app) {
         $group->map(['GET', 'POST'], '/login', [\App\Application\Actions\AuthController::class, 'login'])
             ->add(\App\Application\Middleware\RateLimitMiddleware::class)
             ->setName('login');
+        // Forgot Password - Show Form (GET) or Handle Submission (POST)
+        $group->get('/forgot-password', [\App\Application\Actions\PasswordResetController::class, 'showForgotPasswordForm'])
+            ->setName('forgot_password');
+        $group->post('/forgot-password', [\App\Application\Actions\PasswordResetController::class, 'handleForgotPassword'])
+            ->add(\App\Application\Middleware\RateLimitMiddleware::class)
+            ->setName('forgot_password_submit');
+        // Reset Password - Show Form (GET) or Handle Submission (POST)
+        $group->get('/reset-password', [\App\Application\Actions\PasswordResetController::class, 'showResetPasswordForm'])
+            ->setName('reset_password');
+        $group->post('/reset-password', [\App\Application\Actions\PasswordResetController::class, 'handleResetPassword'])
+            ->setName('reset_password_submit');
     })->add(\App\Application\Middleware\GuestOnlyMiddleware::class);
 
     // --------------------

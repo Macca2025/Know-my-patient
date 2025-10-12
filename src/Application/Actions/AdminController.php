@@ -196,9 +196,11 @@ class AdminController
         } catch (\Throwable $e) {
             $this->logger->error('Audit dashboard error: ' . $e->getMessage(), [
                 'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
             $response = $response->withStatus(500);
-            $response->getBody()->write('Internal Server Error: ' . htmlspecialchars($e->getMessage()));
+            $response->getBody()->write('An error occurred while loading the audit dashboard. Please try again later.');
             return $response;
         }
     }
