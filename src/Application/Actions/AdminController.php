@@ -349,7 +349,7 @@ class AdminController
             ]
         ];
         
-        $stmt = $this->pdo->query('SELECT id, name, role, testimonial, rating, created_at FROM testimonials ORDER BY id DESC');
+        $stmt = $this->pdo->query('SELECT id, name, role, testimonial FROM testimonials ORDER BY id DESC');
         $testimonials = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $vars = [
             'title' => 'Testimonials',
