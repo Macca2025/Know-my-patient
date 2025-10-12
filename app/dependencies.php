@@ -8,7 +8,32 @@ use Monolog\Processor\UidProcessor;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
+
 return function (ContainerBuilder $containerBuilder) {
+    // Initialize Sentry if DSN is configured
+    $containerBuilder->addDefinitions([
+        'sentry.initialized' => function (ContainerInterface $c): bool {
+            $settings = $c->get(SettingsInterface::class);
+            $sentrySettings = $settings->get('sentry');
+            
+            if (!empty($sentrySettings['dsn'])) {
+                \Sentry\init([
+                    'dsn' => $sentrySettings['dsn'],
+                    'environment' => $sentrySettings['environment'],
+                    'traces_sample_rate' => $sentrySettings['traces_sample_rate'],
+                    'send_default_pii' => $sentrySettings['send_default_pii'],
+                    'release' => 'know-my-patient@1.0.0', // Update this with your version
+                ]);
+                return true;
+            }
+            return false;
+        },
+        \App\Application\Middleware\SentryMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\SentryMiddleware {
+            $sentryEnabled = $c->get('sentry.initialized');
+            return new \App\Application\Middleware\SentryMiddleware($sentryEnabled);
+        },
+    ]);
+
     $containerBuilder->addDefinitions([
         \App\Infrastructure\Persistence\User\DatabaseAuditLogRepository::class => function (ContainerInterface $c): \App\Infrastructure\Persistence\User\DatabaseAuditLogRepository {
             return new \App\Infrastructure\Persistence\User\DatabaseAuditLogRepository($c->get(\PDO::class));
@@ -18,6 +43,13 @@ return function (ContainerBuilder $containerBuilder) {
         },
     ]);
     $containerBuilder->addDefinitions([
+        // Health Check Action
+        \App\Application\Actions\HealthCheckAction::class => function (ContainerInterface $c): \App\Application\Actions\HealthCheckAction {
+            return new \App\Application\Actions\HealthCheckAction(
+                $c->get(\PDO::class),
+                $c->get(\Psr\Log\LoggerInterface::class)
+            );
+        },
         \App\Infrastructure\Persistence\User\DatabasePatientProfileRepository::class => function (ContainerInterface $c): \App\Infrastructure\Persistence\User\DatabasePatientProfileRepository {
             return new \App\Infrastructure\Persistence\User\DatabasePatientProfileRepository($c->get(\PDO::class));
         },
@@ -200,11 +232,21 @@ return function (ContainerBuilder $containerBuilder) {
                 \App\Application\Middleware\RateLimitMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\RateLimitMiddleware {
                     // 10 login attempts per 5 minutes (development setting)
                     // Production recommendation: 5 attempts per 15 minutes
-                    $cacheDir = __DIR__ . '/../var/cache/rate_limit';
+                    $cacheDir = __DIR__ . '/../var/cache/rate_limit_login';
                     if (!is_dir($cacheDir)) {
                         mkdir($cacheDir, 0755, true);
                     }
                     return new \App\Application\Middleware\RateLimitMiddleware(10, 5, $cacheDir);
+                },
+                'RegistrationRateLimitMiddleware' => function (ContainerInterface $c): \App\Application\Middleware\RateLimitMiddleware {
+                    // 3 registration attempts per 30 minutes (stricter than login)
+                    // Prevents spam account creation
+                    // Production: Consider 3 attempts per 60 minutes
+                    $cacheDir = __DIR__ . '/../var/cache/rate_limit_registration';
+                    if (!is_dir($cacheDir)) {
+                        mkdir($cacheDir, 0755, true);
+                    }
+                    return new \App\Application\Middleware\RateLimitMiddleware(3, 30, $cacheDir);
                 },
             ]);
         };

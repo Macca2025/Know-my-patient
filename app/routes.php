@@ -14,6 +14,12 @@ return function (App $app) {
     });
 
     // --------------------
+    // Health Check Endpoint (Public, for monitoring)
+    // --------------------
+    $app->get('/health', [\App\Application\Actions\HealthCheckAction::class, '__invoke'])
+        ->setName('health_check');
+
+    // --------------------
     // Patient Passport Lookup (NHS User)
     // --------------------
     $app->map(['GET', 'POST'], '/patient-passport', [\App\Application\Actions\Healthcare\PatientPassportAction::class, '__invoke'])
@@ -50,7 +56,11 @@ return function (App $app) {
     // Authentication Routes
     // --------------------
     $app->group('', function ($group) {
-        $group->map(['GET', 'POST'], '/register', [\App\Application\Actions\AuthController::class, 'register'])->setName('register');
+        // Registration with stricter rate limiting (3 attempts per 30 minutes)
+        $group->map(['GET', 'POST'], '/register', [\App\Application\Actions\AuthController::class, 'register'])
+            ->add('RegistrationRateLimitMiddleware')
+            ->setName('register');
+        // Login with standard rate limiting (10 attempts per 5 minutes)
         $group->map(['GET', 'POST'], '/login', [\App\Application\Actions\AuthController::class, 'login'])
             ->add(\App\Application\Middleware\RateLimitMiddleware::class)
             ->setName('login');
