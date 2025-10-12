@@ -1,0 +1,1012 @@
+{% extends "layouts/base.html.twig" %}
+
+{% block content %}
+{# Set edit mode based on whether patient data exists #}
+{% set isEdit = patient is defined and patient is not empty %}
+{% set patient = patient|default({}) %}
+
+<div class="container my-5" style="padding-top: 80px;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Flash Messages -->
+            {% if session.flash_message is defined and session.flash_message %}
+            <div class="alert alert-{{ session.flash_type|default('info') }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{{ session.flash_type == 'success' ? 'check-circle' : (session.flash_type == 'danger' ? 'exclamation-circle' : 'info-circle') }} me-2"></i>
+                {{ session.flash_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <!-- Page Header -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h1 class="h3 mb-3">
+                        <i class="fas fa-{{ isEdit ? 'user-edit' : 'user-plus' }} me-2"></i>
+                        {{ isEdit ? 'Edit My Profile' : 'Create My Profile' }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {{ isEdit ? 'Update your information below.' : 'Complete the form below to create your profile.' }} 
+                        Fields marked with <span class="text-danger">*</span> are required.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Main Form -->
+            <form id="addPatientForm" method="POST" action="/add-patient" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <!-- CSRF Token -->
+                <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+                <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+                
+                <!-- Hidden fields for edit mode -->
+                {% if isEdit %}
+                <input type="hidden" name="patient_uid" value="{{ patient.patient_uid }}">
+                <input type="hidden" name="id" value="{{ patient.id }}">
+                <input type="hidden" name="is_edit" value="1">
+                {% endif %}
+
+                <!-- Accordion Container -->
+                <div class="accordion" id="patientFormAccordion">
+
+                    <!-- Section 1: Basic Information -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingBasic">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseBasic" aria-expanded="true" aria-controls="collapseBasic">
+                                <i class="fas fa-user me-2"></i>Basic Information
+                            </button>
+                        </h2>
+                        <div id="collapseBasic" class="accordion-collapse collapse show" 
+                             aria-labelledby="headingBasic" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <!-- Patient Name -->
+                                    <div class="col-md-6">
+                                        <label for="patient_name" class="form-label">
+                                            My Name <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <input type="text" class="form-control" id="patient_name" 
+                                                   name="patient_name" required maxlength="200" 
+                                                   value="{{ patient.patient_name|default(not isEdit and current_user ? (current_user.first_name ~ ' ' ~ current_user.last_name) : '') }}">
+                                        </div>
+                                        <div class="invalid-feedback">Please enter your name.</div>
+                                        {% if not isEdit and current_user %}
+                                        <small class="form-text text-success">
+                                            <i class="fas fa-info-circle"></i> Pre-filled with your name from your account.
+                                        </small>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Date of Birth -->
+                                    <div class="col-md-6">
+                                        <label for="date_of_birth" class="form-label">
+                                            My Date of Birth <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                            <input type="date" class="form-control" id="date_of_birth" 
+                                                   name="date_of_birth" required 
+                                                   value="{{ patient.date_of_birth|default('') }}">
+                                        </div>
+                                        <div class="invalid-feedback">Please enter your date of birth.</div>
+                                    </div>
+
+                                    <!-- Gender -->
+                                    <div class="col-md-6">
+                                        <label for="gender" class="form-label">Gender</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-venus-mars"></i></span>
+                                            <select class="form-select" id="gender" name="gender">
+                                                <option value="">Select gender...</option>
+                                                <option value="male" {{ patient.gender|default('') == 'male' ? 'selected' : '' }}>Male</option>
+                                                <option value="female" {{ patient.gender|default('') == 'female' ? 'selected' : '' }}>Female</option>
+                                                <option value="other" {{ patient.gender|default('') == 'other' ? 'selected' : '' }}>Other</option>
+                                                <option value="prefer_not_to_say" {{ patient.gender|default('') == 'prefer_not_to_say' ? 'selected' : '' }}>Prefer not to say</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Blood Type -->
+                                    <div class="col-md-6">
+                                        <label for="blood_type" class="form-label">My Blood Type</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-tint"></i></span>
+                                            <select class="form-select" id="blood_type" name="blood_type">
+                                                <option value="">Select blood type...</option>
+                                                <option value="A+" {{ patient.blood_type|default('') == 'A+' ? 'selected' : '' }}>A+</option>
+                                                <option value="A-" {{ patient.blood_type|default('') == 'A-' ? 'selected' : '' }}>A-</option>
+                                                <option value="B+" {{ patient.blood_type|default('') == 'B+' ? 'selected' : '' }}>B+</option>
+                                                <option value="B-" {{ patient.blood_type|default('') == 'B-' ? 'selected' : '' }}>B-</option>
+                                                <option value="AB+" {{ patient.blood_type|default('') == 'AB+' ? 'selected' : '' }}>AB+</option>
+                                                <option value="AB-" {{ patient.blood_type|default('') == 'AB-' ? 'selected' : '' }}>AB-</option>
+                                                <option value="O+" {{ patient.blood_type|default('') == 'O+' ? 'selected' : '' }}>O+</option>
+                                                <option value="O-" {{ patient.blood_type|default('') == 'O-' ? 'selected' : '' }}>O-</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- NHS Number -->
+                                    <div class="col-md-6">
+                                        <label for="nhs_number" class="form-label">My NHS Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                            <input type="text" class="form-control" id="nhs_number" 
+                                                   name="nhs_number" maxlength="20" 
+                                                   placeholder="XXX XXX XXXX" 
+                                                   value="{{ patient.nhs_number|default('') }}">
+                                        </div>
+                                        <small class="form-text text-muted">10-digit NHS number</small>
+                                    </div>
+
+                                    <!-- Phone Number -->
+                                    <div class="col-md-6">
+                                        <label for="phone_number" class="form-label">My Phone Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            <input type="tel" class="form-control" id="phone_number" 
+                                                   name="phone_number" maxlength="20" 
+                                                   placeholder="+44 XXXX XXXXXX" 
+                                                   value="{{ patient.phone_number|default('') }}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Address -->
+                                    <div class="col-md-8">
+                                    <div class="col-md-8">
+                                        <label for="address" class="form-label">My Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-home"></i></span>
+                                            <textarea class="form-control" id="address" name="address" 
+                                                      rows="3" placeholder="Enter full address">{{ patient.address|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Postcode -->
+                                    <div class="col-md-4">
+                                        <label for="postcode" class="form-label">My Postcode</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                            <input type="text" class="form-control" id="postcode" 
+                                                   name="postcode" maxlength="10" 
+                                                   placeholder="SW1A 1AA" style="text-transform: uppercase;" 
+                                                   value="{{ patient.postcode|default('') }}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Occupation -->
+                                    <div class="col-md-6">
+                                        <label for="occupation" class="form-label">My Occupation</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                            <input type="text" class="form-control" id="occupation" 
+                                                   name="occupation" maxlength="255" 
+                                                   value="{{ patient.occupation|default('') }}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Workplace -->
+                                    <div class="col-md-6">
+                                        <label for="workplace" class="form-label">My Workplace</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                            <input type="text" class="form-control" id="workplace" 
+                                                   name="workplace" maxlength="255" 
+                                                   value="{{ patient.workplace|default('') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Medical Information -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingMedical">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseMedical" aria-expanded="false" aria-controls="collapseMedical">
+                                <i class="fas fa-heartbeat me-2"></i>Medical Information
+                            </button>
+                        </h2>
+                        <div id="collapseMedical" class="accordion-collapse collapse" 
+                             aria-labelledby="headingMedical" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <!-- Allergies -->
+                                    <div class="col-12">
+                                        <label for="allergies" class="form-label">
+                                            <i class="fas fa-exclamation-triangle text-warning me-1"></i>My Allergies
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-allergies"></i></span>
+                                            <textarea class="form-control" id="allergies" name="allergies" 
+                                                      rows="3" placeholder="List any known allergies (e.g., penicillin, nuts, latex)">{{ patient.allergies|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Medical Conditions -->
+                                    <div class="col-12">
+                                        <label for="medical_conditions" class="form-label">My Medical Conditions</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-notes-medical"></i></span>
+                                            <textarea class="form-control" id="medical_conditions" 
+                                                      name="medical_conditions" rows="3" 
+                                                      placeholder="List any existing medical conditions">{{ patient.medical_conditions|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Current Medications -->
+                                    <div class="col-12">
+                                        <label for="medications" class="form-label">My Current Medications</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-pills"></i></span>
+                                            <textarea class="form-control" id="medications" name="medications" 
+                                                      rows="3" placeholder="List all current medications with dosage">{{ patient.medications|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cognitive Conditions -->
+                                    <div class="col-md-4">
+                                        <label for="has_dementia" class="form-label">Has Dementia?</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-brain"></i></span>
+                                            <select class="form-select" id="has_dementia" name="has_dementia">
+                                                <option value="">Select...</option>
+                                                <option value="yes" {{ patient.has_dementia|default('') == 'yes' ? 'selected' : '' }}>Yes</option>
+                                                <option value="no" {{ patient.has_dementia|default('') == 'no' ? 'selected' : '' }}>No</option>
+                                                <option value="unknown" {{ patient.has_dementia|default('') == 'unknown' ? 'selected' : '' }}>Unknown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="has_learning_disability" class="form-label">Has Learning Disability?</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-book-reader"></i></span>
+                                            <select class="form-select" id="has_learning_disability" name="has_learning_disability">
+                                                <option value="">Select...</option>
+                                                <option value="yes" {{ patient.has_learning_disability|default('') == 'yes' ? 'selected' : '' }}>Yes</option>
+                                                <option value="no" {{ patient.has_learning_disability|default('') == 'no' ? 'selected' : '' }}>No</option>
+                                                <option value="unknown" {{ patient.has_learning_disability|default('') == 'unknown' ? 'selected' : '' }}>Unknown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label for="previous_stroke" class="form-label">Previous Stroke?</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-head-side-virus"></i></span>
+                                            <select class="form-select" id="previous_stroke" name="previous_stroke">
+                                                <option value="">Select...</option>
+                                                <option value="yes" {{ patient.previous_stroke|default('') == 'yes' ? 'selected' : '' }}>Yes</option>
+                                                <option value="no" {{ patient.previous_stroke|default('') == 'no' ? 'selected' : '' }}>No</option>
+                                                <option value="unknown" {{ patient.previous_stroke|default('') == 'unknown' ? 'selected' : '' }}>Unknown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Other Cognitive Conditions -->
+                                    <div class="col-12">
+                                        <label for="other_cognitive_conditions" class="form-label">Other Cognitive Conditions</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-heartbeat"></i></span>
+                                            <input type="text" class="form-control" id="other_cognitive_conditions" 
+                                                   name="other_cognitive_conditions" maxlength="500" 
+                                                   value="{{ patient.other_cognitive_conditions|default('') }}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Stroke Effects -->
+                                    <div class="col-12">
+                                        <label for="stroke_effects" class="form-label">Stroke Effects (if applicable)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-stethoscope"></i></span>
+                                            <textarea class="form-control" id="stroke_effects" name="stroke_effects" 
+                                                      rows="2" placeholder="Describe any effects from stroke">{{ patient.stroke_effects|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Communication Needs -->
+                                    <div class="col-12">
+                                        <label for="communication_needs" class="form-label">Communication Needs</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-comments"></i></span>
+                                            <textarea class="form-control" id="communication_needs" 
+                                                      name="communication_needs" rows="2" 
+                                                      placeholder="e.g., uses hearing aids, prefers written communication">{{ patient.communication_needs|default('') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: GP and Emergency Contacts -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingContacts">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseContacts" aria-expanded="false" aria-controls="collapseContacts">
+                                <i class="fas fa-address-book me-2"></i>GP & Emergency Contacts
+                            </button>
+                        </h2>
+                        <div id="collapseContacts" class="accordion-collapse collapse" 
+                             aria-labelledby="headingContacts" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <!-- GP Information -->
+                                <h5 class="mb-3"><i class="fas fa-user-md me-2"></i>My General Practitioner</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label for="gp_name" class="form-label">GP Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user-md"></i></span>
+                                            <input type="text" class="form-control" id="gp_name" 
+                                                   name="gp_name" maxlength="200" 
+                                                   value="{{ patient.gp_name|default('') }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="gp_practice" class="form-label">GP Practice</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-hospital"></i></span>
+                                            <input type="text" class="form-control" id="gp_practice" 
+                                                   name="gp_practice" maxlength="200" 
+                                                   value="{{ patient.gp_practice|default('') }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="gp_phone" class="form-label">GP Phone</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                            <input type="tel" class="form-control" id="gp_phone" 
+                                                   name="gp_phone" maxlength="20" 
+                                                   value="{{ patient.gp_phone|default('') }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Emergency Contact -->
+                                <h5 class="mb-3"><i class="fas fa-phone-alt me-2 text-danger"></i>My Emergency Contact</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="emergency_contact_1_name" class="form-label">Contact Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user-friends"></i></span>
+                                            <input type="text" class="form-control" id="emergency_contact_1_name" 
+                                                   name="emergency_contact_1_name" maxlength="200" 
+                                                   value="{{ patient.emergency_contact_1_name|default('') }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="emergency_contact_1_phone" class="form-label">Contact Phone</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            <input type="tel" class="form-control" id="emergency_contact_1_phone" 
+                                                   name="emergency_contact_1_phone" maxlength="20" 
+                                                   value="{{ patient.emergency_contact_1_phone|default('') }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="emergency_contact_1_relationship" class="form-label">Relationship</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-heart"></i></span>
+                                            <input type="text" class="form-control" id="emergency_contact_1_relationship" 
+                                                   name="emergency_contact_1_relationship" maxlength="100" 
+                                                   placeholder="e.g., Spouse, Child, Sibling" 
+                                                   value="{{ patient.emergency_contact_1_relationship|default('') }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Lasting Power of Attorney (LPA) -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingLPA">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseLPA" aria-expanded="false" aria-controls="collapseLPA">
+                                <i class="fas fa-file-contract me-2"></i>Lasting Power of Attorney (LPA)
+                            </button>
+                        </h2>
+                        <div id="collapseLPA" class="accordion-collapse collapse" 
+                             aria-labelledby="headingLPA" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <!-- Health & Welfare LPA -->
+                                <div class="card mb-3">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Health & Welfare LPA</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="lpa_health_attorney_name" class="form-label">Attorney Name</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                                    <input type="text" class="form-control" id="lpa_health_attorney_name" 
+                                                           name="lpa_health_attorney_name" maxlength="255" value="{{ patient.lpa_health_attorney_name|default('') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="lpa_health_attorney_phone" class="form-label">Attorney Phone</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                                    <input type="tel" class="form-control" id="lpa_health_attorney_phone" 
+                                                           name="lpa_health_attorney_phone" maxlength="20" value="{{ patient.lpa_health_attorney_phone|default('') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label for="lpa_health_document" class="form-label">
+                                                    <i class="fas fa-upload me-1"></i>Upload LPA Health Document
+                                                </label>
+                                                <input type="file" class="form-control" id="lpa_health_document" 
+                                                       name="lpa_health_document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                                {% if patient.lpa_health_document_path|default('') %}
+                                                <small class="form-text text-success d-block mt-1">
+                                                    <i class="fas fa-check-circle me-1"></i>Current file: {{ patient.lpa_health_document_name|default('Document uploaded') }}
+                                                </small>
+                                                {% endif %}
+                                                <small class="form-text text-muted">Accepted formats: PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Finance & Property LPA -->
+                                <div class="card mb-3">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-pound-sign me-2"></i>Finance & Property LPA</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="lpa_finance_attorney_name" class="form-label">Attorney Name</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                                    <input type="text" class="form-control" id="lpa_finance_attorney_name" 
+                                                           name="lpa_finance_attorney_name" maxlength="255" value="{{ patient.lpa_finance_attorney_name|default('') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="lpa_finance_attorney_phone" class="form-label">Attorney Phone</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                                    <input type="tel" class="form-control" id="lpa_finance_attorney_phone" 
+                                                           name="lpa_finance_attorney_phone" maxlength="20" value="{{ patient.lpa_finance_attorney_phone|default('') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label for="lpa_finance_document" class="form-label">
+                                                    <i class="fas fa-upload me-1"></i>Upload LPA Finance Document
+                                                </label>
+                                                <input type="file" class="form-control" id="lpa_finance_document" 
+                                                       name="lpa_finance_document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                                {% if patient.lpa_finance_document_path|default('') %}
+                                                <small class="form-text text-success d-block mt-1">
+                                                    <i class="fas fa-check-circle me-1"></i>Current file: {{ patient.lpa_finance_document_name|default('Document uploaded') }}
+                                                </small>
+                                                {% endif %}
+                                                <small class="form-text text-muted">Accepted formats: PDF, DOC, DOCX, JPG, PNG (Max 5MB)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LPA Additional Notes -->
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="lpa_additional_notes" class="form-label">Additional LPA Notes</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-sticky-note"></i></span>
+                                            <textarea class="form-control" id="lpa_additional_notes" 
+                                                      name="lpa_additional_notes" rows="3" 
+                                                      placeholder="Any additional information about LPA arrangements">{{ patient.lpa_additional_notes|default('') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: ReSPECT Form & Resuscitation -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingRespect">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseRespect" aria-expanded="false" aria-controls="collapseRespect">
+                                <i class="fas fa-file-medical me-2"></i>ReSPECT Form & Resuscitation Status
+                            </button>
+                        </h2>
+                        <div id="collapseRespect" class="accordion-collapse collapse" 
+                             aria-labelledby="headingRespect" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <!-- Has ReSPECT Form -->
+                                    <div class="col-md-6">
+                                        <label for="has_respect_form" class="form-label">
+                                            <i class="fas fa-file-medical-alt me-1"></i>Has ReSPECT Form?
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-file-medical"></i></span>
+                                            <select class="form-select" id="has_respect_form" name="has_respect_form">
+                                                <option value="">Select...</option>
+                                                <option value="yes" {{ patient.has_respect_form|default('') == 'yes' ? 'selected' : '' }}>Yes</option>
+                                                <option value="no" {{ patient.has_respect_form|default('') == 'no' ? 'selected' : '' }}>No</option>
+                                                <option value="unknown" {{ patient.has_respect_form|default('') == 'unknown' ? 'selected' : '' }}>Unknown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Resuscitation Status -->
+                                    <div class="col-md-6">
+                                        <label for="resuscitation_status" class="form-label">
+                                            <i class="fas fa-heart-pulse me-1"></i>Resuscitation Status
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-heartbeat"></i></span>
+                                            <select class="form-select" id="resuscitation_status" name="resuscitation_status">
+                                                <option value="">Select...</option>
+                                                <option value="full_active" {{ patient.resuscitation_status|default('') == 'full_active' ? 'selected' : '' }}>Full Active Treatment</option>
+                                                <option value="cpr_not_indicated" {{ patient.resuscitation_status|default('') == 'cpr_not_indicated' ? 'selected' : '' }}>CPR Not Indicated</option>
+                                                <option value="do_not_attempt" {{ patient.resuscitation_status|default('') == 'do_not_attempt' ? 'selected' : '' }}>Do Not Attempt CPR</option>
+                                                <option value="unknown" {{ patient.resuscitation_status|default('') == 'unknown' ? 'selected' : '' }}>Unknown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Upload ReSPECT Form -->
+                                    <div class="col-12">
+                                        <label for="respect_document" class="form-label">
+                                            <i class="fas fa-upload me-1"></i>Upload ReSPECT Form Document
+                                        </label>
+                                        <input type="file" class="form-control" id="respect_document" 
+                                               name="respect_document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                        {% if patient.respect_document_path|default('') %}
+                                        <small class="form-text text-success d-block mt-1">
+                                            <i class="fas fa-check-circle me-1"></i>Current file: {{ patient.respect_document_name|default('Document uploaded') }}
+                                        </small>
+                                        {% endif %}
+                                        <small class="form-text text-muted">
+                                            Upload the completed ReSPECT form (Recommended Emergency and Supportive Personalised Care Plan)
+                                        </small>
+                                    </div>
+
+                                    <!-- Advance Directives -->
+                                    <div class="col-12">
+                                        <label for="advance_directives" class="form-label">Advance Directives / Living Will</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-scroll"></i></span>
+                                            <textarea class="form-control" id="advance_directives" 
+                                                      name="advance_directives" rows="3" 
+                                                      placeholder="Document any advance directives or living will preferences">{{ patient.advance_directives|default('') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 6: Diet & Nutrition -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingDiet">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseDiet" aria-expanded="false" aria-controls="collapseDiet">
+                                <i class="fas fa-utensils me-2"></i>Diet & Nutrition
+                            </button>
+                        </h2>
+                        <div id="collapseDiet" class="accordion-collapse collapse" 
+                             aria-labelledby="headingDiet" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <!-- Diet Type -->
+                                    <div class="col-md-6">
+                                        <label for="diet_type" class="form-label">Diet Type</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-utensils"></i></span>
+                                            <select class="form-select" id="diet_type" name="diet_type">
+                                                <option value="">Select diet type...</option>
+                                                <option value="normal" {{ patient.diet_type|default('') == 'normal' ? 'selected' : '' }}>Normal</option>
+                                                <option value="vegetarian" {{ patient.diet_type|default('') == 'vegetarian' ? 'selected' : '' }}>Vegetarian</option>
+                                                <option value="vegan" {{ patient.diet_type|default('') == 'vegan' ? 'selected' : '' }}>Vegan</option>
+                                                <option value="halal" {{ patient.diet_type|default('') == 'halal' ? 'selected' : '' }}>Halal</option>
+                                                <option value="kosher" {{ patient.diet_type|default('') == 'kosher' ? 'selected' : '' }}>Kosher</option>
+                                                <option value="gluten_free" {{ patient.diet_type|default('') == 'gluten_free' ? 'selected' : '' }}>Gluten Free</option>
+                                                <option value="diabetic" {{ patient.diet_type|default('') == 'diabetic' ? 'selected' : '' }}>Diabetic</option>
+                                                <option value="low_sodium" {{ patient.diet_type|default('') == 'low_sodium' ? 'selected' : '' }}>Low Sodium</option>
+                                                <option value="soft_foods" {{ patient.diet_type|default('') == 'soft_foods' ? 'selected' : '' }}>Soft Foods</option>
+                                                <option value="pureed" {{ patient.diet_type|default('') == 'pureed' ? 'selected' : '' }}>Pureed</option>
+                                                <option value="other" {{ patient.diet_type|default('') == 'other' ? 'selected' : '' }}>Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Fluid Consistency -->
+                                    <div class="col-md-6">
+                                        <label for="fluid_consistency" class="form-label">Fluid Consistency</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-glass-water"></i></span>
+                                            <select class="form-select" id="fluid_consistency" name="fluid_consistency">
+                                                <option value="">Select fluid consistency...</option>
+                                                <option value="normal" {{ patient.fluid_consistency|default('') == 'normal' ? 'selected' : '' }}>Normal</option>
+                                                <option value="nectar_thick" {{ patient.fluid_consistency|default('') == 'nectar_thick' ? 'selected' : '' }}>Nectar Thick</option>
+                                                <option value="honey_thick" {{ patient.fluid_consistency|default('') == 'honey_thick' ? 'selected' : '' }}>Honey Thick</option>
+                                                <option value="pudding_thick" {{ patient.fluid_consistency|default('') == 'pudding_thick' ? 'selected' : '' }}>Pudding Thick</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Special Diet Notes -->
+                                    <div class="col-12">
+                                        <label for="special_diet_notes" class="form-label">Special Diet Notes</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-clipboard-list"></i></span>
+                                            <textarea class="form-control" id="special_diet_notes" 
+                                                      name="special_diet_notes" rows="2" 
+                                                      placeholder="Any specific dietary requirements or restrictions">{{ patient.special_diet_notes|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Food Preferences -->
+                                    <div class="col-md-6">
+                                        <label for="food_preferences" class="form-label">
+                                            <i class="fas fa-thumbs-up me-1 text-success"></i>Food Preferences / Likes
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-smile"></i></span>
+                                            <textarea class="form-control" id="food_preferences" 
+                                                      name="food_preferences" rows="3" 
+                                                      placeholder="Favourite foods and drinks">{{ patient.food_preferences|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Food Dislikes -->
+                                    <div class="col-md-6">
+                                        <label for="food_dislikes" class="form-label">
+                                            <i class="fas fa-thumbs-down me-1 text-danger"></i>Food Dislikes
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-frown"></i></span>
+                                            <textarea class="form-control" id="food_dislikes" 
+                                                      name="food_dislikes" rows="3" 
+                                                      placeholder="Foods or drinks to avoid">{{ patient.food_dislikes|default('') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 7: Personal Preferences & Memories -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingPersonal">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapsePersonal" aria-expanded="false" aria-controls="collapsePersonal">
+                                <i class="fas fa-heart me-2"></i>Personal Preferences & Memories
+                            </button>
+                        </h2>
+                        <div id="collapsePersonal" class="accordion-collapse collapse" 
+                             aria-labelledby="headingPersonal" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <!-- Personal Likes -->
+                                    <div class="col-md-6">
+                                        <label for="personal_likes" class="form-label">
+                                            <i class="fas fa-smile me-1 text-success"></i>Things I Enjoy
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-star"></i></span>
+                                            <textarea class="form-control" id="personal_likes" 
+                                                      name="personal_likes" rows="4" 
+                                                      placeholder="Hobbies, interests, favorite activities, music, TV shows, etc.">{{ patient.personal_likes|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Personal Dislikes -->
+                                    <div class="col-md-6">
+                                        <label for="personal_dislikes" class="form-label">
+                                            <i class="fas fa-frown me-1 text-warning"></i>Things I Dislike
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-ban"></i></span>
+                                            <textarea class="form-control" id="personal_dislikes" 
+                                                      name="personal_dislikes" rows="4" 
+                                                      placeholder="Things that upset me or I prefer to avoid">{{ patient.personal_dislikes|default('') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Important Memories -->
+                                    <div class="col-12">
+                                        <label for="important_memories" class="form-label">
+                                            <i class="fas fa-book me-1"></i>Important Memories & Life Story
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-book-open"></i></span>
+                                            <textarea class="form-control" id="important_memories" 
+                                                      name="important_memories" rows="4" 
+                                                      placeholder="Significant life events, cherished memories, important people in my life">{{ patient.important_memories|default('') }}</textarea>
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            This helps caregivers connect with me on a personal level
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 8: Cultural, Religious & Spiritual Needs -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingCultural">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseCultural" aria-expanded="false" aria-controls="collapseCultural">
+                                <i class="fas fa-mosque me-2"></i>Cultural, Religious & Spiritual Needs
+                            </button>
+                        </h2>
+                        <div id="collapseCultural" class="accordion-collapse collapse" 
+                             aria-labelledby="headingCultural" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <!-- Religion -->
+                                    <div class="col-md-6">
+                                        <label for="religion" class="form-label">Religion / Belief System</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-pray"></i></span>
+                                            <input type="text" class="form-control" id="religion" 
+                                                   name="religion" maxlength="100" 
+                                                   placeholder="e.g., Christian, Muslim, Hindu, Jewish, None" 
+                                                   value="{{ patient.religion|default('') }}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Cultural Needs -->
+                                    <div class="col-12">
+                                        <label for="cultural_needs" class="form-label">Cultural & Spiritual Needs</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                            <textarea class="form-control" id="cultural_needs" 
+                                                      name="cultural_needs" rows="3" 
+                                                      placeholder="Specific cultural practices, prayer times, spiritual care requirements, language preferences">{{ patient.cultural_needs|default('') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 9: End-of-Life Planning -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingEndOfLife">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseEndOfLife" aria-expanded="false" aria-controls="collapseEndOfLife">
+                                <i class="fas fa-peace me-2"></i>End-of-Life Planning
+                            </button>
+                        </h2>
+                        <div id="collapseEndOfLife" class="accordion-collapse collapse" 
+                             aria-labelledby="headingEndOfLife" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="alert alert-info" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Sensitive Information:</strong> This section helps ensure my wishes are respected.
+                                </div>
+                                
+                                <div class="row g-3">
+                                    <!-- Funeral Arrangements -->
+                                    <div class="col-md-6">
+                                        <label for="funeral_arrangements" class="form-label">Funeral Preference</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-cross"></i></span>
+                                            <select class="form-select" id="funeral_arrangements" name="funeral_arrangements">
+                                                <option value="">Select preference...</option>
+                                                <option value="burial" {{ patient.funeral_arrangements|default('') == 'burial' ? 'selected' : '' }}>Burial</option>
+                                                <option value="cremation" {{ patient.funeral_arrangements|default('') == 'cremation' ? 'selected' : '' }}>Cremation</option>
+                                                <option value="natural_burial" {{ patient.funeral_arrangements|default('') == 'natural_burial' ? 'selected' : '' }}>Natural Burial</option>
+                                                <option value="donation_to_science" {{ patient.funeral_arrangements|default('') == 'donation_to_science' ? 'selected' : '' }}>Donation to Science</option>
+                                                <option value="other" {{ patient.funeral_arrangements|default('') == 'other' ? 'selected' : '' }}>Other</option>
+                                                <option value="not_specified" {{ patient.funeral_arrangements|default('') == 'not_specified' ? 'selected' : '' }}>Not Specified</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Organ Donation -->
+                                    <div class="col-md-6">
+                                        <label for="organ_donation" class="form-label">Organ Donation</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-hand-holding-heart"></i></span>
+                                            <select class="form-select" id="organ_donation" name="organ_donation">
+                                                <option value="">Select...</option>
+                                                <option value="yes" {{ patient.organ_donation|default('') == 'yes' ? 'selected' : '' }}>Yes - Registered Donor</option>
+                                                <option value="no" {{ patient.organ_donation|default('') == 'no' ? 'selected' : '' }}>No</option>
+                                                <option value="unknown" {{ patient.organ_donation|default('') == 'unknown' ? 'selected' : '' }}>Unknown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Funeral Details Notes -->
+                                    <!-- Funeral Details Notes -->
+                                    <div class="col-12">
+                                        <label for="funeral_details_notes" class="form-label">Funeral & Memorial Wishes</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-dove"></i></span>
+                                            <textarea class="form-control" id="funeral_details_notes" 
+                                                      name="funeral_details_notes" rows="3" 
+                                                      placeholder="Specific funeral wishes, memorial preferences, people to be notified">{{ patient.funeral_details_notes|default('') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 10: Additional Notes -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingAdditional">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapseAdditional" aria-expanded="false" aria-controls="collapseAdditional">
+                                <i class="fas fa-sticky-note me-2"></i>Additional Notes
+                            </button>
+                        </h2>
+                        <div id="collapseAdditional" class="accordion-collapse collapse" 
+                             aria-labelledby="headingAdditional" data-bs-parent="#patientFormAccordion">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="additional_notes" class="form-label">Additional Information About Me</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-edit"></i></span>
+                                            <textarea class="form-control" id="additional_notes" 
+                                                      name="additional_notes" rows="5" 
+                                                      placeholder="Any other relevant information that hasn't been covered above">{{ patient.additional_notes|default('') }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> <!-- End of Accordion -->
+
+                <!-- Form Actions -->
+                <div class="card mt-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div>
+                                <p class="mb-0 text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Please review all information before submitting
+                                </p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-secondary" onclick="window.history.back();">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </button>
+                                {% if not isEdit %}
+                                <button type="button" class="btn btn-outline-primary" id="saveAsDraftBtn">
+                                    <i class="fas fa-save me-1"></i>Save as Draft
+                                </button>
+                                {% endif %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-{{ isEdit ? 'save' : 'check' }} me-1"></i>
+                                    {{ isEdit ? 'Update My Profile' : 'Create My Profile' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Custom JavaScript for Form -->
+<script>
+(function() {
+    'use strict';
+    
+    // Form validation
+    const form = document.getElementById('addPatientForm');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Find first invalid field and scroll to it
+            const firstInvalid = form.querySelector(':invalid');
+            if (firstInvalid) {
+                // Find and expand the accordion containing the invalid field
+                const accordionItem = firstInvalid.closest('.accordion-collapse');
+                if (accordionItem) {
+                    const bsCollapse = new bootstrap.Collapse(accordionItem, {
+                        toggle: true
+                    });
+                }
+                
+                // Scroll to the field
+                setTimeout(() => {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }, 300);
+            }
+        }
+        
+        form.classList.add('was-validated');
+    }, false);
+    
+    // File size validation (5MB limit)
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file && file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                this.value = '';
+            }
+        });
+    });
+    
+    // NHS Number formatting
+    const nhsInput = document.getElementById('nhs_number');
+    if (nhsInput) {
+        nhsInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            if (value.length > 3 && value.length <= 6) {
+                e.target.value = value.slice(0, 3) + ' ' + value.slice(3);
+            } else if (value.length > 6) {
+                e.target.value = value.slice(0, 3) + ' ' + value.slice(3, 6) + ' ' + value.slice(6, 10);
+            }
+        });
+    }
+    
+    // Postcode uppercase
+    const postcodeInput = document.getElementById('postcode');
+    if (postcodeInput) {
+        postcodeInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    }
+    
+    // Save as Draft functionality
+    const draftBtn = document.getElementById('saveAsDraftBtn');
+    if (draftBtn) {
+        draftBtn.addEventListener('click', function() {
+            const formData = new FormData(form);
+            formData.append('save_as_draft', '1');
+            
+            // You can implement AJAX save here or modify form action
+            alert('Draft save functionality - to be implemented on backend');
+        });
+    }
+    
+    // Progress tracking - show which sections are completed
+    function updateSectionProgress() {
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        accordionItems.forEach(item => {
+            const inputs = item.querySelectorAll('input, select, textarea');
+            let filledCount = 0;
+            
+            inputs.forEach(input => {
+                if (input.type === 'file') {
+                    if (input.files && input.files.length > 0) filledCount++;
+                } else if (input.value.trim() !== '') {
+                    filledCount++;
+                }
+            });
+            
+            if (filledCount > 0) {
+                const button = item.querySelector('.accordion-button');
+                if (!button.querySelector('.badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-success ms-2';
+                    badge.innerHTML = '<i class="fas fa-check"></i>';
+                    button.appendChild(badge);
+                }
+            }
+        });
+    }
+    
+    // Update progress on input change
+    form.addEventListener('change', updateSectionProgress);
+    
+})();
+</script>
+
+{% endblock %}

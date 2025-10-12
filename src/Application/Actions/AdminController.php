@@ -211,6 +211,17 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
+        
+        // Get CSRF tokens
+        $csrf = [
+            'name' => $request->getAttribute('csrf_name'),
+            'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
+        ];
+        
         // Get all messages
         $stmt = $this->pdo->query('SELECT * FROM support_messages ORDER BY created_at DESC');
         $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -221,7 +232,8 @@ class AdminController
         $pending = 0;
         foreach ($messages as $msg) {
             $total++;
-            if (!empty($msg['has_response']) && $msg['has_response']) {
+            // Count as responded if status is 'responded', 'resolved' or 'closed', OR if has_response flag is set
+            if ($msg['status'] === 'responded' || $msg['status'] === 'resolved' || $msg['status'] === 'closed' || (!empty($msg['has_response']) && $msg['has_response'])) {
                 $responded++;
             } elseif ($msg['status'] === 'new' || $msg['status'] === 'in_progress') {
                 $pending++;
@@ -246,6 +258,7 @@ class AdminController
             'keywords' => 'admin, dashboard, know my patient',
             'messages' => $messages,
             'widgetStats' => $widgetStats,
+            'csrf' => $csrf,
         ];
         $body = $this->twig->getEnvironment()->render('admin/support_messages.html.twig', $vars);
         $response->getBody()->write($body);
@@ -258,16 +271,33 @@ class AdminController
             $response->getBody()->write('Forbidden');
             return $response;
         }
+        
         $data = $request->getParsedBody();
         $id = isset($data['id']) ? (int)$data['id'] : 0;
         $status = isset($data['status']) ? $data['status'] : null;
-        $allowed = ['new', 'in_progress', 'resolved', 'closed'];
+        $allowed = ['new', 'in_progress', 'responded', 'resolved', 'closed'];
+        
         if ($id > 0 && in_array($status, $allowed, true)) {
-            $stmt = $this->pdo->prepare('UPDATE support_messages SET status = :status WHERE id = :id');
-            $stmt->execute(['status' => $status, 'id' => $id]);
+            try {
+                $stmt = $this->pdo->prepare('UPDATE support_messages SET status = :status, updated_at = NOW() WHERE id = :id');
+                $stmt->execute(['status' => $status, 'id' => $id]);
+                
+                // Set success message in session
+                $this->session->set('flash_message', 'Support message status updated successfully!');
+                $this->session->set('flash_type', 'success');
+            } catch (\PDOException $e) {
+                error_log("Error updating support message status: " . $e->getMessage());
+                $this->session->set('flash_message', 'Error updating status. Please try again.');
+                $this->session->set('flash_type', 'danger');
+            }
+        } else {
+            $this->session->set('flash_message', 'Invalid status or message ID.');
+            $this->session->set('flash_type', 'warning');
         }
+        
         return $response->withHeader('Location', '/admin/support-messages')->withStatus(302);
     }
+    
     public function deleteSupportMessage(Request $request, Response $response): Response
     {
         if ($this->session->get('user_role') !== 'admin') {
@@ -275,12 +305,28 @@ class AdminController
             $response->getBody()->write('Forbidden');
             return $response;
         }
+        
         $data = $request->getParsedBody();
         $id = isset($data['id']) ? (int)$data['id'] : 0;
+        
         if ($id > 0) {
-            $stmt = $this->pdo->prepare('DELETE FROM support_messages WHERE id = :id');
-            $stmt->execute(['id' => $id]);
+            try {
+                $stmt = $this->pdo->prepare('DELETE FROM support_messages WHERE id = :id');
+                $stmt->execute(['id' => $id]);
+                
+                // Set success message in session
+                $this->session->set('flash_message', 'Support message deleted successfully!');
+                $this->session->set('flash_type', 'success');
+            } catch (\PDOException $e) {
+                error_log("Error deleting support message: " . $e->getMessage());
+                $this->session->set('flash_message', 'Error deleting message. Please try again.');
+                $this->session->set('flash_type', 'danger');
+            }
+        } else {
+            $this->session->set('flash_message', 'Invalid message ID.');
+            $this->session->set('flash_type', 'warning');
         }
+        
         return $response->withHeader('Location', '/admin/support-messages')->withStatus(302);
     }
 

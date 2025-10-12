@@ -1,0 +1,40 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg mt-5">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-shield-x text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="card-title text-danger fw-bold mb-3">Security Validation Failed</h2>
+                    <p class="text-muted mb-4">
+                        Your request could not be processed due to a security validation error. This usually happens when:
+                    </p>
+                    <ul class="text-start text-muted mb-4">
+                        <li>Your session has expired</li>
+                        <li>The form was submitted from an untrusted source</li>
+                        <li>You've been inactive for too long</li>
+                    </ul>
+                    <div class="d-grid gap-2">
+                        <a href="{{ app.request.headers.get('referer') ?: '/' }}" class="btn btn-primary btn-lg rounded-pill">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Try Again
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary rounded-pill">
+                            <i class="bi bi-house me-2"></i>Go to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    If this problem persists, please try logging out and logging back in.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

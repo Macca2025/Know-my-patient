@@ -61,6 +61,13 @@ return function (App $app) {
         ->setName('dashboard');
 
     // --------------------
+    // Request Physical Card Route (protected, POST only)
+    // --------------------
+    $app->post('/dashboard/request-card', [\App\Application\Actions\DashboardController::class, 'requestPhysicalCard'])
+        ->add(\App\Application\Middleware\AuthMiddleware::class)
+        ->setName('request_physical_card');
+
+    // --------------------
     // Onboarding Route (GET)
     // --------------------
     $app->get('/onboarding', [\App\Application\Actions\OnboardingController::class, 'onboarding'])->setName('onboarding');
@@ -71,9 +78,25 @@ return function (App $app) {
     $app->get('/logout', [\App\Application\Actions\AuthController::class, 'logout'])->setName('logout');
 
     // --------------------
-    // My Profile Route (GET)
+    // My Profile Route (GET, POST)
     // --------------------
-    $app->get('/my-profile', [\App\Application\Actions\DashboardController::class, 'myProfile'])->setName('my_profile');
+    $app->map(['GET', 'POST'], '/my-profile', [\App\Application\Actions\DashboardController::class, 'myProfile'])
+        ->add(\App\Application\Middleware\AuthMiddleware::class)
+        ->setName('my_profile');
+
+    // --------------------
+    // Add Patient Route (GET, POST)
+    // --------------------
+    $app->map(['GET', 'POST'], '/add-patient', [\App\Application\Actions\AddPatientController::class, 'addPatient'])
+        ->add(\App\Application\Middleware\AuthMiddleware::class)
+        ->setName('add_patient');
+
+    // --------------------
+    // Save Patient Section Route (POST - AJAX)
+    // --------------------
+    $app->post('/add-patient/save-section', [\App\Application\Actions\AddPatientController::class, 'savePatientSection'])
+        ->add(\App\Application\Middleware\AuthMiddleware::class)
+        ->setName('save_patient_section');
 
     // --------------------
     // Privacy Policy Route (GET)
@@ -138,5 +161,13 @@ return function (App $app) {
         $group->get('/dashboard', [\App\Application\Actions\DashboardController::class, 'dashboardFamily'])->setName('dashboard_family');
         // Add more family member routes here
     })->add(\App\Application\Middleware\FamilyOnlyMiddleware::class);
+
+    // --------------------
+    // Patient Profile API (for QR/UID lookup)
+    // --------------------
+    $app->get('/patient/profile/{uid}', [
+        \App\Application\Actions\Healthcare\PatientProfileApiAction::class,
+        '__invoke'
+    ]);
 
 };

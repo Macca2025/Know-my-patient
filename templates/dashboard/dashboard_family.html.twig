@@ -3,6 +3,24 @@
     ============================= #}
 {# Family dashboard cards and content #}
 <div class="dashboard-cards-grid">
+    <div class="dashboard-card-modern card-success">
+        <div class="card-body">
+            <div class="card-icon">
+                <i class="bi bi-plus-circle text-success"></i>
+            </div>
+            <h5 class="card-title">Add Patient Information</h5>
+            <p class="card-text">Add or update your family member's digital hospital passport details.</p>
+            <div class="card-actions">
+                <a href="{{ url_for('add_patient') }}" class="btn btn-outline-success">
+                    <i class="bi bi-plus me-2"></i>Add Information
+                </a>
+            </div>
+            <div class="card-footer-info">
+                <small><i class="bi bi-plus-circle"></i>Digital Hospital Passport</small>
+            </div>
+        </div>
+    </div>
+
     <div class="dashboard-card-modern card-warning">
         <div class="card-body">
             <div class="card-icon">

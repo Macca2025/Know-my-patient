@@ -5,6 +5,14 @@
 {% extends 'layouts/base.html.twig' %}
 {% block content %}
 <div class="container py-5">
+    <!-- Flash Messages -->
+    {% if session.flash_message %}
+        <div class="alert alert-{{ session.flash_type|default('info') }} alert-dismissible fade show" role="alert">
+            {{ session.flash_message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    
     <!-- Dashboard Header Styled Like Support Page -->
     <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4 mt-80">
             <div class="d-flex align-items-center justify-content-between">
@@ -42,4 +50,34 @@
         <div class="alert alert-danger">You are not logged in.</div>
     {% endif %}
 </div>
+
+<script>
+// Card Request Form Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const requestCardBtn = document.getElementById('requestCardBtn');
+    const cardRequestForm = document.getElementById('cardRequestForm');
+    
+    console.log('Dashboard script loaded');
+    console.log('Request card button:', requestCardBtn);
+    console.log('Card request form:', cardRequestForm);
+    
+    if (requestCardBtn && cardRequestForm) {
+        requestCardBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Button clicked');
+            
+            if (confirm('Are you sure you want to order a patient card? This will start the production process.')) {
+                console.log('Form submission confirmed');
+                console.log('Form action:', cardRequestForm.action);
+                console.log('Form method:', cardRequestForm.method);
+                cardRequestForm.submit();
+            } else {
+                console.log('Form submission cancelled');
+            }
+        });
+    } else {
+        console.log('Card request elements not found - user may not have patient role');
+    }
+});
+</script>
 {% endblock %}

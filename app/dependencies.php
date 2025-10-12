@@ -10,6 +10,30 @@ use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 return function (ContainerBuilder $containerBuilder) {
     $containerBuilder->addDefinitions([
+        \App\Infrastructure\Persistence\User\DatabaseAuditLogRepository::class => function (ContainerInterface $c): \App\Infrastructure\Persistence\User\DatabaseAuditLogRepository {
+            return new \App\Infrastructure\Persistence\User\DatabaseAuditLogRepository($c->get(\PDO::class));
+        },
+        \App\Domain\User\AuditLogRepository::class => function (ContainerInterface $c): \App\Domain\User\AuditLogRepository {
+            return $c->get(\App\Infrastructure\Persistence\User\DatabaseAuditLogRepository::class);
+        },
+    ]);
+    $containerBuilder->addDefinitions([
+        \App\Infrastructure\Persistence\User\DatabasePatientProfileRepository::class => function (ContainerInterface $c): \App\Infrastructure\Persistence\User\DatabasePatientProfileRepository {
+            return new \App\Infrastructure\Persistence\User\DatabasePatientProfileRepository($c->get(\PDO::class));
+        },
+        \App\Domain\User\PatientProfileRepository::class => function (ContainerInterface $c): \App\Domain\User\PatientProfileRepository {
+            return $c->get(\App\Infrastructure\Persistence\User\DatabasePatientProfileRepository::class);
+        },
+        \App\Application\Actions\Healthcare\PatientProfileApiAction::class => function (ContainerInterface $c): \App\Application\Actions\Healthcare\PatientProfileApiAction {
+            return new \App\Application\Actions\Healthcare\PatientProfileApiAction(
+                $c->get(\Psr\Log\LoggerInterface::class),
+                $c->get(\App\Domain\User\PatientProfileRepository::class),
+                $c->get(\App\Domain\User\AuditLogRepository::class),
+                $c->get(\App\Application\Services\SessionService::class)
+            );
+        },
+    ]);
+    $containerBuilder->addDefinitions([
     \App\Infrastructure\Persistence\Testimonial\DatabaseTestimonialRepository::class => function (ContainerInterface $c): \App\Infrastructure\Persistence\Testimonial\DatabaseTestimonialRepository {
         return new \App\Infrastructure\Persistence\Testimonial\DatabaseTestimonialRepository($c->get(\PDO::class));
     },
@@ -65,6 +89,15 @@ return function (ContainerBuilder $containerBuilder) {
                 },
                 \App\Application\Actions\AdminController::class => function (ContainerInterface $c): \App\Application\Actions\AdminController {
                     return new \App\Application\Actions\AdminController(
+                        $c->get(\Slim\Views\Twig::class),
+                        $c->get(\PDO::class),
+                        $c->get(\Psr\Log\LoggerInterface::class),
+                        $c->get(\App\Application\Services\SessionService::class)
+                    );
+                },
+                
+                \App\Application\Actions\AddPatientController::class => function (ContainerInterface $c): \App\Application\Actions\AddPatientController {
+                    return new \App\Application\Actions\AddPatientController(
                         $c->get(\Slim\Views\Twig::class),
                         $c->get(\PDO::class),
                         $c->get(\Psr\Log\LoggerInterface::class),

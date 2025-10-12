@@ -1,185 +1,967 @@
+{% block scripts %}
+{% endblock %}
+{% block after_body_scripts %}
+<script type="module">
+import { startQRScanner } from '/js/qr_scanner_prod.js';
+
+const permissionStatusText = document.getElementById('permissionStatusText');
+const startScanBtn = document.getElementById('startScanBtn');
+const requestPermissionBtn = document.getElementById('requestPermissionBtn');
+const forcePermissionBtn = document.getElementById('forcePermissionBtn');
+const testCameraBtn = document.getElementById('testCameraBtn');
+const qrReaderDiv = document.getElementById('qr-reader');
+
+function updatePermissionStatus(msg, type = 'info') {
+    if (permissionStatusText) {
+        permissionStatusText.textContent = msg;
+        permissionStatusText.className = '';
+        if (type === 'error') permissionStatusText.classList.add('text-danger');
+        else if (type === 'success') permissionStatusText.classList.add('text-success');
+        else permissionStatusText.classList.add('text-muted');
+    }
+}
+
+async function requestCameraPermission() {
+    updatePermissionStatus('Requesting camera permission...', 'info');
+    console.log('Enable Camera Permission button clicked');
+    if (window.isSecureContext !== true) {
+        updatePermissionStatus('Camera access requires HTTPS (or localhost).', 'error');
+        return;
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop());
+        updatePermissionStatus('Camera permission granted.', 'success');
+    } catch (e) {
+        updatePermissionStatus('Camera access denied or unavailable.', 'error');
+        console.error('Camera permission error:', e);
+        if (e && e.name === 'NotAllowedError') {
+            updatePermissionStatus('Camera permission denied. Please check your browser settings and allow camera access.', 'error');
+        } else if (e && e.name === 'NotFoundError') {
+            updatePermissionStatus('No camera found on this device.', 'error');
+        } else if (e && e.name === 'NotReadableError') {
+            updatePermissionStatus('Camera is already in use by another application.', 'error');
+        } else if (e && e.name === 'SecurityError') {
+            updatePermissionStatus('Camera access is blocked by browser security settings.', 'error');
+        }
+    }
+}
+
+async function requestAndStartCamera() {
+    try {
+        await navigator.mediaDevices.getUserMedia({ video: true });
+        updatePermissionStatus('Camera permission granted.', 'success');
+        showCameraForQR();
+    } catch (e) {
+        updatePermissionStatus('Camera access denied or unavailable.', 'error');
+    }
+}
+
+async function forceCameraRequest() {
+    try {
+        const streams = await navigator.mediaDevices.enumerateDevices();
+        streams.forEach(device => {
+            if (device.kind === 'videoinput') {
+                // No direct way to stop, but this is a placeholder for future logic
+            }
+        });
+        await navigator.mediaDevices.getUserMedia({ video: true });
+        updatePermissionStatus('Camera permission forced and granted.', 'success');
+    } catch (e) {
+        updatePermissionStatus('Force request failed: Camera access denied or unavailable.', 'error');
+    }
+}
+
+async function testCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        updatePermissionStatus('Camera test successful.', 'success');
+        qrReaderDiv.innerHTML = '';
+        const video = document.createElement('video');
+        video.style.width = '100%';
+        video.style.maxHeight = '240px';
+        video.autoplay = true;
+        qrReaderDiv.appendChild(video);
+        video.srcObject = stream;
+        setTimeout(() => {
+            stream.getTracks().forEach(track => track.stop());
+            video.remove();
+            updatePermissionStatus('Camera test complete.', 'info');
+        }, 2000);
+    } catch (e) {
+        updatePermissionStatus('Camera test failed: ' + (e.message || e), 'error');
+    }
+}
+
+function showCameraForQR() {
+    qrReaderDiv.innerHTML = '';
+    const video = document.createElement('video');
+    video.style.width = '100%';
+    video.style.maxHeight = '240px';
+    qrReaderDiv.appendChild(video);
+    startQRScanner(video, (result) => {
+        updatePermissionStatus('QR code detected: ' + result, 'success');
+        // You can add logic here to handle the scanned result
+    }, (err) => {
+        updatePermissionStatus(err, 'error');
+    });
+}
+
+if (startScanBtn) {
+    startScanBtn.addEventListener('click', requestAndStartCamera);
+}
+if (requestPermissionBtn) {
+    requestPermissionBtn.addEventListener('click', requestCameraPermission);
+}
+if (forcePermissionBtn) {
+    forcePermissionBtn.addEventListener('click', forceCameraRequest);
+}
+if (testCameraBtn) {
+    testCameraBtn.addEventListener('click', testCamera);
+}
+</script>
+{% endblock %}
+{% endblock %}
 {% extends 'layouts/base.html.twig' %}
 {% block content %}
-
-        <div class="container py-5">
-  <!-- Dashboard Header Styled Like Support Page -->
-    <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4 mt-80">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
-                <h1 class="fw-bold text-purple-primary mb-2">
-                    <i class="bi bi-person-badge-fill me-2"></i>
-                    {{ dashboardTitle|default('Patient Passport Lookup') }}
-                </h1>
-                <p class="lead text-secondary mb-0">
-                Welcome, {{ currentUser.first_name ~ ' ' ~ currentUser.surname }}
-                {{ dashboardSubtitle|default('Patient Passport Lookup Dashboard.') }}
-                </p>
+<div class="container-fluid py-2 bg-light navbar-offset">
+            <!-- Header Section -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="d-flex align-items-center justify-content-between pt-2">
+                        <div>
+                            <h1 class="fw-bold text-purple-primary mb-2">
+                                <i class="bi bi-qr-code-scan me-2"></i>Patient Lookup
+                            </h1>
+                            <p class="lead text-secondary mb-0">
+                                Scan QR codes or enter patient UID to access medical records
+                            </p>
+                        </div>
+                        <div>
+                            <a href="user_dashboard.php" class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-                <div class="row g-4">
-                    <!-- Lookup Form -->
-                    <div class="col-12 col-lg-4">
-                        <div class="card h-100 shadow border-0">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="card-title mb-0">
-                                    <i class="bi bi-qr-code-scan me-2"></i>Patient Lookup
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <!-- Patient Lookup Accordion -->
-                                <div class="accordion" id="patientLookupAccordion">
-                                    <!-- QR Scanner Section -->
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header" id="headingQRScanner">
-                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQRScanner" aria-expanded="true" aria-controls="collapseQRScanner">
-                                                <i class="bi bi-camera me-2"></i>QR Code Scanner
-                                            </button>
-                                        </h2>
-                                        <div id="collapseQRScanner" class="accordion-collapse collapse show" aria-labelledby="headingQRScanner" data-bs-parent="#patientLookupAccordion">
-                                            <div class="accordion-body">
-                                                <!-- Permission Status Indicator -->
-                                                <div id="permissionStatus" class="mb-3">
-                                                    <small class="text-muted">
-                                                        <i class="bi bi-info-circle me-1"></i>
-                                                        <span id="permissionStatusText">Checking camera permissions...</span>
-                                                    </small>
-                                                </div>
-                                                <div class="text-center mb-3">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" id="startScanBtn">
-                                                        <i class="bi bi-camera me-2"></i>Start QR Scanner
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-info btn-sm w-100 mb-2" id="requestPermissionBtn">
-                                                        <i class="bi bi-shield-check me-2"></i>Enable Camera Permission
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-warning btn-sm w-100 mb-2 lookup-force-permission-btn" id="forcePermissionBtn">
-                                                        <i class="bi bi-exclamation-triangle me-2"></i>Force Camera Request
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="testCameraBtn">
-                                                        <i class="bi bi-gear me-2"></i>Test Camera
-                                                    </button>
-                                                </div>
-                                                <!-- Camera preview -->
-                                                <div id="qr-reader" class="lookup-qr-reader"></div>
-                                                <div id="qr-reader-results" class="mt-2"></div>
-                                                <!-- Camera troubleshooting guide -->
-                                                <div class="mt-3">
-                                                    <small class="text-muted">
-                                                        <strong>Camera Troubleshooting:</strong><br>
-                                                        <strong>1. Permissions:</strong> Click "Enable Camera Permission" first<br>
-                                                        <strong>2. Browser:</strong> Look for camera icon in address bar<br>
-                                                        <strong>3. Security:</strong> HTTPS required (not localhost)<br>
-                                                        <strong>4. Testing:</strong> Use "Test Camera" to verify functionality<br>
-                                                        <strong>5. Fallback:</strong> Use manual UID entry if camera fails
-                                                    </small>
-                                                </div>
+
+            <!-- Alert Messages -->
+            {% if message is defined and message %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-{{ messageType|e }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-{{ messageType == 'success' ? 'check-circle' : (messageType == 'warning' ? 'exclamation-triangle' : 'x-circle') }} me-2"></i>
+                        {{ message|e }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row g-4">
+                <!-- Lookup Form -->
+                <div class="col-12 col-lg-4">
+                    <div class="card h-100 shadow border-0">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-qr-code-scan me-2"></i>Patient Lookup
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Patient Lookup Accordion -->
+                            <div class="accordion" id="patientLookupAccordion">
+                                
+                                <!-- QR Scanner Section -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingQRScanner">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQRScanner" aria-expanded="true" aria-controls="collapseQRScanner">
+                                            <i class="bi bi-camera me-2"></i>QR Code Scanner
+                                        </button>
+                                    </h2>
+                                    <div id="collapseQRScanner" class="accordion-collapse collapse show" aria-labelledby="headingQRScanner" data-bs-parent="#patientLookupAccordion">
+                                        <div class="accordion-body">
+                                            <!-- Permission Status Indicator -->
+                                            <div id="permissionStatus" class="mb-3">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-info-circle me-1"></i>
+                                                    <span id="permissionStatusText">Checking camera permissions...</span>
+                                                </small>
+                                            </div>
+                                            
+                                            <div class="text-center mb-3">
+                                                <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" id="startScanBtn">
+                                                    <i class="bi bi-camera me-2"></i>Start QR Scanner
+                                                </button>
+                                                <button type="button" class="btn btn-outline-info btn-sm w-100 mb-2" id="requestPermissionBtn">
+                                                    <i class="bi bi-shield-check me-2"></i>Enable Camera Permission
+                                                </button>
+                                                <button type="button" class="btn btn-outline-warning btn-sm w-100 mb-2 lookup-force-permission-btn" id="forcePermissionBtn">
+                                                    <i class="bi bi-exclamation-triangle me-2"></i>Force Camera Request
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="testCameraBtn">
+                                                    <i class="bi bi-gear me-2"></i>Test Camera
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Camera preview -->
+                                            <div id="qr-reader" class="lookup-qr-reader"></div>
+                                            <div id="qr-reader-results" class="mt-2"></div>
+                                            
+                                            <!-- Camera troubleshooting guide -->
+                                            <div class="mt-3">
+                                                <small class="text-muted">
+                                                    <strong>Camera Troubleshooting:</strong><br>
+                                                    <strong>1. Permissions:</strong> Click "Enable Camera Permission" first<br>
+                                                    <strong>2. Browser:</strong> Look for camera icon in address bar<br>
+                                                    <strong>3. Security:</strong> HTTPS required (not localhost)<br>
+                                                    <strong>4. Testing:</strong> Use "Test Camera" to verify functionality<br>
+                                                    <strong>5. Fallback:</strong> Use manual UID entry if camera fails
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Manual Entry Section -->
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header" id="headingManualEntry">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManualEntry" aria-expanded="false" aria-controls="collapseManualEntry">
-                                                <i class="bi bi-keyboard me-2"></i>Manual UID Entry
-                                            </button>
-                                        </h2>
-                                        <div id="collapseManualEntry" class="accordion-collapse collapse" aria-labelledby="headingManualEntry" data-bs-parent="#patientLookupAccordion">
-                                            <div class="accordion-body">
-                                                <form method="POST" id="lookupForm">
-                                                    <input type="hidden" id="accessMethod" name="access_method" value="manual">
-                                                    <div class="mb-3">
-                                                        <label for="uid" class="form-label">Patient UID</label>
-                                                        <input type="text"
-                                                               class="form-control form-control-lg"
-                                                               id="uid"
-                                                               name="uid"
-                                                               placeholder="Enter patient UID"
-                                                               value="{{ uid|default('') }}"
-                                                               required>
-                                                        <div class="form-text">
-                                                            <i class="bi bi-info-circle me-1"></i>
-                                                            Enter the unique identifier from the patient's QR code
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-grid">
-                                                        <button type="submit" class="btn btn-outline-primary btn-sm w-100">
-                                                            <i class="bi bi-search me-2"></i>Look Up Patient
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Instructions Section -->
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header" id="headingInstructions">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInstructions" aria-expanded="false" aria-controls="collapseInstructions">
-                                                <i class="bi bi-question-circle me-2"></i>Instructions & Help
-                                            </button>
-                                        </h2>
-                                        <div id="collapseInstructions" class="accordion-collapse collapse" aria-labelledby="headingInstructions" data-bs-parent="#patientLookupAccordion">
-                                            <div class="accordion-body">
-                                                <div class="row g-3">
-                                                    <div class="col-12">
-                                                        <div class="card bg-light border-0">
-                                                            <div class="card-body text-center py-3">
-                                                                <i class="bi bi-qr-code-scan display-6 text-primary mb-2"></i>
-                                                                <h6 class="mb-2">QR Code Scanning</h6>
-                                                                <small class="text-muted">Point your camera at the patient's QR code for instant lookup</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="card bg-light border-0">
-                                                            <div class="card-body text-center py-3">
-                                                                <i class="bi bi-keyboard display-6 text-success mb-2"></i>
-                                                                <h6 class="mb-2">Manual Entry</h6>
-                                                                <small class="text-muted">Enter the patient UID directly if QR scanning isn't available</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="alert alert-info mb-0">
-                                                            <i class="bi bi-shield-check me-2"></i>
-                                                            <strong>Security Notice:</strong> All patient lookups are logged for audit and security purposes.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- End Patient Lookup Accordion -->
                                 </div>
+
+                                <!-- Manual Entry Section -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingManualEntry">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManualEntry" aria-expanded="false" aria-controls="collapseManualEntry">
+                                            <i class="bi bi-keyboard me-2"></i>Manual UID Entry
+                                        </button>
+                                    </h2>
+                                    <div id="collapseManualEntry" class="accordion-collapse collapse" aria-labelledby="headingManualEntry" data-bs-parent="#patientLookupAccordion">
+                                        <div class="accordion-body">
+                                            <form method="POST" id="lookupForm">
+                                                <input type="hidden" id="accessMethod" name="access_method" value="manual">
+                                                <div class="mb-3">
+                                                    <label for="uid" class="form-label">Patient UID</label>
+                                                    <input type="text" 
+                                                           class="form-control form-control-lg" 
+                                                           id="uid" 
+                                                           name="uid" 
+                                                           placeholder="Enter patient UID"
+                                                           value="{{ uid|default('') }}"
+                                                           required>
+                                                    <div class="form-text">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        Enter the unique identifier from the patient's QR code
+                                                    </div>
+                                                </div>
+                                                <div class="d-grid">
+                                                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                                        <i class="bi bi-search me-2"></i>Look Up Patient
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Instructions Section -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingInstructions">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInstructions" aria-expanded="false" aria-controls="collapseInstructions">
+                                            <i class="bi bi-question-circle me-2"></i>Instructions & Help
+                                        </button>
+                                    </h2>
+                                    <div id="collapseInstructions" class="accordion-collapse collapse" aria-labelledby="headingInstructions" data-bs-parent="#patientLookupAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-12">
+                                                    <div class="card bg-light border-0">
+                                                        <div class="card-body text-center py-3">
+                                                            <i class="bi bi-qr-code-scan display-6 text-primary mb-2"></i>
+                                                            <h6 class="mb-2">QR Code Scanning</h6>
+                                                            <small class="text-muted">Point your camera at the patient's QR code for instant lookup</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <div class="card bg-light border-0">
+                                                        <div class="card-body text-center py-3">
+                                                            <i class="bi bi-keyboard display-6 text-success mb-2"></i>
+                                                            <h6 class="mb-2">Manual Entry</h6>
+                                                            <small class="text-muted">Enter the patient UID directly if QR scanning isn't available</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <div class="alert alert-info mb-0">
+                                                        <i class="bi bi-shield-check me-2"></i>
+                                                        <strong>Security Notice:</strong> All patient lookups are logged for audit and security purposes.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div> <!-- End Patient Lookup Accordion -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Profile Display -->
+                <div class="col-12 col-lg-8">
+                        {% if patientData is defined and patientData %}
+                    <div class="card shadow border-0">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-person-check me-2"></i>Patient Profile: {{ patientData.firstName ~ ' ' ~ patientData.lastName }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Patient Information Accordion -->
+                            <div class="accordion" id="patientInfoAccordion">
+                                
+                                <!-- Basic Information Section -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingBasic">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasic" aria-expanded="true" aria-controls="collapseBasic">
+                                            <i class="bi bi-person-badge me-2"></i>Basic Information
+                                        </button>
+                                    </h2>
+                                    <div id="collapseBasic" class="accordion-collapse collapse show" aria-labelledby="headingBasic" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-5"><strong>Full Name:</strong></div>
+                                                        <div class="col-sm-7">{{ patientData.patient_name ?? (patientData.firstName ~ ' ' ~ patientData.lastName) }}</div>
+                                                        
+                                                        <div class="col-sm-5"><strong>Date of Birth:</strong></div>
+                                                        <div class="col-sm-7">{{ patientData.date_of_birth ? patientData.date_of_birth|date('d M Y') : 'Not provided' }}</div>
+                                                        
+                                                        <div class="col-sm-5"><strong>Gender:</strong></div>
+                                                        <div class="col-sm-7">{{ patientData.gender ?? 'Not specified' }}</div>
+                                                        
+                                                        <div class="col-sm-5"><strong>Blood Type:</strong></div>
+                                                        <div class="col-sm-7">
+                                                            {% if patientData.blood_type is not empty %}
+                                                                <span class="badge bg-danger">{{ patientData.blood_type }}</span>
+                                                            {% else %}
+                                                                Not provided
+                                                            {% endif %}
+                                                        </div>
+                                                        
+                                                        <div class="col-sm-5"><strong>NHS Number:</strong></div>
+                                                        <div class="col-sm-7">
+                                                            <code>{{ patientData.nhs_number ?? 'Not provided' }}</code>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-5"><strong>Phone:</strong></div>
+                                                        <div class="col-sm-7">{{ patientData.phone_number ?? 'Not provided' }}</div>
+                                                        
+                                                        <div class="col-sm-5"><strong>Email:</strong></div>
+                                                        <div class="col-sm-7">{{ patientData.email }}</div>
+                                                        
+                                                        <div class="col-sm-5"><strong>Address:</strong></div>
+                                                        <div class="col-sm-7">{{ patientData.address ?? 'Not provided' }}</div>
+                                                        
+                                                        <div class="col-sm-5"><strong>Postcode:</strong></div>
+                                                        <div class="col-sm-7">
+                                                            <code>{{ patientData.postcode ?? 'Not provided' }}</code>
+                                                        </div>
+                                                        
+                                                        <div class="col-sm-5"><strong>User ID:</strong></div>
+                                                        <div class="col-sm-7">
+                                                            <small><code>{{ patientData.user_id }}</code></small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Medical Information Section -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingMedical">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMedical" aria-expanded="false" aria-controls="collapseMedical">
+                                            <i class="bi bi-heart-pulse me-2"></i>Medical Information
+                                        </button>
+                                    </h2>
+                                    <div id="collapseMedical" class="accordion-collapse collapse" aria-labelledby="headingMedical" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-12">
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-sm-3"><strong>Allergies:</strong></div>
+                                                        <div class="col-sm-9">
+                                                            <?php if (!empty($patientData['allergies'])): ?>
+                                                                <div class="alert alert-warning py-2"><?php echo nl2br(htmlspecialchars($patientData['allergies'])); ?></div>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">No known allergies recorded</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-sm-3"><strong>Medical Conditions:</strong></div>
+                                                        <div class="col-sm-9">
+                                                            <?php if (!empty($patientData['medical_conditions'])): ?>
+                                                                <div class="alert alert-info py-2"><?php echo nl2br(htmlspecialchars($patientData['medical_conditions'])); ?></div>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">No medical conditions recorded</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-3"><strong>Current Medications:</strong></div>
+                                                        <div class="col-sm-9">
+                                                            <?php if (!empty($patientData['medications'])): ?>
+                                                                <div class="alert alert-primary py-2"><?php echo nl2br(htmlspecialchars($patientData['medications'])); ?></div>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">No medications recorded</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ReSPECT Forms & End-of-Life Care -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingRespect">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRespect" aria-expanded="false" aria-controls="collapseRespect">
+                                            <i class="bi bi-clipboard-heart me-2"></i>ReSPECT Forms & End-of-Life Care
+                                        </button>
+                                    </h2>
+                                    <div id="collapseRespect" class="accordion-collapse collapse" aria-labelledby="headingRespect" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-6"><strong>ReSPECT Form:</strong></div>
+                                                        <div class="col-sm-6">
+                                                            <?php if (!empty($patientData['has_respect_form'])): ?>
+                                                                <span class="badge bg-<?php echo $patientData['has_respect_form'] === 'yes' ? 'success' : ($patientData['has_respect_form'] === 'no' ? 'secondary' : 'warning'); ?>">
+                                                                    <?php echo ucfirst(htmlspecialchars($patientData['has_respect_form'])); ?>
+                                                                </span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">Not specified</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        
+                                                        <div class="col-sm-6"><strong>Resuscitation Status:</strong></div>
+                                                        <div class="col-sm-6">
+                                                            <?php if (!empty($patientData['resuscitation_status'])): ?>
+                                                                <span class="badge bg-<?php echo $patientData['resuscitation_status'] === 'full' ? 'success' : 'warning'; ?>">
+                                                                    <?php echo ucfirst(htmlspecialchars($patientData['resuscitation_status'])); ?>
+                                                                </span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">Not specified</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <?php if (!empty($patientData['advance_directives'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Advance Directives:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['advance_directives'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cognitive & Neurological Conditions -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingCognitive">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCognitive" aria-expanded="false" aria-controls="collapseCognitive">
+                                            <i class="bi bi-brain me-2"></i>Cognitive & Neurological Conditions
+                                        </button>
+                                    </h2>
+                                    <div id="collapseCognitive" class="accordion-collapse collapse" aria-labelledby="headingCognitive" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-6"><strong>Dementia:</strong></div>
+                                                        <div class="col-sm-6">
+                                                            <?php if (!empty($patientData['has_dementia']) && $patientData['has_dementia'] !== 'none'): ?>
+                                                                <span class="badge bg-warning"><?php echo ucfirst(str_replace('_', ' ', htmlspecialchars($patientData['has_dementia']))); ?></span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">None</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        
+                                                        <div class="col-sm-6"><strong>Learning Disability:</strong></div>
+                                                        <div class="col-sm-6">
+                                                            <?php if (!empty($patientData['has_learning_disability']) && $patientData['has_learning_disability'] !== 'none'): ?>
+                                                                <span class="badge bg-info"><?php echo ucfirst(htmlspecialchars($patientData['has_learning_disability'])); ?></span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">None</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        
+                                                        <div class="col-sm-6"><strong>Previous Stroke:</strong></div>
+                                                        <div class="col-sm-6">
+                                                            <?php if (!empty($patientData['previous_stroke']) && $patientData['previous_stroke'] !== 'none'): ?>
+                                                                <span class="badge bg-danger"><?php echo ucfirst(htmlspecialchars($patientData['previous_stroke'])); ?></span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">None</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <?php if (!empty($patientData['other_cognitive_conditions'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Other Cognitive Conditions:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['other_cognitive_conditions'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (!empty($patientData['stroke_effects'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Stroke Effects:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['stroke_effects'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (!empty($patientData['communication_needs'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Communication Needs:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['communication_needs'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dietary Requirements -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingDiet">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDiet" aria-expanded="false" aria-controls="collapseDiet">
+                                            <i class="bi bi-cup-hot me-2"></i>Dietary Requirements
+                                        </button>
+                                    </h2>
+                                    <div id="collapseDiet" class="accordion-collapse collapse" aria-labelledby="headingDiet" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-5"><strong>Diet Type:</strong></div>
+                                                        <div class="col-sm-7">
+                                                            <?php if (!empty($patientData['diet_type'])): ?>
+                                                                <span class="badge bg-success"><?php echo ucfirst(str_replace('_', ' ', htmlspecialchars($patientData['diet_type']))); ?></span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">Not specified</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        
+                                                        <div class="col-sm-5"><strong>Fluid Consistency:</strong></div>
+                                                        <div class="col-sm-7">
+                                                            <?php if (!empty($patientData['fluid_consistency'])): ?>
+                                                                <span class="badge bg-primary"><?php echo ucfirst(str_replace('_', ' ', htmlspecialchars($patientData['fluid_consistency']))); ?></span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">Normal</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <?php if (!empty($patientData['special_diet_notes'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Special Diet Notes:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['special_diet_notes'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (!empty($patientData['food_preferences'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Food Preferences:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['food_preferences'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (!empty($patientData['food_dislikes'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Food Dislikes:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['food_dislikes'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Personal Background & Cultural Needs -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingPersonal">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePersonal" aria-expanded="false" aria-controls="collapsePersonal">
+                                            <i class="bi bi-person-heart me-2"></i>Personal Background & Cultural Needs
+                                        </button>
+                                    </h2>
+                                    <div id="collapsePersonal" class="accordion-collapse collapse" aria-labelledby="headingPersonal" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-4"><strong>Occupation:</strong></div>
+                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['occupation'] ?? 'Not provided'); ?></div>
+                                                        
+                                                        <div class="col-sm-4"><strong>Workplace:</strong></div>
+                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['workplace'] ?? 'Not provided'); ?></div>
+                                                        
+                                                        <div class="col-sm-4"><strong>Religion:</strong></div>
+                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['religion'] ?? 'Not specified'); ?></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <?php if (!empty($patientData['important_memories'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Important Memories:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['important_memories'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (!empty($patientData['personal_likes'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Likes:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['personal_likes'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (!empty($patientData['personal_dislikes'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Dislikes:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['personal_dislikes'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (!empty($patientData['cultural_needs'])): ?>
+                                                        <div class="mb-2">
+                                                            <strong>Cultural Needs:</strong>
+                                                            <div class="mt-1">
+                                                                <small><?php echo nl2br(htmlspecialchars($patientData['cultural_needs'])); ?></small>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Emergency Contacts & GP Information -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingContacts">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContacts" aria-expanded="false" aria-controls="collapseContacts">
+                                            <i class="bi bi-telephone me-2"></i>Emergency Contacts & GP Information
+                                        </button>
+                                    </h2>
+                                    <div id="collapseContacts" class="accordion-collapse collapse" aria-labelledby="headingContacts" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <h6 class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Emergency Contact</h6>
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-4"><strong>Name:</strong></div>
+                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['emergency_contact_1_name'] ?? 'Not provided'); ?></div>
+                                                        
+                                                        <div class="col-sm-4"><strong>Phone:</strong></div>
+                                                        <div class="col-sm-8">
+                                                            <?php if (!empty($patientData['emergency_contact_1_phone'])): ?>
+                                                                <a href="tel:<?php echo htmlspecialchars($patientData['emergency_contact_1_phone']); ?>" class="text-decoration-none">
+                                                                    <i class="bi bi-telephone me-1"></i><?php echo htmlspecialchars($patientData['emergency_contact_1_phone']); ?>
+                                                                </a>
+                                                            <?php else: ?>
+                                                                Not provided
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        
+                                                        <div class="col-sm-4"><strong>Relationship:</strong></div>
+                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['emergency_contact_1_relationship'] ?? 'Not specified'); ?></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="text-primary"><i class="bi bi-hospital me-1"></i>GP Information</h6>
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-4"><strong>GP Name:</strong></div>
+                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['gp_name'] ?? 'Not provided'); ?></div>
+                                                        
+                                                        <div class="col-sm-4"><strong>Practice:</strong></div>
+                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['gp_practice'] ?? 'Not provided'); ?></div>
+                                                        
+                                                        <div class="col-sm-4"><strong>GP Phone:</strong></div>
+                                                        <div class="col-sm-8">
+                                                            <?php if (!empty($patientData['gp_phone'])): ?>
+                                                                <a href="tel:<?php echo htmlspecialchars($patientData['gp_phone']); ?>" class="text-decoration-none">
+                                                                    <i class="bi bi-telephone me-1"></i><?php echo htmlspecialchars($patientData['gp_phone']); ?>
+                                                                </a>
+                                                            <?php else: ?>
+                                                                Not provided
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LPA Information -->
+                                {% if patientData.lpa_health_attorney_name is not empty or patientData.lpa_finance_attorney_name is not empty %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingLPA">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA" aria-expanded="false" aria-controls="collapseLPA">
+                                            <i class="bi bi-file-earmark-medical me-2"></i>Lasting Power of Attorney (LPA)
+                                        </button>
+                                    </h2>
+                                    <div id="collapseLPA" class="accordion-collapse collapse" aria-labelledby="headingLPA" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                {% if patientData.lpa_health_attorney_name is not empty %}
+                                                <div class="col-md-6">
+                                                    <h6 class="text-success"><i class="bi bi-heart-pulse me-1"></i>Health & Welfare LPA</h6>
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-4"><strong>Attorney:</strong></div>
+                                                        <div class="col-sm-8">{{ patientData.lpa_health_attorney_name }}</div>
+                                                        
+                                                        <div class="col-sm-4"><strong>Phone:</strong></div>
+                                                        <div class="col-sm-8">
+                                                            {% if patientData.lpa_health_attorney_phone is not empty %}
+                                                                <a href="tel:{{ patientData.lpa_health_attorney_phone }}" class="text-decoration-none">
+                                                                    <i class="bi bi-telephone me-1"></i>{{ patientData.lpa_health_attorney_phone }}
+                                                                </a>
+                                                            {% else %}
+                                                                Not provided
+                                                            {% endif %}
+                                                        </div>
+                                                        
+                                                        {% if patientData.lpa_health_document_name is not empty %}
+                                                        <div class="col-sm-4"><strong>Document:</strong></div>
+                                                        <div class="col-sm-8">
+                                                            <small class="text-muted">{{ patientData.lpa_health_document_name }}</small>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if patientData.lpa_finance_attorney_name is not empty %}
+                                                <div class="col-md-6">
+                                                    <h6 class="text-warning"><i class="bi bi-currency-pound me-1"></i>Property & Financial Affairs LPA</h6>
+                                                    <div class="row g-2">
+                                                        <div class="col-sm-4"><strong>Attorney:</strong></div>
+                                                        <div class="col-sm-8">{{ patientData.lpa_finance_attorney_name }}</div>
+                                                        
+                                                        <div class="col-sm-4"><strong>Phone:</strong></div>
+                                                        <div class="col-sm-8">
+                                                            {% if patientData.lpa_finance_attorney_phone is not empty %}
+                                                                <a href="tel:{{ patientData.lpa_finance_attorney_phone }}" class="text-decoration-none">
+                                                                    <i class="bi bi-telephone me-1"></i>{{ patientData.lpa_finance_attorney_phone }}
+                                                                </a>
+                                                            {% else %}
+                                                                Not provided
+                                                            {% endif %}
+                                                        </div>
+                                                        
+                                                        {% if patientData.lpa_finance_document_name is not empty %}
+                                                        <div class="col-sm-4"><strong>Document:</strong></div>
+                                                        <div class="col-sm-8">
+                                                            <small class="text-muted">{{ patientData.lpa_finance_document_name }}</small>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {% if patientData.lpa_additional_notes is not empty %}
+                                            <div class="mt-3">
+                                                <strong>Additional LPA Notes:</strong>
+                                                <div class="mt-1">
+                                                    <small>{{ patientData.lpa_additional_notes|nl2br }}</small>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- End-of-Life Planning -->
+                                {% if patientData.funeral_arrangements is not empty or patientData.organ_donation is not empty or patientData.funeral_details_notes is not empty %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingEndOfLife">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEndOfLife" aria-expanded="false" aria-controls="collapseEndOfLife">
+                                            <i class="bi bi-heart me-2"></i>End-of-Life Planning
+                                        </button>
+                                    </h2>
+                                    <div id="collapseEndOfLife" class="accordion-collapse collapse" aria-labelledby="headingEndOfLife" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="row g-2">
+                                                        {% if patientData.funeral_arrangements is not empty %}
+                                                        <div class="col-sm-6"><strong>Funeral Arrangements:</strong></div>
+                                                        <div class="col-sm-6">
+                                                            <span class="badge bg-secondary">{{ patientData.funeral_arrangements|replace({'_':' '})|capitalize }}</span>
+                                                        </div>
+                                                        {% endif %}
+                                                        
+                                                        {% if patientData.organ_donation is not empty %}
+                                                        <div class="col-sm-6"><strong>Organ Donation:</strong></div>
+                                                        <div class="col-sm-6">
+                                                            <span class="badge bg-{{ patientData.organ_donation == 'yes' ? 'success' : 'secondary' }}">{{ patientData.organ_donation|capitalize }}</span>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    {% if patientData.funeral_details_notes is not empty %}
+                                                        <div class="mb-2">
+                                                            <strong>Funeral Details & Notes:</strong>
+                                                            <div class="mt-1">
+                                                                <small>{{ patientData.funeral_details_notes|nl2br }}</small>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Additional Notes -->
+                            
+                       
+                                    <h2 class="accordion-header" id="headingNotes">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotes" aria-expanded="false" aria-controls="collapseNotes">
+                                            <i class="bi bi-journal-text me-2"></i>Additional Notes
+                                        </button>
+                                    </h2>
+                                    <div id="collapseNotes" class="accordion-collapse collapse" aria-labelledby="headingNotes" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="alert alert-light">
+                                                {{ patientData.additional_notes|nl2br }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+
+                                <!-- Account Information -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingAccount">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAccount" aria-expanded="false" aria-controls="collapseAccount">
+                                            <i class="bi bi-shield-check me-2"></i>Account Information
+                                        </button>
+                                    </h2>
+                                    <div id="collapseAccount" class="accordion-collapse collapse" aria-labelledby="headingAccount" data-bs-parent="#patientInfoAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row g-2">
+                                                <div class="col-sm-3"><strong>Account Status:</strong></div>
+                                                <div class="col-sm-9">
+                                                    <span class="badge bg-{{ patientData.is_verified ? 'success' : 'warning' }}">
+                                                        {{ patientData.is_verified ? 'Verified' : 'Pending Verification' }}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="col-sm-3"><strong>Role:</strong></div>
+                                                <div class="col-sm-9">
+                                                    <span class="badge bg-{{ patientData.role == 'patient' ? 'primary' : 'info' }}">
+                                                        {{ patientData.role|title }}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="col-sm-3"><strong>Registered:</strong></div>
+                                                <div class="col-sm-9">
+                                                    {{ patientData.created_at|date('j M Y, g:i A') }}
+                                                </div>
+                                                <div class="col-sm-3"><strong>Last Updated:</strong></div>
+                                                <div class="col-sm-9">
+                                                    {{ patientData.updated_at|date('j M Y, g:i A') }}
+                                                </div>
+                                                <div class="col-sm-3"><strong>Patient UID:</strong></div>
+                                                <div class="col-sm-9">
+                                                    <code class="small">{{ patientData.uid }}</code>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div> <!-- End Accordion -->
+
+                            <!-- Access Log Notice -->
+                            <div class="alert alert-info mt-4">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Access Logged:</strong> This patient lookup has been recorded for security and audit purposes.
+                                <br><small>NHS User: {{ currentUser.first_name ~ ' ' ~ currentUser.surname }} | Time: {{ "now"|date('d M Y H:i') }}</small>
+                            </div>
+ 
+                            <!-- Action Buttons -->
+                            <div class="mt-4 text-center">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="lookupAnother()">
+                                    <i class="bi bi-search me-1"></i>Look Up Another Patient
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <!-- No Patient Selected Card (col-lg-8, sibling to lookup form) -->
-                    <div class="col-12 col-lg-8">
-                        <div class="card shadow border-0 h-100">
-                            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
-                                <i class="bi bi-person-slash display-1 text-muted mb-3"></i>
-                                <h4 class="text-muted mb-3">No Patient Selected</h4>
-                                <p class="text-muted mb-4">
-                                    Use the QR scanner or enter a patient UID to view their profile.
-                                </p>
-                                <div class="text-center">
-                                    <div class="row g-3">
-                                        <div class="col-12 col-sm-6">
-                                            <div class="card bg-light">
-                                                <div class="card-body text-center">
-                                                    <i class="bi bi-qr-code-scan display-6 text-primary mb-2"></i>
-                                                    <h6>QR Code Scanning</h6>
-                                                    <small class="text-muted">Quick and secure patient identification</small>
-                                                </div>
+                    {% endif %}
+                    <!-- Empty State -->
+                    <div class="card shadow border-0 h-100">
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
+                            <i class="bi bi-person-slash display-1 text-muted mb-3"></i>
+                            <h4 class="text-muted mb-3">No Patient Selected</h4>
+                            <p class="text-muted mb-4">
+                                Use the QR scanner or enter a patient UID to view their profile.
+                            </p>
+                            <div class="text-center">
+                                <div class="row g-3">
+                                    <div class="col-12 col-sm-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-qr-code-scan display-6 text-primary mb-2"></i>
+                                                <h6>QR Code Scanning</h6>
+                                                <small class="text-muted">Quick and secure patient identification</small>
                                             </div>
                                         </div>
-                                        <div class="col-12 col-sm-6">
-                                            <div class="card bg-light">
-                                                <div class="card-body text-center">
-                                                    <i class="bi bi-keyboard display-6 text-success mb-2"></i>
-                                                    <h6>Manual Entry</h6>
-                                                    <small class="text-muted">Enter UID directly if QR is not available</small>
-                                                </div>
+                                    </div>
+                                    <div class="col-12 col-sm-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-keyboard display-6 text-success mb-2"></i>
+                                                <h6>Manual Entry</h6>
+                                                <small class="text-muted">Enter UID directly if QR is not available</small>
                                             </div>
                                         </div>
                                     </div>
@@ -188,6 +970,7 @@
                         </div>
                     </div>
                 
-                            
-                    
+                </div>
+            </div>
+        </div>
 {% endblock %}

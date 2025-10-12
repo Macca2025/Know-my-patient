@@ -36,7 +36,8 @@ return function (App $app) {
         return $res->withStatus(400);
     });
 
-
+    // Add CSRF middleware to the app
+    $app->add($csrf);
 
     $app->add(\App\Application\Middleware\TwigGlobalsMiddleware::class);
 };

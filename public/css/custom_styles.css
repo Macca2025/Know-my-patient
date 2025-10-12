@@ -1,3 +1,18 @@
+/* Responsive compact register card width */
+.register-card {
+        width: 100%;
+        max-width: 550px !important;
+        margin-left: auto;
+        margin-right: auto;
+}
+
+@media (max-width: 505px) {
+    .register-card {
+        max-width: 98vw;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
 /* No box shadow for register-card in register.html.twig */
 .no-box-shadow {
     box-shadow: none !important;
@@ -300,6 +315,69 @@ body {
     outline-offset: 2px;
 }
 
+/* ========================================
+   Current User Info Card Styling
+   ======================================== */
+.card.border-primary {
+    border-width: 2px;
+}
+
+.card.border-primary .bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.card.border-primary h6 {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.card.border-primary strong {
+    font-size: 1.1rem;
+    color: #2c3e50;
+}
+
+.card.border-primary .badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.card.border-primary small {
+    font-size: 0.875rem;
+}
+
+.card.border-primary .text-muted {
+    color: #6c757d !important;
+}
+
+/* User info card animation */
+.card.border-primary {
+    animation: slideInDown 0.5s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form field with data indicator */
+.form-control:not([value=""]):not([value="0"]):not(:placeholder-shown),
+.form-select:not([value=""]) {
+    background-color: #f8f9fa;
+}
+
+/* Highlight edited fields */
+.form-control.edited,
+.form-select.edited {
+    border-left: 3px solid #28a745;
+}
+
 .sr-only {
     position: absolute !important;
     width: 1px !important;
@@ -531,6 +609,40 @@ img.nhs-logo-small {
     min-height: 280px;
 }
 
+/* Compact styling for wide cards */
+.dashboard-card-modern.card-wide .card-body {
+    min-height: auto !important;
+    padding: 1.5rem 1.5rem !important;
+}
+
+.dashboard-card-modern.card-wide .card-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-card-modern.card-wide .card-icon i {
+    font-size: 1.5rem;
+}
+
+.dashboard-card-modern.card-wide .card-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-card-modern.card-wide .card-text {
+    margin-bottom: 0.75rem !important;
+    font-size: 0.9rem;
+}
+
+.dashboard-card-modern.card-wide .card.bg-light {
+    margin-bottom: 0.75rem !important;
+}
+
+.dashboard-card-modern.card-wide .progress {
+    margin-bottom: 0;
+}
+
 /* Icon Styling */
 .dashboard-card-modern .card-icon {
     width: 80px;
@@ -670,12 +782,22 @@ img.nhs-logo-small {
     margin-top: 2rem;
 }
 
+/* Wide card spans 2 columns */
+.dashboard-card-modern.card-wide {
+    grid-column: span 2;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .dashboard-cards-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
         margin-top: 1.5rem;
+    }
+    
+    /* Wide card takes full width on mobile */
+    .dashboard-card-modern.card-wide {
+        grid-column: span 1;
     }
     
     .dashboard-card-modern .card-body {
@@ -4986,4 +5108,181 @@ iframe {
 
 .onboarding-hero{
     padding-top: 200px;
+}
+/* ========================================
+   ADD PATIENT FORM - ENHANCED STYLES
+   ======================================== */
+
+/* Accordion enhancements */
+.accordion-button {
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 1.25rem 1.5rem;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.accordion-button:not(.collapsed) i {
+    color: white;
+}
+
+.accordion-button:hover {
+    background-color: #e9ecef;
+}
+
+.accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.accordion-body {
+    padding: 2rem 1.5rem;
+}
+
+/* Card header enhancements for LPA sections */
+.card-header {
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+}
+
+/* File upload input styling */
+input[type="file"].form-control {
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+input[type="file"].form-control::-webkit-file-upload-button {
+    padding: 0.5rem 1rem;
+    margin-right: 1rem;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+input[type="file"].form-control::-webkit-file-upload-button:hover {
+    background-color: #0b5ed7;
+}
+
+/* Badge for completed sections */
+.accordion-button .badge {
+    margin-left: auto;
+    animation: badgePop 0.3s ease;
+}
+
+@keyframes badgePop {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Form section icons */
+.accordion-button i,
+.form-label i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Help text styling */
+.form-text {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Alert styling in sensitive sections */
+.alert-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+/* Responsive improvements for mobile */
+@media (max-width: 576px) {
+    .accordion-button {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+    
+    .accordion-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Stack buttons vertically on small screens */
+    .d-flex.gap-2 {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .d-flex.gap-2 .btn {
+        width: 100%;
+    }
+}
+
+/* Print styles for patient forms */
+@media print {
+    .accordion-button {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    .accordion-collapse {
+        display: block !important;
+        height: auto !important;
+    }
+    
+    .btn,
+    .alert {
+        display: none;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #dee2e6;
+    }
+}
+
+/* Enhanced validation feedback */
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+    border-color: #198754;
+    padding-right: calc(1.5em + 0.75rem);
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Focus visible for accessibility */
+.form-control:focus-visible,
+.form-select:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
 }
