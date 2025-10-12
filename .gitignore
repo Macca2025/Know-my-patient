@@ -9,3 +9,4 @@
 .env
 # Ignore Twig cache
 /var/cache/twig/
+.DS_Store
