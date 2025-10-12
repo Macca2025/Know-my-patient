@@ -849,8 +849,8 @@ class DashboardController
     {
         try {
             $stmt = $this->pdo->prepare('
-                INSERT INTO audit_log (user_id, action, details, created_at)
-                VALUES (?, ?, ?, NOW())
+                INSERT INTO audit_log (user_id, activity_type, description)
+                VALUES (?, ?, ?)
             ');
             $stmt->execute([$userId, $action, json_encode($details)]);
         } catch (\Exception $e) {

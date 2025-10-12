@@ -418,13 +418,13 @@ class CardRequestsController
     {
         try {
             $stmt = $this->pdo->prepare(
-                "INSERT INTO audit_log (user_id, action, details, ip_address) 
-                 VALUES (:user_id, :action, :details, :ip_address)"
+                "INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
+                 VALUES (:user_id, :activity_type, :description, :ip_address)"
             );
             $stmt->execute([
                 'user_id' => (string)$userId,
-                'action' => $action,
-                'details' => $details,
+                'activity_type' => $action,
+                'description' => $details,
                 'ip_address' => IpAddressService::getClientIp()
             ]);
         } catch (\Exception $e) {

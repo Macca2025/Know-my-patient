@@ -150,7 +150,7 @@ class AdminController
             $fromDate = isset($queryParams['from_date']) ? trim($queryParams['from_date']) : '';
             $toDate = isset($queryParams['to_date']) ? trim($queryParams['to_date']) : '';
 
-            $sql = 'SELECT id, user_id, target_user_id, action_type, description, ip_address, timestamp FROM audit_log WHERE 1=1';
+            $sql = 'SELECT id, user_id, target_user_id, activity_type, description, ip_address, timestamp FROM audit_log WHERE 1=1';
             $params = [];
             if ($search !== '') {
                 $sql .= ' AND (user_id LIKE :search OR target_user_id LIKE :search OR description LIKE :search)';
