@@ -34,6 +34,20 @@ class ShutdownHandler
             $errorLine = $error['line'];
             $errorMessage = $error['message'];
             $errorType = $error['type'];
+            
+            // Ignore deprecation warnings and notices in production
+            // These are library-level warnings that don't affect functionality
+            if (in_array($errorType, [E_DEPRECATED, E_USER_DEPRECATED, E_NOTICE, E_USER_NOTICE, E_STRICT]) && !$this->displayErrorDetails) {
+                return;
+            }
+            
+            // Also ignore PHP-DI deprecation warnings even in development
+            // These are from the DI container library and are not critical
+            if (in_array($errorType, [E_DEPRECATED, E_USER_DEPRECATED]) && 
+                (strpos($errorFile, 'vendor/php-di/') !== false || strpos($errorMessage, 'DI\\') !== false)) {
+                return;
+            }
+            
             $message = 'An error while processing your request. Please try again later.';
 
             if ($this->displayErrorDetails) {
