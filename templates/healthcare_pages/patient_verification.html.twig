@@ -1,0 +1,313 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block title %}Patient Verification Required{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {# NHS DCB0129 Compliance: Hazard H-006 Mitigation #}
+    {# Prominent patient verification prompt #}
+    
+    <div class="alert alert-danger border-3 border-danger shadow-lg" role="alert">
+        <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-exclamation-triangle-fill fs-1 me-3"></i>
+            <div>
+                <h3 class="alert-heading mb-1">⚠️ VERIFY PATIENT IDENTITY</h3>
+                <p class="mb-0">You must verify this is the correct patient before proceeding</p>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <h4 class="mb-3">Please confirm the following details with the patient:</h4>
+                
+                <div class="card mb-3 border-primary">
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-4"><strong>Full Name:</strong></div>
+                            <div class="col-8">
+                                <span class="fs-4 text-primary">
+                                    {{ patient.first_name }} {{ patient.last_name }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-4"><strong>Date of Birth:</strong></div>
+                            <div class="col-8">
+                                <span class="fs-5">{{ patient.dob|date('d/m/Y') }}</span>
+                                <span class="text-muted">(Age: {{ patient.age }} years)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-4"><strong>NHS Number:</strong></div>
+                            <div class="col-8">
+                                <span class="fs-5 font-monospace">{{ patient.nhs_number|format_nhs_number }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-4"><strong>Postcode:</strong></div>
+                            <div class="col-8">
+                                <span>{{ patient.postcode|upper }}</span>
+                            </div>
+                        </div>
+                        
+                        {% if patient.hospital_number %}
+                        <div class="row">
+                            <div class="col-4"><strong>Hospital Number:</strong></div>
+                            <div class="col-8">
+                                <span class="font-monospace">{{ patient.hospital_number }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {# Patient photo for additional verification #}
+                {% if patient.photo_url %}
+                <div class="card mb-3">
+                    <div class="card-body text-center">
+                        <p class="mb-2"><strong>Patient Photo:</strong></p>
+                        <img src="{{ patient.photo_url }}" alt="Patient photo" 
+                             class="img-thumbnail" style="max-width: 200px;">
+                        <p class="text-muted small mt-2">Use for visual identification</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-warning">
+                    <h5><i class="bi bi-shield-exclamation"></i> Clinical Safety Requirement:</h5>
+                    <ul class="mb-0">
+                        <li>Ask patient to state their <strong>full name and date of birth</strong></li>
+                        <li>Check patient wristband if available</li>
+                        <li>Do <strong>NOT</strong> proceed if details do not match</li>
+                        <li>If in doubt, contact senior staff member</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">Access Information</h5>
+                        
+                        <p class="small mb-2">
+                            <strong>Scanned by:</strong><br>
+                            {{ current_user.first_name }} {{ current_user.last_name }}<br>
+                            <span class="text-muted">{{ current_user.role|replace({'_': ' '})|title }}</span>
+                        </p>
+                        
+                        <p class="small mb-2">
+                            <strong>Date/Time:</strong><br>
+                            {{ 'now'|date('d/m/Y H:i:s') }}
+                        </p>
+                        
+                        <p class="small mb-2">
+                            <strong>Location:</strong><br>
+                            {{ current_user.ward ?? 'Not specified' }}
+                        </p>
+                        
+                        <hr>
+                        
+                        <p class="small text-muted mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            This access will be recorded in the audit log per NHS DCB0129 requirements.
+                        </p>
+                    </div>
+                </div>
+                
+                {# Last accessed warning #}
+                {% if patient.last_accessed %}
+                <div class="card bg-info text-white mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="bi bi-clock-history"></i> Recently Accessed
+                        </h6>
+                        <p class="small mb-0">
+                            Last viewed by <strong>{{ patient.last_accessed_by }}</strong><br>
+                            {{ patient.last_accessed|date('d/m/Y H:i') }}
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <hr>
+        
+        {# Verification confirmation form #}
+        <form method="POST" action="/patient/{{ patient.uid }}/verify" id="verificationForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="patient_uid" value="{{ patient.uid }}">
+            <input type="hidden" name="verification_timestamp" value="{{ 'now'|date('Y-m-d H:i:s') }}">
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="confirmIdentity" required>
+                <label class="form-check-label fw-bold" for="confirmIdentity">
+                    I confirm I have verified the patient's identity using at least TWO identifiers
+                    (name, DOB, NHS number, wristband, or visual confirmation)
+                </label>
+            </div>
+            
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="confirmCorrectPatient" required>
+                <label class="form-check-label fw-bold" for="confirmCorrectPatient">
+                    I confirm this is the correct patient I intend to access information for
+                </label>
+            </div>
+            
+            <div class="mb-3">
+                <label for="accessReason" class="form-label">
+                    <strong>Reason for Access:</strong> <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="accessReason" name="access_reason" required>
+                    <option value="">-- Select reason --</option>
+                    <option value="direct_care">Direct Care / Treatment</option>
+                    <option value="emergency">Emergency Care</option>
+                    <option value="medication_review">Medication Review</option>
+                    <option value="allergy_check">Allergy Check</option>
+                    <option value="consultation">Consultation</option>
+                    <option value="discharge_planning">Discharge Planning</option>
+                    <option value="referral">Referral</option>
+                    <option value="other">Other (specify below)</option>
+                </select>
+            </div>
+            
+            <div class="mb-3" id="otherReasonDiv" style="display: none;">
+                <label for="accessReasonOther" class="form-label">
+                    Please specify:
+                </label>
+                <input type="text" class="form-control" id="accessReasonOther" 
+                       name="access_reason_other" maxlength="200">
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="/dashboard" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-success btn-lg" id="proceedBtn" disabled>
+                    <i class="bi bi-check-circle"></i> Identity Verified - View Patient Record
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    {# Data freshness warning - Hazard H-007 #}
+    {% if patient.last_updated %}
+    <div class="alert alert-info mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-info-circle"></i>
+                <strong>Patient Data Last Updated:</strong> 
+                {{ patient.last_updated|date('d/m/Y H:i') }}
+                by {{ patient.updated_by_name }}
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="checkForUpdates()">
+                <i class="bi bi-arrow-clockwise"></i> Check for Updates
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Enable proceed button only when all checkboxes checked
+document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const confirmIdentity = document.getElementById('confirmIdentity').checked;
+        const confirmCorrectPatient = document.getElementById('confirmCorrectPatient').checked;
+        const accessReason = document.getElementById('accessReason').value;
+        
+        document.getElementById('proceedBtn').disabled = 
+            !(confirmIdentity && confirmCorrectPatient && accessReason);
+    });
+});
+
+// Show "other" text field if selected
+document.getElementById('accessReason').addEventListener('change', function() {
+    const otherDiv = document.getElementById('otherReasonDiv');
+    const otherInput = document.getElementById('accessReasonOther');
+    
+    if (this.value === 'other') {
+        otherDiv.style.display = 'block';
+        otherInput.required = true;
+    } else {
+        otherDiv.style.display = 'none';
+        otherInput.required = false;
+    }
+    
+    // Re-check if proceed button should be enabled
+    document.getElementById('confirmIdentity').dispatchEvent(new Event('change'));
+});
+
+// Check for stale data (Hazard H-007 mitigation)
+function checkForUpdates() {
+    const patientUid = '{{ patient.uid }}';
+    const currentTimestamp = new Date('{{ patient.last_updated }}').getTime();
+    
+    fetch(`/api/patient/${patientUid}/check-updates`)
+        .then(r => r.json())
+        .then(data => {
+            const serverTimestamp = new Date(data.last_updated).getTime();
+            
+            if (serverTimestamp > currentTimestamp) {
+                alert('⚠️ This patient record has been updated by another user. The page will refresh to show the latest data.');
+                location.reload();
+            } else {
+                alert('✅ This record is up to date.');
+            }
+        })
+        .catch(err => {
+            console.error('Error checking for updates:', err);
+        });
+}
+
+// Auto-check for updates every 30 seconds while on this page
+setInterval(checkForUpdates, 30000);
+
+// Warn before leaving page without completing verification
+window.addEventListener('beforeunload', function(e) {
+    const form = document.getElementById('verificationForm');
+    if (!form.submitted) {
+        e.preventDefault();
+        e.returnValue = 'You have not completed patient verification. Are you sure you want to leave?';
+        return e.returnValue;
+    }
+});
+
+document.getElementById('verificationForm').addEventListener('submit', function() {
+    this.submitted = true;
+});
+</script>
+
+<style>
+/* Make verification UI highly visible */
+.alert-danger.border-3 {
+    border-width: 4px !important;
+}
+
+.bi-exclamation-triangle-fill {
+    color: #dc3545;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* High contrast for critical information */
+.border-primary {
+    border-width: 2px !important;
+}
+
+/* Large, obvious buttons */
+#proceedBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+</style>
+{% endblock %}
