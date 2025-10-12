@@ -508,7 +508,7 @@ class AddPatientController
     /**
      * Log user actions for audit trail
      */
-    private function logAction($userId, $action, $details = [])
+    private function logAction(string|int $userId, string $action, array $details = []): void
     {
         try {
             $stmt = $this->pdo->prepare('
