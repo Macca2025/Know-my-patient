@@ -47,38 +47,75 @@ class OnboardingController
     public function submitEnquiry(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
+        $this->logger->info('Onboarding form submission received', [
+            'data_keys' => array_keys($data),
+            'gdpr_consent_value' => $data['gdpr_consent'] ?? 'NOT SET',
+            'gdpr_consent_type' => gettype($data['gdpr_consent'] ?? null)
+        ]);
         $errors = [];
         $success = false;
-        $companyValidator = v::notEmpty()->length(2, 150);
-        $orgTypeValidator = v::notEmpty()->length(2, 100);
-        $contactValidator = v::notEmpty()->length(2, 100);
-        $emailValidator = v::notEmpty()->email();
-        $gdprValidator = v::notEmpty()->equals('on');
-
-        if (!$companyValidator->validate($data['company_name'] ?? null)) {
-            $errors['company_name'] = 'Company name is required (2-150 characters).';
+        
+        // Company name validation
+        if (empty($data['company_name']) || strlen(trim($data['company_name'])) < 2) {
+            $errors['company_name'] = 'Company name is required (minimum 2 characters).';
         }
-        if (!$orgTypeValidator->validate($data['organization_type'] ?? null)) {
+        
+        // Company website validation (optional, but validate format if provided)
+        if (!empty($data['company_website'])) {
+            $website = trim($data['company_website']);
+            // Simple URL validation - just check if it looks like a URL
+            if (!filter_var($website, FILTER_VALIDATE_URL) && !preg_match('/^https?:\/\/.+/', $website)) {
+                // Try adding http:// if not present
+                if (!preg_match('/^[a-z]+:\/\//', $website)) {
+                    $data['company_website'] = 'https://' . $website;
+                }
+            }
+        }
+        
+        // Organization type validation
+        if (empty($data['organization_type'])) {
             $errors['organization_type'] = 'Organization type is required.';
         }
-        if (!$contactValidator->validate($data['contact_person'] ?? null)) {
+        
+        // Contact person validation
+        if (empty($data['contact_person']) || strlen(trim($data['contact_person'])) < 2) {
             $errors['contact_person'] = 'Contact person is required.';
         }
-        if (!$emailValidator->validate($data['email'] ?? null)) {
+        
+        // Email validation
+        if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'A valid email is required.';
         }
-        if (!$gdprValidator->validate($data['gdpr_consent'] ?? null)) {
-            $errors['gdpr_consent'] = 'GDPR consent is required.';
+        
+        // Phone validation (optional, but validate format if provided)
+        if (!empty($data['phone'])) {
+            // Remove spaces, dashes, parentheses for validation
+            $cleanPhone = preg_replace('/[\s\-\(\)\+]/', '', $data['phone']);
+            if (!preg_match('/^[0-9]{10,15}$/', $cleanPhone)) {
+                $errors['phone'] = 'Please enter a valid phone number (10-15 digits).';
+            }
+        }
+        
+        // GDPR consent validation (checkbox must be checked)
+        // Checkboxes can send 'on', '1', 'true', or any truthy value
+        if (empty($data['gdpr_consent'])) {
+            $errors['gdpr_consent'] = 'You must agree to the Privacy Policy to continue.';
         }
 
         if (empty($errors)) {
             try {
-                $this->onboardingRepo->insert($data);
+                $insertedId = $this->onboardingRepo->insert($data);
+                $this->logger->info('Onboarding enquiry saved successfully', ['id' => $insertedId]);
                 $success = true;
+                // Clear form data on success
+                $data = [];
             } catch (\Throwable $e) {
+                $this->logger->error('Onboarding form submission failed: ' . $e->getMessage());
                 $errors['general'] = 'Could not save your enquiry. Please try again later.';
                 $success = false;
             }
+        } else {
+            $this->logger->warning('Onboarding form validation failed', ['errors' => array_keys($errors)]);
         }
 
         $csrf = [

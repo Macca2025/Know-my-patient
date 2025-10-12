@@ -130,7 +130,23 @@
                                         <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
                                     {% endif %}
             {% if success is defined and success %}
-                <div class="alert alert-success">Thank you for your enquiry! We will contact you soon.</div>
+                <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                            <i class="bi bi-check-circle-fill text-success fs-2"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="alert-heading mb-2">Thank You for Your Enquiry!</h4>
+                            <p class="mb-1">
+                                We've received your information and really appreciate your interest in Know My Patient.
+                            </p>
+                            <p class="mb-0">
+                                <strong>Our team will be in touch with you shortly</strong> to discuss how we can support your organization's needs.
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             {% elseif errors is defined and errors %}
                 {% if errors.general is defined %}
                     <div class="alert alert-danger">{{ errors.general }}</div>

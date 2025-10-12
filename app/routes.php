@@ -20,7 +20,8 @@ return function (App $app) {
         ->add(\App\Application\Middleware\AuthMiddleware::class)
         ->setName('patient_passport');
 
-    $app->post('/onboarding', [\App\Application\Actions\OnboardingController::class, 'submitEnquiry']);
+    $app->post('/onboarding', [\App\Application\Actions\OnboardingController::class, 'submitEnquiry'])
+        ->setName('onboarding_submit');
 
     // --------------------
     // Display Page Route (GET)
@@ -63,7 +64,7 @@ return function (App $app) {
     // --------------------
     // Request Physical Card Route (protected, POST only)
     // --------------------
-    $app->post('/dashboard/request-card', [\App\Application\Actions\DashboardController::class, 'requestPhysicalCard'])
+    $app->post('/dashboard/request-card', [\App\Application\Actions\CardRequestsController::class, 'requestPhysicalCard'])
         ->add(\App\Application\Middleware\AuthMiddleware::class)
         ->setName('request_physical_card');
 
@@ -124,7 +125,9 @@ return function (App $app) {
     $group->get('/support-messages', [\App\Application\Actions\AdminController::class, 'supportMessages'])->setName('admin_support_messages');
     $group->post('/support-messages/status', [\App\Application\Actions\AdminController::class, 'updateSupportMessageStatus'])->setName('admin_support_message_status');
     $group->post('/support-messages/delete', [\App\Application\Actions\AdminController::class, 'deleteSupportMessage'])->setName('admin_support_message_delete');
-    $group->get('/card-requests', [\App\Application\Actions\AdminController::class, 'cardRequests'])->setName('admin_card_requests');
+    $group->get('/card-requests', [\App\Application\Actions\CardRequestsController::class, 'adminCardRequests'])->setName('admin_card_requests');
+    $group->post('/card-requests/status', [\App\Application\Actions\CardRequestsController::class, 'updateCardRequestStatus'])->setName('admin_card_request_status');
+    $group->post('/card-requests/delete', [\App\Application\Actions\CardRequestsController::class, 'deleteCardRequest'])->setName('admin_card_request_delete');
     $group->get('/testimonials', [\App\Application\Actions\AdminController::class, 'testimonials'])->setName('admin_testimonials');
     $group->post('/testimonials/delete', [\App\Application\Actions\AdminController::class, 'deleteTestimonial'])->setName('admin_testimonial_delete');
     $group->get('/onboarding-enquiries', [\App\Application\Actions\AdminController::class, 'onboardingEnquiries'])->setName('admin_onboarding_enquiries');
