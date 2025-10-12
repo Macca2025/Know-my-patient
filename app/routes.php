@@ -134,10 +134,6 @@ return function (App $app) {
 
 
     // --------------------
-    // Forgot Password Route
-    // --------------------
-    $app->get('/forgot-password', [\App\Application\Actions\AuthController::class, 'forgotPassword'])->setName('forgot_password');
-    // --------------------
     // Admin Dashboard Routes (protected)
     // --------------------
     $app->group('/admin', function ($group) {
