@@ -12,6 +12,7 @@ class DashboardController
 {
     private Twig $twig;
     private \PDO $pdo;
+    private LoggerInterface $logger;
     private SessionService $sessionService;
     private CardRequestsController $cardRequestsController;
 
@@ -19,6 +20,7 @@ class DashboardController
     {
         $this->twig = $twig;
         $this->pdo = $pdo;
+        $this->logger = $logger;
         $this->sessionService = $sessionService;
         $this->cardRequestsController = $cardRequestsController;
     }
@@ -65,7 +67,7 @@ class DashboardController
         ];
         
         // Log CSRF values for debugging
-        error_log("Dashboard CSRF - name: " . ($csrf['name'] ?? 'NULL') . ", value: " . ($csrf['value'] ?? 'NULL'));
+        $this->logger->debug("Dashboard CSRF", ['name' => ($csrf['name'] ?? 'NULL'), 'value' => ($csrf['value'] ?? 'NULL')]);
         
         $role = $_SESSION['user_role'] ?? null;
         $dashboardPartial = null;
@@ -256,7 +258,7 @@ class DashboardController
                             $message = 'Password changed successfully!';
                             $messageType = 'success';
                         } catch (\PDOException $e) {
-                            error_log("Password change error: " . $e->getMessage());
+                            $this->logger->error("Password change error: " . $e->getMessage(), ['exception' => $e, 'user_id' => $userId]);
                             $message = 'An error occurred while changing your password. Please try again.';
                             $messageType = 'danger';
                         }
@@ -304,7 +306,7 @@ class DashboardController
                             $currentUser['surname'] = $surname;
                             $currentUser['email'] = $email;
                         } catch (\PDOException $e) {
-                            error_log("Profile update error: " . $e->getMessage());
+                            $this->logger->error("Profile update error: " . $e->getMessage(), ['exception' => $e, 'user_id' => $userId]);
                             $message = 'An error occurred while updating your profile. Please try again.';
                             $messageType = 'danger';
                         }
@@ -578,7 +580,7 @@ class DashboardController
             return $response->withHeader('Location', '/add-patient?patient_uid=' . $patientUid)->withStatus(302);
             
         } catch (\Exception $e) {
-            error_log("Error saving patient: " . $e->getMessage());
+            $this->logger->error("Error saving patient: " . $e->getMessage(), ['exception' => $e]);
             $this->sessionService->set('flash_message', 'Error saving patient profile: ' . $e->getMessage());
             $this->sessionService->set('flash_type', 'danger');
             return $response->withHeader('Location', '/add-patient')->withStatus(302);
@@ -826,7 +828,7 @@ class DashboardController
             ]));
             
         } catch (\Exception $e) {
-            error_log('Error saving patient section: ' . $e->getMessage());
+            $this->logger->error('Error saving patient section: ' . $e->getMessage(), ['exception' => $e]);
             $response->getBody()->write(json_encode([
                 'success' => false,
                 'message' => 'Error saving data: ' . $e->getMessage()
@@ -849,7 +851,7 @@ class DashboardController
             $stmt->execute([$userId, $action, json_encode($details)]);
         } catch (\Exception $e) {
             // Log error but don't fail the main operation
-            error_log('Failed to log action: ' . $e->getMessage());
+            $this->logger->error('Failed to log action: ' . $e->getMessage(), ['exception' => $e]);
         }
     }
 }

@@ -247,7 +247,7 @@ class AddPatientController
             return $response->withHeader('Location', '/add-patient?patient_uid=' . $patientUid)->withStatus(302);
             
         } catch (\Exception $e) {
-            error_log("Error saving patient: " . $e->getMessage());
+            $this->logger->error("Error saving patient: " . $e->getMessage(), ['exception' => $e]);
             $this->sessionService->set('flash_message', 'Error saving patient profile: ' . $e->getMessage());
             $this->sessionService->set('flash_type', 'danger');
             return $response->withHeader('Location', '/add-patient')->withStatus(302);
@@ -495,7 +495,7 @@ class AddPatientController
             ]));
             
         } catch (\Exception $e) {
-            error_log('Error saving patient section: ' . $e->getMessage());
+            $this->logger->error('Error saving patient section: ' . $e->getMessage(), ['exception' => $e]);
             $response->getBody()->write(json_encode([
                 'success' => false,
                 'message' => 'Error saving data: ' . $e->getMessage()
@@ -518,7 +518,7 @@ class AddPatientController
             $stmt->execute([$userId, $action, json_encode($details)]);
         } catch (\Exception $e) {
             // Log error but don't fail the main operation
-            error_log('Failed to log action: ' . $e->getMessage());
+            $this->logger->error('Failed to log action: ' . $e->getMessage(), ['exception' => $e]);
         }
     }
 }

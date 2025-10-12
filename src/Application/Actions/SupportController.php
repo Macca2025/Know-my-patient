@@ -7,14 +7,15 @@ use Slim\Views\Twig;
 use Respect\Validation\Validator as v;
 use Psr\Log\LoggerInterface;
 use App\Application\Services\IpAddressService;
+use App\Infrastructure\Persistence\Support\DatabaseSupportMessageRepository;
 
 class SupportController
 {
     private Twig $twig;
-    private $supportRepo;
+    private DatabaseSupportMessageRepository $supportRepo;
     private LoggerInterface $logger;
 
-    public function __construct(Twig $twig, $supportRepo, LoggerInterface $logger)
+    public function __construct(Twig $twig, DatabaseSupportMessageRepository $supportRepo, LoggerInterface $logger)
     {
         $this->twig = $twig;
         $this->supportRepo = $supportRepo;
@@ -69,6 +70,7 @@ class SupportController
                     $success = true;
                     $data = [];
                 } catch (\Throwable $e) {
+                    $this->logger->error('Error submitting support message', ['exception' => $e, 'data' => $data]);
                     $errors['general'] = 'There was an error submitting your message. Please try again later.';
                 }
             }
