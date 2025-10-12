@@ -93,7 +93,7 @@ class AuthController
                         // Handle remember me
                         if ($remember) {
                             $token = bin2hex(random_bytes(32));
-                            $hashedToken = password_hash($token, PASSWORD_DEFAULT);
+                            $hashedToken = password_hash($token, PASSWORD_ARGON2ID);
                             $update = $this->pdo->prepare('UPDATE users SET remember_token = ? WHERE id = ?');
                             $update->execute([$hashedToken, $user['id']]);
                             setcookie('rememberme', $user['id'] . ':' . $token, [
@@ -187,7 +187,7 @@ class AuthController
                 try {
                     $stmt = $this->pdo->prepare('INSERT INTO users (uid, first_name, last_name, email, password, role, created_at, updated_at, active) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)');
                     $uid = bin2hex(random_bytes(16));
-                    $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+                    $hashedPassword = password_hash($data['password'], PASSWORD_ARGON2ID);
                     $role = $data['register_type'] === 'nhs' ? 'nhs_user' : ($data['register_type'] === 'family' ? 'family' : 'patient');
                     $stmt->execute([
                         $uid,

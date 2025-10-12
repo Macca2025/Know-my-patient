@@ -251,7 +251,7 @@ class DashboardController
                     if ($user && password_verify($currentPassword, $user['password'])) {
                         // Update password
                         try {
-                            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+                            $hashedPassword = password_hash($newPassword, PASSWORD_ARGON2ID);
                             $stmt = $this->pdo->prepare('UPDATE users SET password = ? WHERE id = ?');
                             $stmt->execute([$hashedPassword, $userId]);
                             
