@@ -5,7 +5,7 @@ interface PatientProfileRepository
 {
     /**
      * @param string $uid
-     * @return array|null
+     * @return array<string, mixed>|null
      */
     public function findByUid(string $uid): ?array;
 }
