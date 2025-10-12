@@ -198,12 +198,13 @@ return function (ContainerBuilder $containerBuilder) {
                     );
                 },
                 \App\Application\Middleware\RateLimitMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\RateLimitMiddleware {
-                    // 5 login attempts per 15 minutes
+                    // 10 login attempts per 5 minutes (development setting)
+                    // Production recommendation: 5 attempts per 15 minutes
                     $cacheDir = __DIR__ . '/../var/cache/rate_limit';
                     if (!is_dir($cacheDir)) {
                         mkdir($cacheDir, 0755, true);
                     }
-                    return new \App\Application\Middleware\RateLimitMiddleware(5, 15, $cacheDir);
+                    return new \App\Application\Middleware\RateLimitMiddleware(10, 5, $cacheDir);
                 },
             ]);
         };
