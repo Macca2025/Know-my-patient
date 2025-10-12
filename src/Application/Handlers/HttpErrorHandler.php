@@ -54,7 +54,7 @@ class HttpErrorHandler extends SlimErrorHandler
             $template = 'errors/error_403.html.twig';
         }
 
-        if ($wantsHtml && $template) {
+        if ($wantsHtml) {
             /** @var Twig $twig */
             $twig = $this->container->get(Twig::class);
             $response = $this->responseFactory->createResponse($statusCode);

@@ -233,7 +233,7 @@ class AdminController
         foreach ($messages as $msg) {
             $total++;
             // Count as responded if status is 'responded', 'resolved' or 'closed', OR if has_response flag is set
-            if ($msg['status'] === 'responded' || $msg['status'] === 'resolved' || $msg['status'] === 'closed' || (!empty($msg['has_response']) && $msg['has_response'])) {
+            if ($msg['status'] === 'responded' || $msg['status'] === 'resolved' || $msg['status'] === 'closed' || !empty($msg['has_response'])) {
                 $responded++;
             } elseif ($msg['status'] === 'new' || $msg['status'] === 'in_progress') {
                 $pending++;
