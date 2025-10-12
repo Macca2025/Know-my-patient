@@ -10,3 +10,6 @@
 # Ignore Twig cache
 /var/cache/twig/
 .DS_Store
+# Ignore database backups (but keep directory)
+/backups/*
+!/backups/.gitkeep
