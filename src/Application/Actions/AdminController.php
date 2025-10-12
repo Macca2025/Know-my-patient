@@ -522,7 +522,7 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        $stmt = $this->pdo->query('SELECT id, title, description, file_path, file_type, file_size, uploaded_by, created_at FROM resources ORDER BY id DESC');
+        $stmt = $this->pdo->query('SELECT id, title, description, file_path, file_type FROM resources ORDER BY id DESC');
         $resources = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $vars = [
             'title' => 'Resources',
