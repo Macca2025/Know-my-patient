@@ -133,6 +133,15 @@ class AuthController
         $queryParams = $request->getQueryParams();
         $registered = $queryParams['registered'] ?? null;
         $deleted = $queryParams['deleted'] ?? null;
+        
+        // Get flash messages and clear them after reading
+        $flashMessage = $this->sessionService->get('flash_message');
+        $flashType = $this->sessionService->get('flash_type');
+        if ($flashMessage) {
+            $this->sessionService->remove('flash_message');
+            $this->sessionService->remove('flash_type');
+        }
+        
         $body = $this->twig->getEnvironment()->render('login.html.twig', [
             'error' => $error,
             'form' => $form,
@@ -140,7 +149,10 @@ class AuthController
             'registered' => $registered,
             'deleted' => $deleted,
             'suspended' => $suspended,
-            'session' => $this->sessionService->all(),
+            'session' => array_merge($this->sessionService->all(), [
+                'flash_message' => $flashMessage,
+                'flash_type' => $flashType,
+            ]),
             'title' => 'Login',
             'description' => 'Login to Know My Patient',
             'canonical_url' => '/login',

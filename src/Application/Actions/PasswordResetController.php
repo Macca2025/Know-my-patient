@@ -140,7 +140,7 @@ class PasswordResetController
         }
         
         // Always show success message (security best practice)
-        $this->sessionService->set('flash_message', 'If an account exists with that email, a password reset link has been sent.');
+        $this->sessionService->set('flash_message', 'If an account exists with that email, a password reset link has been sent. Please check your email (including spam folder). The link expires in 1 hour.');
         $this->sessionService->set('flash_type', 'success');
         return $response->withHeader('Location', '/login')->withStatus(302);
     }
