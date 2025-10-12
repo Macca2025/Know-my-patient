@@ -97,6 +97,8 @@
                                                             <td>{{ enquiry.integration_timeline|default('-') }}</td>
                                                             <td>
                                                                 <form method="post" action="/admin/onboarding-enquiries/status" class="d-inline align-items-center">
+                                                                    <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+                                                                    <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
                                                                     <input type="hidden" name="id" value="{{ enquiry.id }}">
                                                                     <select name="status" class="form-select form-select-sm d-inline w-auto me-2 minw-90" onchange="this.form.submit()">
                                                                         <option value="new" {{ enquiry.status == 'new' ? 'selected' : '' }}>New</option>
@@ -114,6 +116,8 @@
                                                                         <i class="bi bi-eye"></i>
                                                                     </button>
                                                                     <form method="post" action="/admin/onboarding-enquiries/delete" class="inline-form">
+                                                                        <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+                                                                        <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
                                                                         <input type="hidden" name="id" value="{{ enquiry.id }}">
                                                                         <button type="submit" class="btn btn-sm btn-danger p-1 btn-square-32" onclick="return confirm('Delete this enquiry?')" title="Delete Enquiry">
                                                                             <i class="bi bi-trash"></i>

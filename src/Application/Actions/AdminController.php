@@ -330,101 +330,6 @@ class AdminController
         return $response->withHeader('Location', '/admin/support-messages')->withStatus(302);
     }
 
-    // Card Requests
-    public function cardRequests(Request $request, Response $response): Response
-    {
-        if ($this->session->get('user_role') !== 'admin') {
-            $response = $response->withStatus(403);
-            $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
-            return $response;
-        }
-        // Fetch all card requests
-        // Get filters from query params
-        $queryParams = $request->getQueryParams();
-        $search = isset($queryParams['search']) ? trim($queryParams['search']) : '';
-        $status = isset($queryParams['status']) ? trim($queryParams['status']) : '';
-        $fromDate = isset($queryParams['from_date']) ? trim($queryParams['from_date']) : '';
-        $toDate = isset($queryParams['to_date']) ? trim($queryParams['to_date']) : '';
-        $sortBy = isset($queryParams['sort_by']) ? trim($queryParams['sort_by']) : 'request_date';
-        $order = isset($queryParams['order']) && strtolower($queryParams['order']) === 'asc' ? 'ASC' : 'DESC';
-
-        // Build SQL
-        $sql = 'SELECT * FROM card_requests WHERE 1=1';
-        $params = [];
-        if ($search !== '') {
-            $sql .= ' AND (user_id LIKE :search OR patient_uid LIKE :search OR contact_email LIKE :search OR tracking_number LIKE :search)';
-            $params['search'] = '%' . $search . '%';
-        }
-        if ($status !== '' && $status !== 'all') {
-            $sql .= ' AND status = :status';
-            $params['status'] = $status;
-        }
-        if ($fromDate !== '') {
-            // Convert dd/mm/yyyy to yyyy-mm-dd
-            $fromParts = explode('/', $fromDate);
-            if (count($fromParts) === 3) {
-                $fromDateSql = $fromParts[2] . '-' . $fromParts[1] . '-' . $fromParts[0];
-                $sql .= ' AND request_date >= :from_date';
-                $params['from_date'] = $fromDateSql . ' 00:00:00';
-            }
-        }
-        if ($toDate !== '') {
-            $toParts = explode('/', $toDate);
-            if (count($toParts) === 3) {
-                $toDateSql = $toParts[2] . '-' . $toParts[1] . '-' . $toParts[0];
-                $sql .= ' AND request_date <= :to_date';
-                $params['to_date'] = $toDateSql . ' 23:59:59';
-            }
-        }
-        $allowedSort = ['request_date', 'status', 'card_type'];
-        if (!in_array($sortBy, $allowedSort, true)) {
-            $sortBy = 'request_date';
-        }
-        $sql .= " ORDER BY $sortBy $order";
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        $cardRequests = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // Calculate stats
-        $stats = [
-            'total_requests' => 0,
-            'pending' => 0,
-            'printing' => 0,
-            'posted' => 0,
-        ];
-        $allStmt = $this->pdo->query('SELECT status FROM card_requests');
-        foreach ($allStmt->fetchAll(\PDO::FETCH_ASSOC) as $req) {
-            $stats['total_requests']++;
-            if ($req['status'] === 'pending') $stats['pending']++;
-            if ($req['status'] === 'printing') $stats['printing']++;
-            if ($req['status'] === 'posted') $stats['posted']++;
-        }
-
-        $vars = [
-            'title' => 'Card Requests',
-            'description' => 'Card Requests admin page',
-            'canonical_url' => $request->getUri()->getPath(),
-            'app_name' => 'Know My Patient',
-            'company_logo' => 'images/logo.png',
-            'company_name' => 'Know My Patient',
-            'keywords' => 'admin, dashboard, know my patient',
-            'stats' => $stats,
-            'cardRequests' => $cardRequests,
-            'filters' => [
-                'search' => $search,
-                'status' => $status,
-                'from_date' => $fromDate,
-                'to_date' => $toDate,
-                'sort_by' => $sortBy,
-                'order' => $order,
-            ],
-        ];
-        $body = $this->twig->getEnvironment()->render('admin/card_requests.html.twig', $vars);
-        $response->getBody()->write($body);
-        return $response;
-    }
-
     // Testimonials
     public function testimonials(Request $request, Response $response): Response
     {
@@ -433,6 +338,17 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
+        
+        // Get CSRF tokens
+        $csrf = [
+            'name' => $request->getAttribute('csrf_name'),
+            'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
+        ];
+        
         $stmt = $this->pdo->query('SELECT * FROM testimonials ORDER BY id DESC');
         $testimonials = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $vars = [
@@ -444,6 +360,7 @@ class AdminController
             'company_name' => 'Know My Patient',
             'keywords' => 'admin, dashboard, know my patient',
             'testimonials' => $testimonials,
+            'csrf' => $csrf,
         ];
         $body = $this->twig->getEnvironment()->render('admin/testimonials.html.twig', $vars);
         $response->getBody()->write($body);
@@ -477,6 +394,17 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
+        
+        // Get CSRF tokens
+        $csrf = [
+            'name' => $request->getAttribute('csrf_name'),
+            'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
+        ];
+        
         $stmt = $this->pdo->query('SELECT * FROM onboarding_enquiries ORDER BY created_at DESC');
         $enquiries = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $stmtUsers = $this->pdo->query('SELECT id, first_name, last_name FROM users ORDER BY first_name ASC');
@@ -513,6 +441,7 @@ class AdminController
             'enquiries' => $enquiries,
             'users' => $users,
             'stats' => $stats,
+            'csrf' => $csrf,
         ];
         $body = $this->twig->getEnvironment()->render('admin/onboarding_enquiries.html.twig', $vars);
         $response->getBody()->write($body);

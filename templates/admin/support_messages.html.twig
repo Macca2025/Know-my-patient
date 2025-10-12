@@ -7,11 +7,18 @@
         overflow-x: auto;
         overflow-y: visible;
     }
-    /* Position dropdowns relative to body to prevent clipping */
+    
+    /* Ensure dropdown menu appears above everything */
     .dropdown-menu {
-        position: fixed !important;
-        z-index: 1050;
+        position: absolute !important;
+        z-index: 9999 !important;
     }
+    
+    /* Add positioning context to table cells */
+    td.position-relative {
+        position: relative !important;
+    }
+    
     /* Make dropdown items more visible */
     .dropdown-item {
         padding: 0.5rem 1rem;
@@ -149,9 +156,9 @@
                                 {% endif %}
                             </td>
                             <td>{{ msg.ip_address }}</td>
-                            <td class="text-nowrap">
+                            <td class="text-nowrap position-relative">
                                 <!-- Status Dropdown -->
-                                <div class="btn-group dropstart" role="group">
+                                <div class="btn-group dropstart">
                                     <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="bi bi-pencil-square"></i> Status
                                     </button>
