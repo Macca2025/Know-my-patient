@@ -6,6 +6,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use Respect\Validation\Validator as v;
 use Psr\Log\LoggerInterface;
+use App\Application\Services\IpAddressService;
 
 class SupportController
 {
@@ -61,7 +62,7 @@ class SupportController
                         'email' => $data['email'],
                         'message' => $data['message'],
                         'subject' => $data['subject'],
-                        'ip_address' => $request->getServerParams()['REMOTE_ADDR'] ?? null,
+                        'ip_address' => IpAddressService::getClientIp(),
                         'user_agent' => $request->getServerParams()['HTTP_USER_AGENT'] ?? null,
                     ];
                     $this->supportRepo->insert($insertData);

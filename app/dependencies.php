@@ -96,6 +96,24 @@ return function (ContainerBuilder $containerBuilder) {
                     );
                 },
                 
+                \App\Application\Actions\CardRequestsController::class => function (ContainerInterface $c): \App\Application\Actions\CardRequestsController {
+                    return new \App\Application\Actions\CardRequestsController(
+                        $c->get(\PDO::class),
+                        $c->get(\App\Application\Services\SessionService::class),
+                        $c->get(\Slim\Views\Twig::class)
+                    );
+                },
+                
+                \App\Application\Actions\DashboardController::class => function (ContainerInterface $c): \App\Application\Actions\DashboardController {
+                    return new \App\Application\Actions\DashboardController(
+                        $c->get(\Slim\Views\Twig::class),
+                        $c->get(\PDO::class),
+                        $c->get(\Psr\Log\LoggerInterface::class),
+                        $c->get(\App\Application\Services\SessionService::class),
+                        $c->get(\App\Application\Actions\CardRequestsController::class)
+                    );
+                },
+                
                 \App\Application\Actions\AddPatientController::class => function (ContainerInterface $c): \App\Application\Actions\AddPatientController {
                     return new \App\Application\Actions\AddPatientController(
                         $c->get(\Slim\Views\Twig::class),

@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 
 use App\Application\Services\SessionService;
+use App\Application\Services\IpAddressService;
 use Psr\Log\LoggerInterface;
 
 
@@ -39,7 +40,7 @@ class ConfirmDeletionAction
                     $this->logger->info('User account deleted', [
                         'user_id' => $userId,
                         'timestamp' => date('c'),
-                        'ip' => $_SERVER['REMOTE_ADDR'] ?? null
+                        'ip' => IpAddressService::getClientIp()
                     ]);
                     // Delete user from DB
                     $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = ?');

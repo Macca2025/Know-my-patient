@@ -8,6 +8,7 @@ use Slim\Psr7\Response as SlimResponse;
 use App\Domain\User\PatientProfileRepository;
 use App\Domain\User\AuditLogRepository;
 use App\Application\Services\SessionService;
+use App\Application\Services\IpAddressService;
 
 class PatientProfileApiAction
 {
@@ -33,7 +34,7 @@ class PatientProfileApiAction
         $uid = $args['uid'] ?? null;
         $user = $this->sessionService->get('user');
         $userId = $user['id'] ?? 'guest';
-        $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+        $ip = IpAddressService::getClientIp();
         $desc = '';
         $activityType = 'patient_profile_lookup';
         $targetUserId = null;
