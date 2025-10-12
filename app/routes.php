@@ -51,7 +51,9 @@ return function (App $app) {
     // --------------------
     $app->group('', function ($group) {
         $group->map(['GET', 'POST'], '/register', [\App\Application\Actions\AuthController::class, 'register'])->setName('register');
-        $group->map(['GET', 'POST'], '/login', [\App\Application\Actions\AuthController::class, 'login'])->setName('login');
+        $group->map(['GET', 'POST'], '/login', [\App\Application\Actions\AuthController::class, 'login'])
+            ->add(\App\Application\Middleware\RateLimitMiddleware::class)
+            ->setName('login');
     })->add(\App\Application\Middleware\GuestOnlyMiddleware::class);
 
     // --------------------

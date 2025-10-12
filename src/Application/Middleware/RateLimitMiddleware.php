@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Middleware;
 
+use App\Application\Services\IpAddressService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
@@ -51,7 +52,7 @@ class RateLimitMiddleware implements MiddlewareInterface
     private function resolveRequestKey(Request $request): string
     {
         $uri = $request->getUri()->getPath();
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ip = IpAddressService::getClientIp();
         return 'rate_limit:' . md5($ip . ':' . $uri);
     }
 
