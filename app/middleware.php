@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 
 use App\Application\Middleware\SessionMiddleware;
+use App\Application\Middleware\SentryMiddleware;
 use App\Application\Middleware\TwigGlobalsMiddleware;
 // use App\Middleware\CsrfLoggingMiddleware;
 
@@ -13,6 +14,11 @@ use Slim\Csrf\Guard;
 return function (App $app) {
     $container = $app->getContainer();
     $twig = $container->get(\Slim\Views\Twig::class);
+    
+    // Add Sentry error monitoring (first to catch all errors)
+    $app->add(SentryMiddleware::class);
+    
+    // Add session middleware
     $app->add(SessionMiddleware::class);
 
 
