@@ -31,7 +31,7 @@ class AdminController
             return $response;
         }
         // Fetch all users
-        $stmt = $this->pdo->query('SELECT * FROM users ORDER BY created_at DESC');
+        $stmt = $this->pdo->query('SELECT id, email, name, role, active, created_at, updated_at FROM users ORDER BY created_at DESC');
         $allUsers = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         // Get selected role from GET param
@@ -150,7 +150,7 @@ class AdminController
             $fromDate = isset($queryParams['from_date']) ? trim($queryParams['from_date']) : '';
             $toDate = isset($queryParams['to_date']) ? trim($queryParams['to_date']) : '';
 
-            $sql = 'SELECT * FROM audit_log WHERE 1=1';
+            $sql = 'SELECT id, user_id, target_user_id, action_type, description, ip_address, timestamp FROM audit_log WHERE 1=1';
             $params = [];
             if ($search !== '') {
                 $sql .= ' AND (user_id LIKE :search OR target_user_id LIKE :search OR description LIKE :search)';
@@ -223,7 +223,7 @@ class AdminController
         ];
         
         // Get all messages
-        $stmt = $this->pdo->query('SELECT * FROM support_messages ORDER BY created_at DESC');
+        $stmt = $this->pdo->query('SELECT id, name, email, subject, message, status, ip_address, user_agent, created_at FROM support_messages ORDER BY created_at DESC');
         $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         // Stats
@@ -349,7 +349,7 @@ class AdminController
             ]
         ];
         
-        $stmt = $this->pdo->query('SELECT * FROM testimonials ORDER BY id DESC');
+        $stmt = $this->pdo->query('SELECT id, name, role, testimonial, rating, created_at FROM testimonials ORDER BY id DESC');
         $testimonials = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $vars = [
             'title' => 'Testimonials',
@@ -405,7 +405,7 @@ class AdminController
             ]
         ];
         
-        $stmt = $this->pdo->query('SELECT * FROM onboarding_enquiries ORDER BY created_at DESC');
+        $stmt = $this->pdo->query('SELECT id, company_name, company_website, organization_type, organization_size, contact_person, job_title, email, phone, gdpr_consent, marketing_consent, status, assigned_to, created_at FROM onboarding_enquiries ORDER BY created_at DESC');
         $enquiries = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $stmtUsers = $this->pdo->query('SELECT id, first_name, last_name FROM users ORDER BY first_name ASC');
         $users = $stmtUsers->fetchAll(\PDO::FETCH_ASSOC);
@@ -522,7 +522,7 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        $stmt = $this->pdo->query('SELECT * FROM resources ORDER BY id DESC');
+        $stmt = $this->pdo->query('SELECT id, title, description, file_path, file_type, file_size, uploaded_by, created_at FROM resources ORDER BY id DESC');
         $resources = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $vars = [
             'title' => 'Resources',

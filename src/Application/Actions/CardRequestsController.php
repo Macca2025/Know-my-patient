@@ -215,14 +215,13 @@ class CardRequestsController
         $order = isset($queryParams['order']) && strtolower($queryParams['order']) === 'asc' ? 'ASC' : 'DESC';
 
         // Build SQL
-        $sql = 'SELECT * FROM card_requests WHERE 1=1';
+        $sql = 'SELECT id, user_id, patient_uid, contact_name, contact_email, contact_phone, delivery_address, card_type, quantity, status, tracking_number, notes, created_at, updated_at FROM card_requests WHERE 1=1';
         $params = [];
         
         if ($search !== '') {
             $sql .= ' AND (user_id LIKE :search OR patient_uid LIKE :search OR contact_email LIKE :search OR tracking_number LIKE :search)';
             $params['search'] = '%' . $search . '%';
         }
-        
         if ($status !== '' && $status !== 'all') {
             $sql .= ' AND status = :status';
             $params['status'] = $status;

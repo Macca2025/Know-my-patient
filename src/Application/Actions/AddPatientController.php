@@ -54,7 +54,12 @@ class AddPatientController
         if ($patientUid && $userId) {
             // Load specific patient for editing via patient_uid parameter
             $stmt = $this->pdo->prepare('
-                SELECT * FROM patient_profiles 
+                SELECT id, patient_uid, user_id, created_by, full_name, date_of_birth, gender, blood_type, 
+                       allergies, medical_conditions, current_medications, emergency_contact_name, 
+                       emergency_contact_phone, emergency_contact_relation, nhs_number, gp_surgery, 
+                       mobility_issues, communication_needs, dietary_requirements, special_instructions, 
+                       profile_picture, created_at, updated_at 
+                FROM patient_profiles 
                 WHERE patient_uid = ? AND (created_by = ? OR user_id = ?)
             ');
             $stmt->execute([$patientUid, $userId, $userId]);
@@ -71,7 +76,12 @@ class AddPatientController
         } else if ($userId) {
             // No patient_uid provided - check if user already has their own patient profile
             $stmt = $this->pdo->prepare('
-                SELECT * FROM patient_profiles 
+                SELECT id, patient_uid, user_id, created_by, full_name, date_of_birth, gender, blood_type, 
+                       allergies, medical_conditions, current_medications, emergency_contact_name, 
+                       emergency_contact_phone, emergency_contact_relation, nhs_number, gp_surgery, 
+                       mobility_issues, communication_needs, dietary_requirements, special_instructions, 
+                       profile_picture, created_at, updated_at 
+                FROM patient_profiles 
                 WHERE user_id = ? 
                 ORDER BY created_at DESC 
                 LIMIT 1
