@@ -9,8 +9,8 @@ use Twig\Environment;
 
 class TwigGlobalsMiddleware
 {
-    private $twig;
-    private $sessionService;
+    private Environment $twig;
+    private SessionService $sessionService;
 
     public function __construct(Environment $twig, SessionService $sessionService)
     {

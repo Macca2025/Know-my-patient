@@ -11,8 +11,8 @@ use Slim\Views\Twig;
 
 class AdminOnlyMiddleware implements MiddlewareInterface
 {
-    private $sessionService;
-    private $twig;
+    private SessionService $sessionService;
+    private Twig $twig;
 
     public function __construct(SessionService $sessionService, Twig $twig)
     {

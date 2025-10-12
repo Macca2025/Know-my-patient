@@ -9,7 +9,7 @@ use App\Application\Services\SessionService;
 
 class AuthMiddleware implements Middleware
 {
-    private $sessionService;
+    private SessionService $sessionService;
 
     public function __construct(SessionService $sessionService)
     {

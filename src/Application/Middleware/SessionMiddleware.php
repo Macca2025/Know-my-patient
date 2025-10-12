@@ -9,7 +9,7 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 class SessionMiddleware implements Middleware
 {
-    private $sessionService;
+    private SessionService $sessionService;
 
     public function __construct(SessionService $sessionService)
     {

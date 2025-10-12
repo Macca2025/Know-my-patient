@@ -10,7 +10,7 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 class NhsUserOnlyMiddleware implements MiddlewareInterface
 {
-    private $sessionService;
+    private SessionService $sessionService;
 
     public function __construct(\App\Application\Services\SessionService $sessionService)
     {
