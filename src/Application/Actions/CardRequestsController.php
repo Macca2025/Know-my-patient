@@ -217,7 +217,7 @@ class CardRequestsController
         $order = isset($queryParams['order']) && strtolower($queryParams['order']) === 'asc' ? 'ASC' : 'DESC';
 
         // Build SQL
-        $sql = 'SELECT id, user_id, patient_uid, contact_name, contact_email, contact_phone, delivery_address, card_type, quantity, status, tracking_number, notes, created_at, updated_at FROM card_requests WHERE 1=1';
+        $sql = 'SELECT id, user_id, patient_uid, contact_email, contact_phone, delivery_address, delivery_postcode, card_type, status, tracking_number, admin_notes, estimated_delivery, request_date, updated_by, updated_at FROM card_requests WHERE 1=1';
         $params = [];
         
         if ($search !== '') {
@@ -331,9 +331,12 @@ class CardRequestsController
                 return $response->withHeader('Location', '/admin/card-requests')->withStatus(302);
             }
 
+            // Get admin user ID for tracking
+            $adminUserId = $this->sessionService->get('user_id');
+
             // Update card request
-            $sql = "UPDATE card_requests SET status = :status, updated_at = NOW()";
-            $params = ['status' => $status, 'request_id' => $requestId];
+            $sql = "UPDATE card_requests SET status = :status, updated_by = :updated_by";
+            $params = ['status' => $status, 'updated_by' => $adminUserId, 'request_id' => $requestId];
 
             // Add tracking number if provided and status is posted or delivered
             if (in_array($status, ['posted', 'delivered']) && !empty($trackingNumber)) {
@@ -347,7 +350,6 @@ class CardRequestsController
             $stmt->execute($params);
 
             // Log the action
-            $adminUserId = $this->sessionService->get('user_id');
             $this->logCardRequestAction(
                 $adminUserId,
                 'card_request_status_updated',
