@@ -129,6 +129,13 @@ return function (ContainerBuilder $containerBuilder) {
                         $isProduction
                     );
                 },
+                \App\Application\Services\CacheService::class => function (ContainerInterface $c): \App\Application\Services\CacheService {
+                    $cacheDir = __DIR__ . '/../var/cache/app_cache';
+                    if (!is_dir($cacheDir)) {
+                        mkdir($cacheDir, 0755, true);
+                    }
+                    return new \App\Application\Services\CacheService($cacheDir, 3600);
+                },
                 \App\Application\Actions\PasswordResetController::class => function (ContainerInterface $c): \App\Application\Actions\PasswordResetController {
                     return new \App\Application\Actions\PasswordResetController(
                         $c->get(\PDO::class),
@@ -142,7 +149,8 @@ return function (ContainerBuilder $containerBuilder) {
                         $c->get(\Slim\Views\Twig::class),
                         $c->get(\PDO::class),
                         $c->get(\Psr\Log\LoggerInterface::class),
-                        $c->get(\App\Application\Services\SessionService::class)
+                        $c->get(\App\Application\Services\SessionService::class),
+                        $c->get(\App\Application\Services\CacheService::class)
                     );
                 },
                 
@@ -176,7 +184,8 @@ return function (ContainerBuilder $containerBuilder) {
                 \App\Application\Actions\HomeController::class => function (ContainerInterface $c): \App\Application\Actions\HomeController {
                     return new \App\Application\Actions\HomeController(
                         $c->get(\Slim\Views\Twig::class),
-                        $c->get(\App\Infrastructure\Persistence\Testimonial\DatabaseTestimonialRepository::class)
+                        $c->get(\App\Infrastructure\Persistence\Testimonial\DatabaseTestimonialRepository::class),
+                        $c->get(\App\Application\Services\CacheService::class)
                     );
                 },
                 'csrf' => function(ContainerInterface $c): \Slim\Csrf\Guard {

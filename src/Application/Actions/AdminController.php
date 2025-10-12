@@ -1,6 +1,7 @@
 <?php
 namespace App\Application\Actions;
 
+use App\Application\Services\CacheService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -13,13 +14,15 @@ class AdminController
     private \PDO $pdo;
     private LoggerInterface $logger;
     private SessionService $session;
+    private CacheService $cacheService;
 
-    public function __construct(Twig $twig, \PDO $pdo, LoggerInterface $logger, SessionService $session)
+    public function __construct(Twig $twig, \PDO $pdo, LoggerInterface $logger, SessionService $session, CacheService $cacheService)
     {
         $this->twig = $twig;
         $this->pdo = $pdo;
         $this->logger = $logger;
         $this->session = $session;
+        $this->cacheService = $cacheService;
     }
 
     // User Management
@@ -380,6 +383,9 @@ class AdminController
         if ($id > 0) {
             $stmt = $this->pdo->prepare('DELETE FROM testimonials WHERE id = :id');
             $stmt->execute(['id' => $id]);
+            
+            // Clear testimonials cache after deletion
+            $this->cacheService->forget('testimonials_homepage');
         }
         return $response->withHeader('Location', '/admin/testimonials')->withStatus(302);
     }
@@ -524,8 +530,13 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        $stmt = $this->pdo->query('SELECT id, title, description, file_path, file_type, category, uploaded_by, created_at, updated_at, status FROM resources ORDER BY id DESC');
-        $resources = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Cache resources for 30 minutes (1800 seconds)
+        $resources = $this->cacheService->remember('admin_resources', function() {
+            $stmt = $this->pdo->query('SELECT id, title, description, file_path, file_type, category, uploaded_by, created_at, updated_at, status FROM resources ORDER BY id DESC');
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }, 1800);
+        
         $vars = [
             'title' => 'Resources',
             'description' => 'Resources admin page',

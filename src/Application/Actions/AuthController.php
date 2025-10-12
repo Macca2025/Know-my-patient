@@ -1,6 +1,7 @@
 <?php
 namespace App\Application\Actions;
 
+use App\Application\Services\CacheService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -15,13 +16,15 @@ class AuthController
     private \PDO $pdo;
     private LoggerInterface $logger;
     private SessionService $sessionService;
+    private CacheService $cacheService;
 
-    public function __construct(Twig $twig, \PDO $pdo, LoggerInterface $logger, SessionService $sessionService)
+    public function __construct(Twig $twig, \PDO $pdo, LoggerInterface $logger, SessionService $sessionService, CacheService $cacheService)
     {
         $this->twig = $twig;
         $this->pdo = $pdo;
         $this->logger = $logger;
         $this->sessionService = $sessionService;
+        $this->cacheService = $cacheService;
     }
 
 
@@ -88,6 +91,9 @@ class AuthController
                         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
                         $_SESSION['user_role'] = $user['role'] ?? null;
                         $_SESSION['_last_activity'] = time(); // Initialize session timeout tracking
+                        
+                        // Cache user role for 15 minutes (900 seconds)
+                        $this->cacheService->set('user_role_' . $user['id'], $user['role'], 900);
                         
                         // Update last_login
                         $updateLogin = $this->pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
