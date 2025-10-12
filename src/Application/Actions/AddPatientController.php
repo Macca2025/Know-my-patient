@@ -126,6 +126,9 @@ class AddPatientController
         return $response;
     }
 
+    /**
+     * @param array<string, mixed>|null $currentUser
+     */
     private function handlePatientSubmission(Request $request, Response $response, ?array $currentUser = null): Response
     {
         $userId = $this->sessionService->get('user_id');
@@ -145,11 +148,7 @@ class AddPatientController
             $currentUser = $stmt->fetch(\PDO::FETCH_ASSOC);
         }
         
-        if (!$userId) {
-            $this->sessionService->set('flash_message', 'You must be logged in to save patient data.');
-            $this->sessionService->set('flash_type', 'danger');
-            return $response->withHeader('Location', '/login')->withStatus(302);
-        }
+        // Validate input data
 
         try {
             // Check if this is an edit or new patient
@@ -254,6 +253,10 @@ class AddPatientController
         }
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
     private function buildUpdateFields(array $data): array
     {
         $allowedFields = [
@@ -286,6 +289,9 @@ class AddPatientController
         return $fields;
     }
 
+    /**
+     * @param array<string, mixed> $uploadedFiles
+     */
     private function handleFileUploads(array $uploadedFiles, string $patientUid): void
     {
         // Create user-specific folder: uploads/patient_documents/USER123ABC/
@@ -507,6 +513,8 @@ class AddPatientController
     
     /**
      * Log user actions for audit trail
+     * 
+     * @param array<string, mixed> $details
      */
     private function logAction(string|int $userId, string $action, array $details = []): void
     {

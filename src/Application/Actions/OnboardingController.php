@@ -1,6 +1,7 @@
 <?php
 namespace App\Application\Actions;
 
+use App\Infrastructure\Persistence\Onboarding\DatabaseOnboardingEnquiryRepository;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
@@ -10,10 +11,10 @@ use Psr\Log\LoggerInterface;
 class OnboardingController
 {
     private Twig $twig;
-    private $onboardingRepo;
+    private DatabaseOnboardingEnquiryRepository $onboardingRepo;
     private LoggerInterface $logger;
 
-    public function __construct(Twig $twig, $onboardingRepo, LoggerInterface $logger)
+    public function __construct(Twig $twig, DatabaseOnboardingEnquiryRepository $onboardingRepo, LoggerInterface $logger)
     {
         $this->twig = $twig;
         $this->onboardingRepo = $onboardingRepo;

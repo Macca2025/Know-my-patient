@@ -12,10 +12,10 @@ use App\Application\Services\IpAddressService;
 
 class PatientProfileApiAction
 {
-    private $logger;
-    private $profileRepository;
-    private $auditLogRepository;
-    private $sessionService;
+    private LoggerInterface $logger;
+    private PatientProfileRepository $profileRepository;
+    private AuditLogRepository $auditLogRepository;
+    private SessionService $sessionService;
 
     public function __construct(
         LoggerInterface $logger,
@@ -29,6 +29,9 @@ class PatientProfileApiAction
         $this->sessionService = $sessionService;
     }
 
+    /**
+     * @param array<string, mixed> $args
+     */
     public function __invoke(Request $request, Response $response, array $args): Response
     {
         $uid = $args['uid'] ?? null;
@@ -46,9 +49,11 @@ class PatientProfileApiAction
         } else {
             $profile = $this->profileRepository->findByUid($uid);
             if (!$profile) {
+                $this->logger->warning('Patient profile not found', ['uid' => $uid, 'user_id' => $userId]);
                 $desc = 'Profile not found for UID: ' . $uid;
                 $status = 'not_found';
             } else {
+                $this->logger->info('Patient profile accessed', ['uid' => $uid, 'user_id' => $userId]);
                 $desc = 'Profile lookup for UID: ' . $uid;
                 $targetUserId = $profile['user_id'] ?? null;
             }

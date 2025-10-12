@@ -157,6 +157,8 @@ class CardRequestsController
 
     /**
      * Get pending card request for a user
+     * 
+     * @return array<string, mixed>|null
      */
     public function getPendingCardRequest(int $userId): ?array
     {

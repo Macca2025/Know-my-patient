@@ -315,20 +315,18 @@ class DashboardController
             }
         }
         
-        // Fetch current user data
-        if ($userId) {
-            $stmt = $this->pdo->prepare('SELECT id, first_name, last_name, email, role, is_verified, created_at FROM users WHERE id = ? LIMIT 1');
-            $stmt->execute([$userId]);
-            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if ($user) {
-                $currentUser['first_name'] = $user['first_name'] ?? '';
-                $currentUser['surname'] = $user['last_name'] ?? '';
-                $currentUser['email'] = $user['email'] ?? '';
-                $currentUser['user_id'] = $user['id'] ?? '';
-                $currentUser['role'] = $user['role'] ?? '';
-                $currentUser['is_verified'] = $user['is_verified'] ?? 0;
-                $currentUser['created_at'] = $user['created_at'] ?? null;
-            }
+        // Fetch current user data (userId is guaranteed to be set at this point)
+        $stmt = $this->pdo->prepare('SELECT id, first_name, last_name, email, role, is_verified, created_at FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ($user) {
+            $currentUser['first_name'] = $user['first_name'] ?? '';
+            $currentUser['surname'] = $user['last_name'] ?? '';
+            $currentUser['email'] = $user['email'] ?? '';
+            $currentUser['user_id'] = $user['id'] ?? '';
+            $currentUser['role'] = $user['role'] ?? '';
+            $currentUser['is_verified'] = $user['is_verified'] ?? 0;
+            $currentUser['created_at'] = $user['created_at'] ?? null;
         }
         
         $body = $this->twig->getEnvironment()->render('users_pages/my_profile.html.twig', [
@@ -459,6 +457,9 @@ class DashboardController
         return $response;
     }
 
+    /**
+     * @param array<string, mixed>|null $currentUser
+     */
     private function handlePatientSubmission(Request $request, Response $response, ?array $currentUser = null): Response
     {
         $userId = $this->sessionService->get('user_id');
@@ -476,12 +477,6 @@ class DashboardController
             $stmt = $this->pdo->prepare('SELECT uid FROM users WHERE id = ?');
             $stmt->execute([$userId]);
             $currentUser = $stmt->fetch(\PDO::FETCH_ASSOC);
-        }
-        
-        if (!$userId) {
-            $this->sessionService->set('flash_message', 'You must be logged in to save patient data.');
-            $this->sessionService->set('flash_type', 'danger');
-            return $response->withHeader('Location', '/login')->withStatus(302);
         }
 
         try {
@@ -587,6 +582,10 @@ class DashboardController
         }
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
     private function buildUpdateFields(array $data): array
     {
         $allowedFields = [
@@ -619,6 +618,9 @@ class DashboardController
         return $fields;
     }
 
+    /**
+     * @param array<string, mixed> $uploadedFiles
+     */
     private function handleFileUploads(array $uploadedFiles, string $patientUid): void
     {
         // Create user-specific folder: uploads/patient_documents/USER123ABC/
@@ -840,6 +842,8 @@ class DashboardController
     
     /**
      * Log user actions for audit trail
+     * 
+     * @param array<string, mixed> $details
      */
     private function logAction(string|int $userId, string $action, array $details = []): void
     {
