@@ -55,6 +55,10 @@ class PasswordResetController
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
             'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
         ];
         
         $html = $this->twig->fetch('forgot_password.html.twig', [
@@ -177,6 +181,10 @@ class PasswordResetController
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
             'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
         ];
         
         $html = $this->twig->fetch('reset_password.html.twig', [
