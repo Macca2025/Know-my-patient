@@ -3,11 +3,18 @@ namespace App\Application\Services;
 
 class SessionService
 {
+    /**
+     * @param mixed $default
+     * @return mixed
+     */
     public function get(string $key, $default = null)
     {
         return $_SESSION[$key] ?? $default;
     }
 
+    /**
+     * @param mixed $value
+     */
     public function set(string $key, $value): void
     {
         $_SESSION[$key] = $value;
@@ -23,6 +30,9 @@ class SessionService
         unset($_SESSION[$key]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function all(): array
     {
         return $_SESSION;

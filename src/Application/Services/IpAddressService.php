@@ -113,7 +113,7 @@ class IpAddressService
     /**
      * Get detailed IP information for debugging
      * 
-     * @return array An array of all IP-related headers
+     * @return array<string, string|null> An array of all IP-related headers
      */
     public static function getIpDebugInfo(): array
     {
