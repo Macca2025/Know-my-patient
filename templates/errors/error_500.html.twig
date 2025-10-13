@@ -8,76 +8,94 @@
 {% set app_name = app_name|default('Know My Patient') %}
 {% set is_error_page = true %}
 {% block content %}
-<div class="d-flex flex-column min-vh-100">
-    <main class="flex-grow-1 d-flex align-items-center">
-        <div class="container text-center">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="error-page">
-                        <h1 class="display-1 text-danger fw-bold mb-3">500</h1>
-                        <h2 class="h3 mb-4 text-dark">Internal Server Error</h2>
-                        <p class="lead text-muted mb-4">
-                            Sorry, something went wrong on our end. Please try again later or contact support if the problem persists.
-                        </p>
-                        {% if exception is defined and exception is not null %}
-                        <div class="alert alert-danger text-start mt-4 pre-wrap">
-                            <strong>Error:</strong> {{ exception.message }}<br>
-                            <strong>File:</strong> {{ exception.file }}<br>
-                            <strong>Line:</strong> {{ exception.line }}<br>
-                            <strong>Trace:</strong>
-                            <pre class="font-small">{{ exception.traceAsString|default('') }}</pre>
-                        </div>
-                        {% endif %}
-               
-                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center mb-4">
-                            <a href="{{ is_error_page ? '/' : url_for('home') }}" class="btn-modern-outline-primary w-100">
-                                <i class="bi bi-house-fill me-2"></i>Go to Homepage
-                            </a>
-                                <button onclick="history.back()" class="btn-modern-outline-primary w-100 ">
-                                    <i class="bi bi-arrow-left me-2"></i>Go Back
-                                </button>
-                        </div>
-                        <div class="mt-5">
-                            <h5 class="text-muted mb-3">You might be looking for:</h5>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <a href="{{ is_error_page ? '/' : url_for('login') }}" class="text-decoration-none">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-box-arrow-in-right fs-1 text-primary mb-2"></i>
-                                                <h6 class="card-title">NHS Staff Login</h6>
-                                                <p class="card-text small text-muted">Access patient information</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="col-md-4">
-                                    <a href="{{ is_error_page ? '/' : url_for('register') }}" class="text-decoration-none">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-person-plus fs-1 text-success mb-2"></i>
-                                                <h6 class="card-title">Create Profile</h6>
-                                                <p class="card-text small text-muted">Register new account</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                                <div class="col-md-4">
-                                    <a href="{{ is_error_page ? '/' : url_for('support') }}" class="text-decoration-none">
-                                        <div class="card h-100 border-0 shadow-sm">
-                                            <div class="card-body text-center">
-                                                <i class="bi bi-question-circle fs-1 text-info mb-2"></i>
-                                                <h6 class="card-title">Get Support</h6>
-                                                <p class="card-text small text-muted">Need help or assistance?</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
+<div class="d-flex flex-column min-vh-100 section-gradient-light">
+    <main class="flex-grow-1 d-flex justify-content-center align-items-center py-5 main-content">
+        <div class="login-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0 login-card-width">
+            
+            <!-- Icon and Title -->
+            <div class="text-center mb-4">
+                <div class="mb-4">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 5rem;"></i>
+                </div>
+                <h1 class="display-3 fw-bold text-danger mb-3">500</h1>
+                <h2 class="h4 fw-bold text-dark mb-3">Internal Server Error</h2>
+                <p class="text-muted mb-4">
+                    Something went wrong on our end. We're working to fix it.
+                </p>
+            </div>
+
+            <!-- Error Details (if available) -->
+            {% if exception is defined and exception is not null %}
+            <div class="alert alert-danger" role="alert">
+                <h6 class="alert-heading fw-bold mb-2">
+                    <i class="bi bi-bug me-2"></i>Error Details
+                </h6>
+                <small>
+                    <strong>Message:</strong> {{ exception.message }}<br>
+                    <strong>File:</strong> {{ exception.file }}<br>
+                    <strong>Line:</strong> {{ exception.line }}
+                </small>
+                {% if exception.traceAsString is defined %}
+                <details class="mt-2">
+                    <summary style="cursor: pointer;"><small>Show Stack Trace</small></summary>
+                    <pre class="mt-2 p-2 bg-light rounded" style="font-size: 0.75rem; max-height: 200px; overflow: auto;">{{ exception.traceAsString }}</pre>
+                </details>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                <small>If this problem persists, please contact support with details about what you were doing when the error occurred.</small>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-3 mb-4">
+                <a href="{{ is_error_page ? '/' : url_for('home') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-house-fill me-2"></i>Go to Homepage
+                </a>
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Go Back
+                </button>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="mt-4">
+                <h6 class="text-center text-muted mb-3">You might be looking for:</h6>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <a href="{{ is_error_page ? '/' : url_for('login') }}" class="text-decoration-none">
+                            <div class="text-center p-2 border rounded hover-shadow">
+                                <i class="bi bi-box-arrow-in-right fs-3 text-primary mb-1"></i>
+                                <small class="d-block">Login</small>
                             </div>
-                        </div>
+                        </a>
+                    </div>
+                    <div class="col-4">
+                        <a href="{{ is_error_page ? '/' : url_for('register') }}" class="text-decoration-none">
+                            <div class="text-center p-2 border rounded hover-shadow">
+                                <i class="bi bi-person-plus fs-3 text-success mb-1"></i>
+                                <small class="d-block">Register</small>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-4">
+                        <a href="{{ is_error_page ? '/' : url_for('support') }}" class="text-decoration-none">
+                            <div class="text-center p-2 border rounded hover-shadow">
+                                <i class="bi bi-question-circle fs-3 text-info mb-1"></i>
+                                <small class="d-block">Support</small>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
+
+        </div>
+    </main>
+
+    {% include 'layouts/footer.html.twig' %}
+</div>
+{% endblock %}
         </div>
     </main>
 </div>

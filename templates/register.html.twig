@@ -3,37 +3,35 @@
 <div class="d-flex flex-column min-vh-100 section-gradient-light">
         <main class="flex-grow-1 d-flex justify-content-center align-items-center py-5 main-content">
                 <div class="register-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0 login-card-width no-box-shadow">
-<style>
-@media (max-width: 576px) {
-    .register-card {
-        padding-left: 1.25rem !important;
-        padding-right: 1.25rem !important;
-    }
-}
-@media (max-width: 400px) {
-    .register-card {
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
-    }
-}
-</style>
     {# Success and error messages #}
     {% if success is defined and success %}
-        <div class="alert alert-success text-center">Registration successful! You can now log in.</div>
+        <div class="alert alert-success alert-dismissible fade show pe-5 text-center" role="alert">
+            <i class="bi bi-check-circle me-2"></i>Registration successful! You can now log in.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     {% elseif errors is defined and errors %}
         {% if errors.general is defined %}
-            <div class="alert alert-danger text-center">{{ errors.general }}</div>
+            <div class="alert alert-danger alert-dismissible fade show pe-5 text-center" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ errors.general }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endif %}
         {% set has_field_errors = false %}
         {% for field, msg in errors %}
             {% if field != 'general' %}{% set has_field_errors = true %}{% endif %}
         {% endfor %}
         {% if has_field_errors %}
-    <ul class="alert alert-danger no-list-style">
-            {% for field, msg in errors %}
-                {% if field != 'general' %}<li>{{ msg }}</li>{% endif %}
-            {% endfor %}
-        </ul>
+            <div class="alert alert-danger alert-dismissible fade show pe-5" role="alert">
+                <h6 class="alert-heading fw-bold mb-2">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Please correct the following errors:
+                </h6>
+                <ul class="mb-0 ps-3">
+                    {% for field, msg in errors %}
+                        {% if field != 'general' %}<li>{{ msg }}</li>{% endif %}
+                    {% endfor %}
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         {% endif %}
     {% endif %}
                             <div class="text-center mb-4">

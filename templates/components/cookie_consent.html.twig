@@ -1,0 +1,43 @@
+{# Cookie Consent Banner Component #}
+{# 
+    A GDPR-compliant cookie consent banner that appears at the bottom of the page
+    User choices are persisted via cookies for 365 days
+#}
+
+<div id="cookieConsentBanner" class="cookie-consent-banner" style="display: none;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 col-md-7 mb-3 mb-md-0">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-shield-check fs-3 text-primary me-3 mt-1"></i>
+                    <div>
+                        <h6 class="mb-2 fw-bold">We Value Your Privacy</h6>
+                        <p class="mb-0 small">
+                            We use essential cookies to ensure our website works properly and optional cookies to improve your experience. 
+                            <a href="{{ url_for('privacy_policy') }}" class="text-primary text-decoration-underline">Learn more</a> about how we use cookies.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-5">
+                <div class="d-flex gap-2 justify-content-md-end">
+                    <button id="acceptAllCookies" class="btn btn-primary btn-sm px-4">
+                        <i class="bi bi-check-circle me-1"></i> Accept All
+                    </button>
+                    <button id="acceptEssentialCookies" class="btn btn-outline-secondary btn-sm px-4">
+                        Essential Only
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Cookie Consent Manager
+    if (typeof window.CookieConsentManager === 'undefined') {
+        console.error('CookieConsentManager not loaded. Please include cookie-consent.js');
+    } else {
+        window.CookieConsentManager.init();
+    }
+</script>

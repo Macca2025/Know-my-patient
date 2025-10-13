@@ -4,72 +4,68 @@
 <div class="d-flex flex-column min-vh-100 section-gradient-light">
 	<main class="flex-grow-1 d-flex justify-content-center align-items-center py-5 main-content">
 	<div class="login-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0 login-card-width">
-		<style>
-		@media (max-width: 576px) {
-			.login-card {
-				padding-left: 1.25rem !important;
-				padding-right: 1.25rem !important;
-			}
-		}
-		@media (max-width: 400px) {
-			.login-card {
-				padding-left: 0.5rem !important;
-				padding-right: 0.5rem !important;
-			}
-		}
-		</style>
 						<!-- Logo and Welcome Section -->
 						<div class="text-center mb-4">
 							<div class="login-logo-wrapper mb-4">
 								<img src="{{ companyLogo|default('images/logo.png') }}" alt="{{ app_name|default('Know My Patient') }}" class="login-logo">
 							</div>
-							<h2 class="login-title fw-bold mb-3 text-purple-primary">Welcome Back</h2>
-							{% if registered == '1' %}
-								<div class="alert alert-success">Registration successful! Please log in.</div>
-							{% endif %}
-							{% if deleted == '1' %}
-								<div class="alert alert-success">
-									<i class="bi bi-check-circle me-2"></i>
-									Your account has been deleted.</br> We're sorry to see you go.
-								</div>
-							{% endif %}
-							{% if session.timeout_message %}
-								<div class="alert alert-warning alert-dismissible fade show pe-5" role="alert">
-									<i class="bi bi-clock-history me-2"></i>
-									{{ session.timeout_message }}
-									<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-								</div>
-							{% endif %}
-							{% if session.flash_message %}
-								<div class="alert alert-{{ session.flash_type|default('info') }} alert-dismissible fade show pe-5" role="alert">
-									{% if session.flash_type == 'success' %}
-										<i class="bi bi-check-circle-fill me-2"></i>
-									{% elseif session.flash_type == 'danger' %}
-										<i class="bi bi-exclamation-triangle-fill me-2"></i>
-									{% elseif session.flash_type == 'warning' %}
-										<i class="bi bi-exclamation-circle-fill me-2"></i>
-									{% else %}
-										<i class="bi bi-info-circle-fill me-2"></i>
-									{% endif %}
-									{{ session.flash_message }}
-									<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-								</div>
-							{% endif %}
-							<p class="login-subtitle text-muted">Sign in to access your patient dashboard</p>
-						</div>
+            <h2 class="login-title fw-bold mb-3 text-purple-primary">Welcome Back</h2>
+            
+            {% if registered == '1' %}
+                <div class="alert alert-success alert-dismissible fade show pe-5" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>Registration successful! Please log in.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            
+            {% if deleted == '1' %}
+                <div class="alert alert-info alert-dismissible fade show pe-5" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>Your account has been deleted. We're sorry to see you go.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            
+            {% if session.timeout_message %}
+                <div class="alert alert-warning alert-dismissible fade show pe-5" role="alert">
+                    <i class="bi bi-clock-history me-2"></i>
+                    {{ session.timeout_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            
+            {% if session.flash_message %}
+                <div class="alert alert-{{ session.flash_type|default('info') }} alert-dismissible fade show pe-5" role="alert">
+                    {% if session.flash_type == 'success' %}
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                    {% elseif session.flash_type == 'danger' %}
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% elseif session.flash_type == 'warning' %}
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    {% else %}
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                    {% endif %}
+                    {{ session.flash_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            
+            {% if suspended %}
+                <div class="alert alert-warning alert-dismissible fade show pe-5" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Your account has been suspended. Please <a href="{{ url_for('support')|default('#') }}" class="alert-link">contact support</a> for assistance.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
 
-
-						{% if suspended %}
-						<div class="alert alert-warning">
-							<i class="bi bi-exclamation-triangle me-2"></i>
-							Your account has been suspended.</br>Please <a href="{{ url_for('support')|default('#') }}" class="alert-link">contact support</a> for assistance.
-						</div>
-						{% endif %}
-
-						{% if error %}
-						<div class="alert alert-danger">{{ error }}</div>
-						{% endif %}
-
+            {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show pe-5" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            
+            <p class="login-subtitle text-muted">Sign in to access your patient dashboard</p>
+        </div>
 						<form method="post" action="{{ url_for('login') }}" id="loginForm" class="login-form">
 	{# CSRF token fields #}
 	{% if csrf is defined %}

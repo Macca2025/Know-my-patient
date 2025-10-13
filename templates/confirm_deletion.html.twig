@@ -1,45 +1,114 @@
 {% extends 'layouts/base.html.twig' %}
 {% block content %}
-<div class="container py-5 d-flex flex-column align-items-center justify-content-center min-vh-100">
-    <div class="card shadow-lg p-4 p-md-5 maxw-480">
-        <h2 class="fw-bold text-danger mb-3 text-center">
-            <i class="bi bi-exclamation-triangle me-2"></i>Confirm Account Deletion
-        </h2>
-        <p class="mb-3 text-center">
-            Deleting your account is permanent and cannot be undone.<br>
-            Account termination may take up to <strong>30 working days</strong> to process.<br>
-            Certain files or records may be retained as required by UK GDPR and other applicable laws.
-        </p>
-        <div class="alert alert-warning small mb-4 text-center">
-            By proceeding, you acknowledge that some data may be kept for legal, regulatory, or safeguarding reasons.
-        </div>
-        <form method="post" action="{{ url_for('confirm_deletion') }}" class="needs-validation" novalidate>
-            <div class="mb-3">
-                <label for="confirmText" class="form-label">Type <strong>I CONFIRM MY ACCOUNT FOR DELETION</strong> to continue:</label>
-                <input type="text" id="confirmText" name="confirmText" class="form-control text-uppercase" required pattern="I CONFIRM MY ACCOUNT FOR DELETION">
-                <div class="invalid-feedback">
-                    Please type the exact phrase to confirm account deletion.
+<div class="d-flex flex-column min-vh-100 section-gradient-light">
+    <main class="flex-grow-1 d-flex justify-content-center align-items-center py-5 main-content">
+        <div class="login-card bg-white rounded-4 p-4 p-lg-5 mt-5 mb-4 border-0 login-card-width">
+            
+            <!-- Icon and Title -->
+            <div class="text-center mb-4">
+                <div class="mb-4">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
                 </div>
+                <h2 class="fw-bold text-danger mb-3">
+                    Confirm Account Deletion
+                </h2>
+                <p class="text-muted mb-0">
+                    This action is permanent and cannot be undone
+                </p>
             </div>
-            <button type="submit" class="btn btn-danger w-100 mt-2" id="deleteBtn" disabled>
-                <i class="bi bi-trash me-2"></i>Delete My Account
-            </button>
-        </form>
-        <div class="mt-3 text-center">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-link text-muted">Cancel and return to dashboard</a>
+
+            <!-- Warning Information -->
+            <div class="alert alert-danger" role="alert">
+                <h6 class="alert-heading fw-bold mb-2">
+                    <i class="bi bi-info-circle me-2"></i>Important Information
+                </h6>
+                <ul class="mb-0 ps-3">
+                    <li>Account deletion is <strong>permanent</strong> and cannot be reversed</li>
+                    <li>Processing may take up to <strong>30 working days</strong></li>
+                    <li>Some data may be retained as required by UK GDPR</li>
+                    <li>Medical records may be kept for legal or regulatory reasons</li>
+                </ul>
+            </div>
+
+            <!-- Legal Notice -->
+            <div class="alert alert-warning" role="alert">
+                <small>
+                    <i class="bi bi-shield-exclamation me-2"></i>
+                    By proceeding, you acknowledge that certain data may be retained for legal, regulatory, or safeguarding purposes in compliance with UK healthcare regulations.
+                </small>
+            </div>
+
+            <!-- Deletion Confirmation Form -->
+            <form method="post" action="{{ url_for('confirm_deletion') }}" class="needs-validation" novalidate>
+                {# CSRF token fields #}
+                {% if csrf is defined %}
+                    <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+                    <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+                {% endif %}
+
+                <div class="mb-4">
+                    <label for="confirmText" class="form-label fw-bold">
+                        <i class="bi bi-keyboard me-2"></i>Type the following to confirm:
+                    </label>
+                    <div class="alert alert-secondary text-center mb-3" role="alert">
+                        <code class="fs-6 fw-bold">I CONFIRM MY ACCOUNT FOR DELETION</code>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="confirmText" 
+                        name="confirmText" 
+                        class="form-control form-control-lg text-uppercase" 
+                        placeholder="Type the phrase exactly as shown above"
+                        required 
+                        pattern="I CONFIRM MY ACCOUNT FOR DELETION"
+                        autocomplete="off"
+                    >
+                    <div class="invalid-feedback">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        Please type the exact phrase to confirm account deletion.
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-danger btn-lg" id="deleteBtn" disabled>
+                        <i class="bi bi-trash me-2"></i>Delete My Account Permanently
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-2"></i>Cancel and Return to Dashboard
+                    </a>
+                </div>
+            </form>
+
+            <!-- Help Text -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="bi bi-question-circle me-1"></i>
+                    Changed your mind? <a href="{{ url_for('support') }}" class="text-decoration-none">Contact support</a> if you need help with your account.
+                </small>
+            </div>
+
         </div>
-    </div>
+    </main>
+
+    {% include 'layouts/footer.html.twig' %}
 </div>
+
 <script>
-// Enable button only if phrase matches
+// Enable delete button only if phrase matches exactly
 const confirmInput = document.getElementById('confirmText');
 const deleteBtn = document.getElementById('deleteBtn');
 if (confirmInput && deleteBtn) {
     confirmInput.addEventListener('input', function() {
-        deleteBtn.disabled = this.value.trim().toUpperCase() !== 'I CONFIRM MY ACCOUNT FOR DELETION';
+        const isValid = this.value.trim().toUpperCase() === 'I CONFIRM MY ACCOUNT FOR DELETION';
+        deleteBtn.disabled = !isValid;
+        if (isValid) {
+            deleteBtn.classList.remove('btn-danger');
+            deleteBtn.classList.add('btn-danger');
+        }
     });
 }
-// Bootstrap validation
+
+// Bootstrap form validation
 (function () {
     'use strict';
     var forms = document.querySelectorAll('.needs-validation');

@@ -13,6 +13,60 @@
         padding-right: 0.5rem;
     }
 }
+
+/* Login card responsive padding */
+@media (max-width: 576px) {
+    .login-card {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .login-card {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
+
+/* Register card responsive padding */
+@media (max-width: 576px) {
+    .register-card {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .register-card {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
+
+/* Password requirements styling for reset password page */
+.password-requirements {
+    font-size: 0.875rem;
+}
+
+.password-requirements li.valid {
+    color: #198754;
+}
+
+.password-requirements li.invalid {
+    color: #dc3545;
+}
+
+/* Hover shadow effect for quick links on error pages */
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
+}
+
 /* No box shadow for register-card in register.html.twig */
 .no-box-shadow {
     box-shadow: none !important;
@@ -45,6 +99,170 @@
 .inline-block {
     display: inline-block;
 }
+
+/* ===== Bootstrap Color Overrides ===== */
+/* Override Bootstrap's bg-primary with teal gradient */
+.bg-primary {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+/* For elements that need solid teal instead of gradient */
+.bg-primary.no-gradient {
+    background: #17a2b8 !important;
+}
+
+/* Card header with primary background */
+.card-header.bg-primary {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    border-bottom: none;
+}
+
+/* Override Bootstrap's bg-info with teal gradient (used for informational sections) */
+.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+.card-header.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    border-bottom: none;
+}
+
+/* Badge overrides */
+.badge.bg-primary,
+.badge.bg-info {
+    background: #17a2b8 !important;
+}
+
+/* Border color overrides */
+.border-primary {
+    border-color: #17a2b8 !important;
+}
+
+.text-primary {
+    color: #17a2b8 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+/* Button overrides - Consistent Teal Outline Style for All Buttons */
+/* ========================================================================== */
+/* All buttons use teal outline style with white background */
+
+/* Base button styles - apply to all button types */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btn-light,
+.btn-dark,
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-danger,
+.btn-outline-warning,
+.btn-outline-info,
+.btn-outline-light,
+.btn-outline-dark {
+    background-color: white !important;
+    color: #17a2b8 !important;
+    border: 2px solid #17a2b8 !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500;
+}
+
+/* Hover state for all buttons */
+.btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-success:hover,
+.btn-danger:hover,
+.btn-warning:hover,
+.btn-info:hover,
+.btn-light:hover,
+.btn-dark:hover,
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover,
+.btn-outline-success:hover,
+.btn-outline-danger:hover,
+.btn-outline-warning:hover,
+.btn-outline-info:hover,
+.btn-outline-light:hover,
+.btn-outline-dark:hover {
+    background-color: #17a2b8 !important;
+    color: white !important;
+    border-color: #17a2b8 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3) !important;
+}
+
+/* Focus state for all buttons */
+.btn:focus,
+.btn-primary:focus,
+.btn-secondary:focus,
+.btn-success:focus,
+.btn-danger:focus,
+.btn-warning:focus,
+.btn-info:focus,
+.btn-light:focus,
+.btn-dark:focus {
+    box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25) !important;
+}
+
+/* Active state for all buttons */
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-success:active,
+.btn-danger:active,
+.btn-warning:active,
+.btn-info:active,
+.btn-light:active,
+.btn-dark:active {
+    background-color: #138496 !important;
+    border-color: #138496 !important;
+    color: white !important;
+}
+
+/* Disabled state */
+.btn:disabled,
+.btn.disabled {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #6c757d !important;
+    opacity: 0.65;
+    transform: none !important;
+}
+
+/* Ensure white text on teal backgrounds */
+.bg-primary,
+.bg-primary *:not(.btn):not(a):not(.badge),
+.bg-info,
+.bg-info *:not(.btn):not(a):not(.badge),
+.card-header.bg-primary,
+.card-header.bg-primary *:not(.btn):not(a):not(.badge),
+.card.bg-primary .card-body,
+.card.bg-primary .card-body *:not(.btn):not(a):not(.badge) {
+    color: white !important;
+}
+
+/* Ensure links remain visible on teal backgrounds */
+.bg-primary a,
+.bg-info a,
+.card-header.bg-primary a {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.bg-primary a:hover,
+.bg-info a:hover,
+.card-header.bg-primary a:hover {
+    color: white !important;
+    text-decoration: underline;
+}
 /* Testimonial cell max width and wrapping for testimonials.html.twig */
 .testimonial-cell {
     max-width: 350px;
@@ -71,11 +289,18 @@
 .pre-wrap {
     white-space: pre-wrap;
 }
-/* Hero button gradient for home.html.twig */
+/* Hero button gradient - converted to teal outline style */
 .btn-hero-gradient {
-    background: linear-gradient(90deg, #764ba2, #667eea) !important;
-    border: none !important;
-    color: #fff !important;
+    background-color: white !important;
+    color: #17a2b8 !important;
+    border: 2px solid #17a2b8 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-hero-gradient:hover {
+    background-color: #17a2b8 !important;
+    color: white !important;
+    border-color: #17a2b8 !important;
 }
 /* Max width 480px for confirm_deletion.html.twig */
 .maxw-480 {
@@ -212,27 +437,27 @@ TABLE OF CONTENTS
 
 /* CSS Custom Properties (Variables) */
 :root {
-    /* Brand Colors - Purple Theme */
-    --primary-gradient-start: #667eea;
-    --primary-gradient-end: #764ba2;
-    --primary-color: #667eea;
-    --primary-dark: #764ba2;
+    /* Brand Colors - Teal Theme */
+    --primary-gradient-start: #17a2b8;
+    --primary-gradient-end: #138496;
+    --primary-color: #17a2b8;
+    --primary-dark: #138496;
     
     /* Standard Bootstrap Colors */
     --secondary-color: #6c757d;
     --success-color: #198754;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
-    --info-color: #0dcaf0;
+    --info-color: #17a2b8;
     --light-color: #f8f9fa;
     --dark-color: #212529;
     
     /* Navigation Brand Colors */
-    --nav-gradient-start: #667eea;
-    --nav-gradient-end: #764ba2;
+    --nav-gradient-start: #17a2b8;
+    --nav-gradient-end: #138496;
     --nav-text-color: #64748b;
-    --nav-text-hover: #667eea;
-    --nav-bg-hover: rgba(102, 126, 234, 0.1);
+    --nav-text-hover: #17a2b8;
+    --nav-bg-hover: rgba(23, 162, 184, 0.1);
     
     /* Typography */
     --font-family-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -439,8 +664,8 @@ footer {
     right: 0;
     bottom: 0;
     background: 
-        radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.03) 0%, transparent 50%);
+        radial-gradient(circle at 20% 80%, rgba(23, 162, 184, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(19, 132, 150, 0.03) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
 }
@@ -531,26 +756,8 @@ img.nhs-logo-small {
 /* Consolidated button styling with consistent hover effects and transitions */
 /* ============================================================================ */
 
-/* Button Animations */
-.btn-primary, .btn-outline-primary {
-    transition: var(--transition-standard);
-    border-radius: var(--border-radius-small);
-}
-
-/* Consolidated outline button styles - removes duplicates */
-.btn-outline-primary,
-.btn[class*="btn-outline"]:not(.btn-outline-light) {
-    border-radius: var(--border-radius-medium);
-    transition: var(--transition-standard);
-}
-
-.btn-primary:hover, 
-.btn-outline-primary:hover,
-.btn[class*="btn-outline"]:hover:not(.btn-outline-light) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
-    border-radius: var(--border-radius-large);
-}
+/* Button Animations - already handled in main button styles above */
+/* All buttons now use consistent teal outline style */
 
 /* ============================================================================ */
 /* DASHBOARD CARD STYLES */
@@ -567,7 +774,7 @@ img.nhs-logo-small {
     background: linear-gradient(145deg, #ffffff 0%, #f8fafe 100%);
     border: none;
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.08);
+    box-shadow: 0 8px 32px rgba(23, 162, 184, 0.08);
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
     overflow: hidden;
@@ -593,7 +800,7 @@ img.nhs-logo-small {
 
 .dashboard-card-modern:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 20px 60px rgba(23, 162, 184, 0.15);
     background: linear-gradient(145deg, #ffffff 0%, #f5f7ff 100%);
 }
 
@@ -662,7 +869,7 @@ img.nhs-logo-small {
     position: absolute;
     inset: 0;
     border-radius: 20px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(19, 132, 150, 0.1));
     transition: all 0.3s ease;
 }
 
@@ -671,7 +878,7 @@ img.nhs-logo-small {
 }
 
 .dashboard-card-modern:hover .card-icon::before {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.2), rgba(19, 132, 150, 0.2));
 }
 
 /* Card Title */
@@ -711,7 +918,7 @@ img.nhs-logo-small {
 
 .dashboard-card-modern .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
 }
 
 /* Special Card Variants */
@@ -737,13 +944,13 @@ img.nhs-logo-small {
 
 /* Status Information */
 .dashboard-card-modern .card-status {
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(23, 162, 184, 0.1);
     color: var(--primary-color);
     padding: 0.75rem;
     border-radius: 12px;
     margin: 1rem 0;
     font-size: 0.875rem;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(23, 162, 184, 0.2);
 }
 
 .dashboard-card-modern .card-status.status-success {
@@ -762,7 +969,7 @@ img.nhs-logo-small {
 .dashboard-card-modern .card-footer-info {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(102, 126, 234, 0.1);
+    border-top: 1px solid rgba(23, 162, 184, 0.1);
 }
 
 .dashboard-card-modern .card-footer-info small {
@@ -891,21 +1098,25 @@ img.nhs-logo-small {
 /* Form controls, input groups, and form-related elements */
 /* ============================================================================ */
 
+/* Input group buttons inherit the teal outline style */
+.input-group .btn,
 .input-group .btn-outline-secondary {
-    border-color: #ced4da;
-    border-radius: var(--border-radius-small); /* Using consistent border radius */
-    transition: var(--transition-standard); /* Using consolidated transition */
+    background-color: white !important;
+    color: #17a2b8 !important;
+    border: 2px solid #17a2b8 !important;
+    transition: all 0.3s ease !important;
 }
 
+.input-group .btn:hover,
 .input-group .btn-outline-secondary:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
-    border-radius: var(--border-radius-medium); /* More curved border on hover */
+    background-color: #17a2b8 !important;
+    color: white !important;
+    border-color: #17a2b8 !important;
 }
 
 .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: #17a2b8;
+    border-color: #17a2b8;
 }
 
 #sessionWarning {
@@ -969,6 +1180,92 @@ img.nhs-logo-small {
         font-size: 0.875rem;
     }
 }
+
+/* ============================================================================ */
+/* COOKIE CONSENT BANNER */
+/* Modern cookie consent banner with teal theme and smooth animations */
+/* ============================================================================ */
+
+.cookie-consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.98) 100%);
+    backdrop-filter: blur(10px);
+    border-top: 3px solid #17a2b8;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    padding: 1.5rem 0;
+    z-index: 9999;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+}
+
+.cookie-consent-banner.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.cookie-consent-banner h6 {
+    color: #17a2b8;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.cookie-consent-banner p {
+    color: #495057;
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
+
+.cookie-consent-banner .text-primary {
+    color: #17a2b8 !important;
+    font-weight: 500;
+}
+
+.cookie-consent-banner .bi-shield-check {
+    color: #17a2b8;
+}
+
+/* Button spacing in cookie banner */
+.cookie-consent-banner .btn {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Responsive adjustments for cookie consent banner */
+@media (max-width: 768px) {
+    .cookie-consent-banner {
+        padding: 1.25rem 0;
+    }
+    
+    .cookie-consent-banner .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .cookie-consent-banner .btn {
+        width: 100%;
+        font-size: 0.875rem;
+    }
+    
+    .cookie-consent-banner h6 {
+        font-size: 0.95rem;
+    }
+    
+    .cookie-consent-banner p {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .cookie-consent-banner .bi-shield-check {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* ============================================================================ */
 
 /* Patient Information Form Styles */
 
@@ -1296,7 +1593,7 @@ code {
 .navbar-modern {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    border-bottom: 1px solid rgba(23, 162, 184, 0.1);
     box-shadow: var(--box-shadow-lg);
     padding: 0.75rem 0;
     transition: var(--transition-smooth);
@@ -1475,7 +1772,7 @@ code {
 .nav-link-active:hover {
     color: white !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
 }
 
 .nav-icon {
@@ -1512,7 +1809,7 @@ code {
 .dropdown-menu {
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(23, 162, 184, 0.1);
     border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     padding: 1rem 0;
@@ -1527,7 +1824,7 @@ code {
 
 .dropdown-header {
     padding: 1rem 1.5rem 0.5rem;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    border-bottom: 1px solid rgba(23, 162, 184, 0.1);
     margin-bottom: 0.5rem;
 }
 
@@ -1545,9 +1842,9 @@ code {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #667eea;
+    color: #17a2b8;
     font-size: 1.5rem;
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(23, 162, 184, 0.1);
 }
 
 .user-details {
@@ -1600,7 +1897,7 @@ code {
 
 .dropdown-divider {
     height: 1px;
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(23, 162, 184, 0.1);
     margin: 0.5rem 1.5rem;
     border: none;
 }
@@ -1620,8 +1917,8 @@ code {
 }
 
 .dropdown-item:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
     transform: translateX(5px);
 }
 
@@ -1656,7 +1953,7 @@ code {
         margin-left: auto;
         z-index: 1060;
         background: rgba(255, 255, 255, 0.98);
-        border: 1px solid rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(23, 162, 184, 0.2);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
@@ -1686,7 +1983,7 @@ code {
         align-items: stretch;
         gap: 0.25rem;
         padding: 1rem 0;
-        border-top: 1px solid rgba(102, 126, 234, 0.1);
+        border-top: 1px solid rgba(23, 162, 184, 0.1);
         height: auto;
         width: 100%;
         margin-left: 0 !important;
@@ -1710,7 +2007,7 @@ code {
         position: static !important;
         transform: none !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(23, 162, 184, 0.2);
         border-radius: 12px;
         background: rgba(255, 255, 255, 0.98);
         backdrop-filter: blur(10px);
@@ -1780,13 +2077,13 @@ code {
     }
     
     .dropdown-item:hover {
-        background: rgba(102, 126, 234, 0.1);
+        background: rgba(23, 162, 184, 0.1);
         transform: none;
     }
     
     .dropdown-divider {
         margin: 0.5rem 1rem;
-        background: rgba(102, 126, 234, 0.15);
+        background: rgba(23, 162, 184, 0.15);
     }
 }
 
@@ -2233,19 +2530,19 @@ code {
 
 /* Fixed Navbar Offset */
 .navbar-offset {
-    padding-top: 80px;
+    padding-top: 100px;
 }
 
 /* Responsive navbar offset for different screen sizes */
 @media (max-width: 768px) {
     .navbar-offset {
-        padding-top: 70px;
+        padding-top: 90px;
     }
 }
 
 @media (max-width: 576px) {
     .navbar-offset {
-        padding-top: 65px;
+        padding-top: 80px;
     }
 }
 
@@ -2323,34 +2620,36 @@ code {
     margin-top: 2rem;
 }
 
+/* Hero buttons - consistent teal outline style */
 .hero-btn-primary {
-    background: #ffffff;
-    color: var(--primary-color);
-    border: none;
+    background-color: white !important;
+    color: #17a2b8 !important;
+    border: 2px solid #17a2b8 !important;
     border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.2);
     transition: all 0.3s ease;
 }
 
 .hero-btn-primary:hover {
-    background: #f8f9fa;
-    color: var(--primary-color);
+    background-color: #17a2b8 !important;
+    color: white !important;
+    border-color: #17a2b8 !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3);
 }
 
 .hero-btn-secondary {
-    border: 2px solid rgba(255, 255, 255, 0.8);
+    background-color: white !important;
+    color: #17a2b8 !important;
+    border: 2px solid #17a2b8 !important;
     border-radius: 50px;
-    background: transparent;
-    color: white;
     transition: all 0.3s ease;
 }
 
 .hero-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: white;
-    color: white;
+    background-color: #17a2b8 !important;
+    color: white !important;
+    border-color: #17a2b8 !important;
     transform: translateY(-2px);
 }
 
@@ -2362,7 +2661,7 @@ code {
 }
 
 .title-highlight {
-    background: linear-gradient(45deg, #6c63ff, #667eea);
+    background: linear-gradient(45deg, #138496, #17a2b8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -2480,7 +2779,7 @@ code {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #6c63ff, #667eea);
+    background: linear-gradient(90deg, #138496, #17a2b8);
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -2528,7 +2827,7 @@ code {
 
 /* Testimonials Section */
 .testimonials-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     color: white;
 }
 
@@ -2693,18 +2992,22 @@ code {
     display: block;
 }
 
+/* Company onboarding CTA buttons use the same teal outline style */
 .company-onboarding-cta .btn-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-    border: none;
-    transition: all 0.3s ease;
+    background-color: white !important;
+    color: #17a2b8 !important;
+    border: 2px solid #17a2b8 !important;
+    transition: all 0.3s ease !important;
     font-weight: 600;
     letter-spacing: 0.5px;
 }
 
 .company-onboarding-cta .btn-primary:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+    background-color: #17a2b8 !important;
+    color: white !important;
+    border-color: #17a2b8 !important;
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 10px 25px rgba(23, 162, 184, 0.4);
 }
 
 /* Animations for Index Page */
@@ -2814,7 +3117,7 @@ code {
 
 /* Login Page Modern Styles */
 .login-main {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     min-height: 100vh;
     position: relative;
     overflow: hidden;
@@ -2850,7 +3153,7 @@ code {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #17a2b8, #138496);
 }
 
 .login-card-body {
@@ -2877,7 +3180,7 @@ code {
     font-size: 2rem;
     letter-spacing: -0.02em;
     color: #2d3748;
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, #17a2b8, #138496);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -2984,8 +3287,8 @@ code {
 
 .form-control-modern:focus, .form-select-modern:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
     background: #ffffff;
 }
 
@@ -3017,7 +3320,7 @@ code {
 }
 
 .btn-password-toggle:hover {
-    color: #667eea;
+    color: #17a2b8;
 }
 
 /* Form Options and Checkboxes */
@@ -3063,8 +3366,8 @@ code {
 }
 
 .checkbox-input:checked + .checkbox-label .checkbox-custom {
-    background: #667eea;
-    border-color: #667eea;
+    background: #17a2b8;
+    border-color: #17a2b8;
 }
 
 .checkbox-input:checked + .checkbox-label .checkbox-custom::after {
@@ -3079,7 +3382,7 @@ code {
 }
 
 .forgot-password-link {
-    color: #667eea;
+    color: #17a2b8;
     text-decoration: none;
     font-size: 0.95rem;
     font-weight: 500;
@@ -3087,12 +3390,12 @@ code {
 }
 
 .forgot-password-link:hover {
-    color: #764ba2;
+    color: #138496;
 }
 
 /* Buttons */
 .btn-modern-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     border: none;
     border-radius: 12px;
     padding: 1rem 2rem;
@@ -3106,7 +3409,7 @@ code {
 
 .btn-modern-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
 }
 
 .btn-modern-primary:active {
@@ -3121,23 +3424,23 @@ code {
 /* Modern Outline Primary Button - Simplified for clean border radius */
 .btn-modern-outline-primary {
     background: transparent;
-    border: 2px solid #667eea;
+    border: 2px solid #17a2b8;
     border-radius: var(--border-radius-medium);
     padding: 0.875rem 2rem;
     font-weight: 600;
     font-size: 1rem;
-    color: #667eea;
+    color: #17a2b8;
     transition: var(--transition-standard);
     position: relative;
     overflow: hidden;
 }
 
 .btn-modern-outline-primary:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: #667eea;
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    border-color: #17a2b8;
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
     border-radius: var(--border-radius-curved-hover);
 }
 
@@ -3154,14 +3457,14 @@ code {
 
 /* Links */
 .link-primary-modern {
-    color: #667eea;
+    color: #17a2b8;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s ease;
 }
 
 .link-primary-modern:hover {
-    color: #764ba2;
+    color: #138496;
 }
 
 /* Footer */
@@ -3187,7 +3490,7 @@ code {
 
 /* Bootstrap gradient primary class for onboarding page */
 .bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
     position: relative;
     overflow: hidden;
 }
@@ -3213,7 +3516,7 @@ code {
 
 /* Register Page Modern Styles */
 .register-main {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     min-height: 100vh;
     position: relative;
     overflow: hidden;
@@ -3253,7 +3556,7 @@ code {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #17a2b8, #138496);
 }
 
 .register-card-body {
@@ -3280,7 +3583,7 @@ code {
     font-size: 2rem;
     letter-spacing: -0.02em;
     color: #2d3748;
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, #17a2b8, #138496);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -3722,7 +4025,7 @@ code {
 
 .admin-btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
     color: white;
 }
 
@@ -3777,7 +4080,7 @@ code {
 }
 
 .admin-table .table tbody tr:hover {
-    background: rgba(102, 126, 234, 0.05);
+    background: rgba(23, 162, 184, 0.05);
 }
 
 /* Responsive Table Enhancements */
@@ -3937,7 +4240,7 @@ code {
 .admin-filters .form-control:focus,
 .admin-filters .form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.1);
 }
 
 /* Admin Messages */
@@ -3980,7 +4283,7 @@ code {
 }
 
 .admin-badge-primary {
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(23, 162, 184, 0.1);
     color: var(--primary-color);
 }
 
@@ -4539,7 +4842,7 @@ code {
 
 /* Enhanced QR Code Display Styles */
 .qr-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     background-size: 200% 200%;
     animation: gradientShift 6s ease infinite;
     border: none;
@@ -4713,11 +5016,11 @@ code {
 .code-text {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 1.2em;
-    color: #667eea;
+    color: #17a2b8;
     letter-spacing: 2px;
     display: inline-block;
     padding: 10px 15px;
-    border: 2px dashed #667eea;
+    border: 2px dashed #17a2b8;
     border-radius: 8px;
     transition: all 0.3s ease;
 }
@@ -4749,7 +5052,7 @@ code {
     left: 0;
     right: 0;
     bottom: 0;
-    border: 2px solid #667eea;
+    border: 2px solid #17a2b8;
     border-radius: 12px;
     opacity: 0;
     animation: borderPulse 2s ease-in-out infinite;
@@ -4942,7 +5245,7 @@ code {
 
 .timer-progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #17a2b8, #138496);
     border-radius: 2px;
     transition: width 1s linear;
     width: 100%;
@@ -5123,7 +5426,7 @@ iframe {
 }
 
 .accordion-button:not(.collapsed) {
-    background-color: #0d6efd;
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     color: white;
 }
 
@@ -5136,7 +5439,7 @@ iframe {
 }
 
 .accordion-button:focus {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 0.25rem rgba(23, 162, 184, 0.25);
 }
 
 .accordion-body {
@@ -5158,7 +5461,7 @@ input[type="file"].form-control {
 input[type="file"].form-control::-webkit-file-upload-button {
     padding: 0.5rem 1rem;
     margin-right: 1rem;
-    background-color: #0d6efd;
+    background-color: #17a2b8;
     color: white;
     border: none;
     border-radius: 0.25rem;
@@ -5167,7 +5470,7 @@ input[type="file"].form-control::-webkit-file-upload-button {
 }
 
 input[type="file"].form-control::-webkit-file-upload-button:hover {
-    background-color: #0b5ed7;
+    background-color: #138496;
 }
 
 /* Badge for completed sections */

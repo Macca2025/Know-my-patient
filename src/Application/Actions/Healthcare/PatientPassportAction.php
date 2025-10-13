@@ -45,7 +45,7 @@ class PatientPassportAction
 
             if ($uid) {
                 // Fetch patient data
-                $stmt = $this->pdo->prepare("SELECT * FROM patient_profiles WHERE uid = :uid LIMIT 1");
+                $stmt = $this->pdo->prepare("SELECT * FROM patient_profiles WHERE patient_uid = :uid LIMIT 1");
                 $stmt->execute(['uid' => $uid]);
                 $patientData = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -76,7 +76,7 @@ class PatientPassportAction
                         SELECT 
                             al.timestamp,
                             al.ip_address,
-                            u.name as accessor_name,
+                            CONCAT(u.first_name, ' ', u.last_name) as accessor_name,
                             u.role as accessor_role,
                             u.email as accessor_email
                         FROM audit_log al
@@ -102,13 +102,24 @@ class PatientPassportAction
         }
 
         // Render template
+        // Get CSRF tokens from request attributes (added by CSRF middleware)
+        $csrf = [
+            'name' => $request->getAttribute('csrf_name'),
+            'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
+        ];
+        
         $body = $this->twig->getEnvironment()->render('healthcare_pages/patient_passport.html.twig', [
             'patientData' => $patientData,
             'accessHistory' => $accessHistory,
             'message' => $message,
             'messageType' => $messageType,
             'uid' => $uid,
-            'user_id' => $this->sessionService->get('user_id') // For conditional display
+            'user_id' => $this->sessionService->get('user_id'), // For conditional display
+            'csrf' => $csrf // Pass CSRF tokens to template
         ]);
         $response->getBody()->write($body);
         return $response;

@@ -104,7 +104,25 @@ function showCameraForQR() {
     qrReaderDiv.appendChild(video);
     startQRScanner(video, (result) => {
         updatePermissionStatus('QR code detected: ' + result, 'success');
-        // You can add logic here to handle the scanned result
+        
+        // Handle the scanned result by submitting the form
+        const lookupForm = document.getElementById('lookupForm');
+        const uidInput = document.getElementById('uid');
+        const accessMethodInput = document.getElementById('accessMethod');
+        
+        if (lookupForm && uidInput && accessMethodInput) {
+            // Set the scanned UID and access method
+            uidInput.value = result;
+            accessMethodInput.value = 'qr_scan';
+            
+            // Stop the camera
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            
+            // Submit the form with CSRF tokens
+            lookupForm.submit();
+        }
     }, (err) => {
         updatePermissionStatus(err, 'error');
     });
@@ -978,24 +996,13 @@ if (testCameraBtn) {
                                 </div>
 
                             </div> <!-- End Accordion -->
-
-                            <!-- Access Log Notice -->
-                            <div class="alert alert-info mt-4">
-                                <i class="bi bi-info-circle me-2"></i>
-                                <strong>Access Logged:</strong> This patient lookup has been recorded for security and audit purposes.
-                                <br><small>NHS User: {{ currentUser.first_name ~ ' ' ~ currentUser.surname }} | Time: {{ "now"|date('d M Y H:i') }}</small>
-                            </div>
  
-                            <!-- Action Buttons -->
-                            <div class="mt-4 text-center">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="lookupAnother()">
-                                    <i class="bi bi-search me-1"></i>Look Up Another Patient
-                                </button>
-                            </div>
                         </div>
                     </div>
                     {% endif %}
-                    <!-- Empty State -->
+                    
+                    <!-- Empty State - Only show when no patient is selected -->
+                    {% if not patientData %}
                     <div class="card shadow border-0 h-100">
                         <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
                             <i class="bi bi-person-slash display-1 text-muted mb-3"></i>
@@ -1027,6 +1034,7 @@ if (testCameraBtn) {
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 
                 </div>
             </div>
