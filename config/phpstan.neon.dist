@@ -1,9 +1,9 @@
 parameters:
   level: 6
   paths:
-    - src
+    - ../src
   excludePaths:
-    - src/Infrastructure/Persistence
+    - ../src/Infrastructure/Persistence
   ignoreErrors:
     # Ignore errors from third-party libraries if needed
     # - '#Call to an undefined method#'

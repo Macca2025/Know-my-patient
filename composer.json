@@ -69,6 +69,9 @@
     },
     "scripts": {
         "start": "php -S localhost:8080 -t public",
-        "test": "phpunit"
+        "test": "phpunit -c config/phpunit.xml",
+        "phpstan": "phpstan analyse -c config/phpstan.neon.dist",
+        "phpcs": "phpcs --standard=config/phpcs.xml",
+        "phpcbf": "phpcbf --standard=config/phpcs.xml"
     }
 }

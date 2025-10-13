@@ -15,8 +15,10 @@ PHPUnit testing framework configuration.
 
 **Usage:**
 ```bash
+# Via composer scripts (recommended)
 composer test
-# or
+
+# Or directly
 ./vendor/bin/phpunit -c config/phpunit.xml
 ```
 
@@ -31,6 +33,10 @@ PHPStan static analysis configuration (Level 6).
 
 **Usage:**
 ```bash
+# Via composer scripts (recommended)
+composer phpstan
+
+# Or directly
 ./vendor/bin/phpstan analyse -c config/phpstan.neon.dist
 ```
 
@@ -44,11 +50,19 @@ PHP_CodeSniffer coding standards configuration.
 
 **Usage:**
 ```bash
+# Check code style (via composer)
+composer phpcs
+
+# Auto-fix code style (via composer)
+composer phpcbf
+
+# Or directly
 ./vendor/bin/phpcs --standard=config/phpcs.xml
+./vendor/bin/phpcbf --standard=config/phpcs.xml
 ```
 
 ### `docker-compose.yml`
-Docker containerization configuration.
+Docker containerization configuration (development only).
 
 **Services:**
 - PHP application container
@@ -63,15 +77,16 @@ docker-compose -f config/docker-compose.yml up -d
 
 ---
 
-## 🔗 Symlinks
+## � Composer Scripts
 
-For compatibility with tools that expect config files in the root directory, symlinks are created:
+For convenience, use these composer commands:
 
-```
-/phpunit.xml -> config/phpunit.xml
-/phpstan.neon.dist -> config/phpstan.neon.dist
-/phpcs.xml -> config/phpcs.xml
-/docker-compose.yml -> config/docker-compose.yml
+```bash
+composer test        # Run PHPUnit tests
+composer phpstan     # Run static analysis
+composer phpcs       # Check code style
+composer phpcbf      # Auto-fix code style
+composer start       # Start development server
 ```
 
 ---
