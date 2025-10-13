@@ -502,15 +502,14 @@ TEXT;
     {
         try {
             $stmt = $this->pdo->prepare(
-                'INSERT INTO audit_log (user_id, action, details, ip_address, user_agent, created_at) 
-                 VALUES (?, ?, ?, ?, ?, NOW())'
+                'INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
+                 VALUES (?, ?, ?, ?)'
             );
             $stmt->execute([
                 $userId,
                 $action,
                 json_encode($details),
                 $details['ip_address'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                $details['user_agent'] ?? $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
             ]);
         } catch (\PDOException $e) {
             $this->logger->error('Failed to log audit event', [

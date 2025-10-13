@@ -312,6 +312,57 @@ if (testCameraBtn) {
                             </h5>
                         </div>
                         <div class="card-body">
+                            
+                            <!-- Access History Section (Only visible when user is logged in) -->
+                            {% if user_id is defined and user_id and accessHistory is defined and accessHistory is not empty %}
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-eye me-2"></i>Record Access History
+                                    </h6>
+                                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#accessHistoryCollapse" aria-expanded="false">
+                                        <i class="bi bi-chevron-down"></i> Show/Hide
+                                    </button>
+                                </div>
+                                <div class="collapse" id="accessHistoryCollapse">
+                                    <hr class="my-2">
+                                    <small class="text-muted d-block mb-2">
+                                        <i class="bi bi-info-circle me-1"></i>This section shows who has accessed this patient's record for audit and security purposes.
+                                    </small>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th><i class="bi bi-clock me-1"></i>Date & Time</th>
+                                                    <th><i class="bi bi-person me-1"></i>Accessed By</th>
+                                                    <th><i class="bi bi-shield-check me-1"></i>Role</th>
+                                                    <th><i class="bi bi-geo-alt me-1"></i>IP Address</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for access in accessHistory %}
+                                                <tr>
+                                                    <td>{{ access.timestamp|date('d/m/Y H:i:s') }}</td>
+                                                    <td>
+                                                        <strong>{{ access.accessor_name|default('Unknown') }}</strong>
+                                                        <br><small class="text-muted">{{ access.accessor_email|default('N/A') }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-secondary">{{ access.accessor_role|default('N/A')|upper }}</span>
+                                                    </td>
+                                                    <td><code>{{ access.ip_address|default('N/A') }}</code></td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="bi bi-info-circle me-1"></i>Showing last {{ accessHistory|length }} access{{ accessHistory|length > 1 ? 'es' : '' }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
                             <!-- Patient Information Accordion -->
                             <div class="accordion" id="patientInfoAccordion">
                                 

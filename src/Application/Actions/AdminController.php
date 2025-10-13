@@ -110,6 +110,14 @@ class AdminController
             'selected_role' => $selectedRole,
             'page' => $page,
             'total_pages' => $totalPages,
+            'csrf' => [
+                'name' => $request->getAttribute('csrf_name'),
+                'value' => $request->getAttribute('csrf_value'),
+                'keys' => [
+                    'name' => 'csrf_name',
+                    'value' => 'csrf_value'
+                ]
+            ],
         ];
         $body = $this->twig->getEnvironment()->render('admin/users.html.twig', $vars);
         $response->getBody()->write($body);
@@ -125,8 +133,34 @@ class AdminController
         $data = $request->getParsedBody();
         $userId = isset($data['user_id']) ? (int)$data['user_id'] : 0;
         if ($userId > 0) {
+            // Get user details before deletion for audit log
+            $stmt = $this->pdo->prepare('SELECT email, first_name, last_name, role FROM users WHERE id = :id');
+            $stmt->execute(['id' => $userId]);
+            $deletedUser = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            // Delete user
             $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = :id');
             $stmt->execute(['id' => $userId]);
+
+            // Log audit event
+            if ($deletedUser) {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO audit_log (user_id, target_user_id, activity_type, description, ip_address) 
+                     VALUES (?, ?, ?, ?, ?)'
+                );
+                $stmt->execute([
+                    $this->session->get('user_id'),
+                    $userId,
+                    'USER_DELETED',
+                    json_encode([
+                        'deleted_user_email' => $deletedUser['email'],
+                        'deleted_user_name' => $deletedUser['first_name'] . ' ' . $deletedUser['last_name'],
+                        'deleted_user_role' => $deletedUser['role'],
+                        'admin_user' => $this->session->get('user_email'),
+                    ]),
+                    $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                ]);
+            }
 
             // Clear users cache after deletion
             $this->cacheService->forget('admin_users_list');
@@ -144,12 +178,40 @@ class AdminController
         $userId = isset($data['user_id']) ? (int)$data['user_id'] : 0;
         $action = isset($data['action']) ? $data['action'] : 'suspend';
         if ($userId > 0) {
+            // Get user details for audit log
+            $stmt = $this->pdo->prepare('SELECT email, first_name, last_name, role FROM users WHERE id = :id');
+            $stmt->execute(['id' => $userId]);
+            $targetUser = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
             if ($action === 'unsuspend') {
                 $stmt = $this->pdo->prepare('UPDATE users SET active = 1, suspended_at = NULL WHERE id = :id');
                 $stmt->execute(['id' => $userId]);
+                $activityType = 'USER_UNSUSPENDED';
             } else {
                 $stmt = $this->pdo->prepare('UPDATE users SET suspended_at = NOW(), active = 0 WHERE id = :id');
                 $stmt->execute(['id' => $userId]);
+                $activityType = 'USER_SUSPENDED';
+            }
+
+            // Log audit event
+            if ($targetUser) {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO audit_log (user_id, target_user_id, activity_type, description, ip_address) 
+                     VALUES (?, ?, ?, ?, ?)'
+                );
+                $stmt->execute([
+                    $this->session->get('user_id'),
+                    $userId,
+                    $activityType,
+                    json_encode([
+                        'target_user_email' => $targetUser['email'],
+                        'target_user_name' => $targetUser['first_name'] . ' ' . $targetUser['last_name'],
+                        'target_user_role' => $targetUser['role'],
+                        'action' => $action,
+                        'admin_user' => $this->session->get('user_email'),
+                    ]),
+                    $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                ]);
             }
 
             // Clear users cache after status change

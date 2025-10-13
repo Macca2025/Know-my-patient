@@ -6,6 +6,7 @@ declare(strict_types=1);
 use App\Application\Middleware\SessionMiddleware;
 use App\Application\Middleware\SentryMiddleware;
 use App\Application\Middleware\TwigGlobalsMiddleware;
+use App\Application\Middleware\SecurityHeadersMiddleware;
 // use App\Middleware\CsrfLoggingMiddleware;
 
 use Slim\App;
@@ -15,13 +16,17 @@ return function (App $app) {
     $container = $app->getContainer();
     $twig = $container->get(\Slim\Views\Twig::class);
     
-    // Add HTTPS enforcement (first priority - security)
+    // Add Security Headers (FIRST - applies to all responses)
+    // Implements CSP, prevents XSS, clickjacking, MIME sniffing
+    $app->add(SecurityHeadersMiddleware::class);
+    
+    // Add HTTPS enforcement (second priority - security)
     // Skip in test environment to avoid redirect issues
     if (!defined('PHPUNIT_RUNNING')) {
         $app->add(\App\Application\Middleware\HttpsMiddleware::class);
     }
     
-    // Add Sentry error monitoring (second to catch all errors)
+    // Add Sentry error monitoring (third to catch all errors)
     $app->add(SentryMiddleware::class);
     
     // Add session middleware

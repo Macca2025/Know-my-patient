@@ -100,6 +100,22 @@ class AuthController
                         $updateLogin->execute([$user['id']]);
                         $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
 
+                        // Log audit event for successful login
+                        $auditStmt = $this->pdo->prepare(
+                            'INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
+                             VALUES (?, ?, ?, ?)'
+                        );
+                        $auditStmt->execute([
+                            $user['id'],
+                            'USER_LOGIN',
+                            json_encode([
+                                'email' => $user['email'],
+                                'role' => $user['role'],
+                                'remember_me' => $remember,
+                            ]),
+                            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                        ]);
+
                         // Handle remember me
                         if ($remember) {
                             $token = bin2hex(random_bytes(32));
@@ -122,6 +138,21 @@ class AuthController
                     } else {
                         $error = 'Invalid email or password.';
                         $this->logger->warning('Failed login attempt', ['email' => $email]);
+                        
+                        // Log audit event for failed login
+                        $auditStmt = $this->pdo->prepare(
+                            'INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
+                             VALUES (?, ?, ?, ?)'
+                        );
+                        $auditStmt->execute([
+                            0, // No user ID for failed login
+                            'USER_LOGIN_FAILED',
+                            json_encode([
+                                'email' => $email,
+                                'reason' => 'invalid_credentials',
+                            ]),
+                            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                        ]);
                     }
                 }
             }
@@ -194,9 +225,17 @@ class AuthController
             if (!$emailValidator->validate($data['email'] ?? null)) {
                 $errors['email'] = 'A valid email is required.';
             }
-            if (!$passwordValidator->validate($data['password'] ?? null)) {
-                $errors['password'] = 'Password must be at least 8 characters.';
+            
+            // Enhanced password validation: minimum 8 characters and must contain a special character
+            $password = $data['password'] ?? '';
+            if (empty($password)) {
+                $errors['password'] = 'Password is required.';
+            } elseif (strlen($password) < 8) {
+                $errors['password'] = 'Password must be at least 8 characters long.';
+            } elseif (!preg_match('/[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\\/;~`]/', $password)) {
+                $errors['password'] = 'Password must contain at least one special character (e.g., !@#$%^&*).';
             }
+            
             // Check if email already exists
             if (empty($errors['email'])) {
                 $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM users WHERE email = ?');
@@ -218,6 +257,26 @@ class AuthController
                         $data['email'],
                         $hashedPassword,
                         $role
+                    ]);
+
+                    // Get the new user ID for audit log
+                    $newUserId = $this->pdo->lastInsertId();
+
+                    // Log audit event for user registration
+                    $auditStmt = $this->pdo->prepare(
+                        'INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
+                         VALUES (?, ?, ?, ?)'
+                    );
+                    $auditStmt->execute([
+                        $newUserId,
+                        'USER_REGISTERED',
+                        json_encode([
+                            'email' => $data['email'],
+                            'name' => $data['firstName'] . ' ' . $data['lastName'],
+                            'role' => $role,
+                            'register_type' => $data['register_type'],
+                        ]),
+                        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                     ]);
 
                     // Clear users cache after registration
@@ -252,8 +311,27 @@ class AuthController
 
     public function logout(Request $request, Response $response): Response
     {
+        // Log audit event before destroying session
+        $userId = $_SESSION['user_id'] ?? null;
+        $userEmail = $_SESSION['user_email'] ?? null;
+        
+        if ($userId) {
+            $auditStmt = $this->pdo->prepare(
+                'INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
+                 VALUES (?, ?, ?, ?)'
+            );
+            $auditStmt->execute([
+                $userId,
+                'USER_LOGOUT',
+                json_encode([
+                    'email' => $userEmail,
+                ]),
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
+        }
+        
         // Destroy session, clear remember me cookie and DB token, then redirect to login
-        $this->logger->info('User logged out', ['user_id' => $_SESSION['user_id'] ?? null, 'email' => $_SESSION['user_email'] ?? null]);
+        $this->logger->info('User logged out', ['user_id' => $userId, 'email' => $userEmail]);
         if ($this->sessionService->get('user_id')) {
             $update = $this->pdo->prepare('UPDATE users SET remember_token = NULL WHERE id = ?');
             $update->execute([$this->sessionService->get('user_id')]);
