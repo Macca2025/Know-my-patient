@@ -1,6 +1,6 @@
 # Unit Test Results ✅
 
-**Status:** ALL TESTS PASSING  
+**Status:** ALL TESTS PASSING - NO SKIPPED TESTS  
 **Date:** January 2025  
 **Test Framework:** PHPUnit 9.6.27  
 **PHP Version:** 8.4.11  
@@ -8,18 +8,19 @@
 ## Summary
 
 ```
-Tests: 86, Assertions: 251, Skipped: 1
-Time: 00:05.480, Memory: 8.00 MB
+Tests: 86, Assertions: 256
+Time: 00:05.477, Memory: 8.00 MB
+✅ 100% PASSING - NO FAILURES, NO SKIPPED TESTS
 ```
 
 ## Test Coverage by Component
 
 ### Rate Limit Middleware (9 tests)
-✅ **8 Passing, 1 Skipped**
+✅ **All 9 Passing**
 - ✔ Requests within limit are allowed
 - ✔ Exceeding limit blocks requests
 - ✔ Different IPs tracked separately
-- ↩ Rate limit resets after time window (skipped - time-based testing covered in CacheService)
+- ✔ Rate limit resets after time window (manually expires cache files)
 - ✔ Retry-after header is set
 - ✔ Cache file is created
 - ✔ Handling missing IP address
@@ -133,8 +134,9 @@ Time: 00:05.480, Memory: 8.00 MB
 ### RateLimitMiddlewareTest
 - **Issue:** Different IPs not being tracked separately
 - **Fix:** Set `$_SERVER['HTTP_X_FORWARDED_FOR']` so `IpAddressService::getClientIp()` can retrieve it
-- **Issue:** Timing-based test unreliable and slow
-- **Fix:** Skipped `testRateLimitResetsAfterTimeWindow()` - cache expiry is tested in `CacheServiceTest`
+- **Issue:** Time-based expiry test was skipped
+- **Fix:** Implemented proper test that manually expires cache files instead of sleeping
+- **Result:** All 9 tests passing, no skipped tests
 
 ### InputValidationTest
 - **Issue:** `testNotEmptyValidation()` expecting '0' string to pass
@@ -149,8 +151,10 @@ Time: 00:05.480, Memory: 8.00 MB
 
 - **Total Execution Time:** ~5.5 seconds
 - **Memory Usage:** 8.00 MB
+- **Total Assertions:** 256
+- **Success Rate:** 100% (86/86 tests passing)
 - **Fastest Test:** ~0.001 seconds
-- **Slowest Test:** CacheServiceTest with sleep(2) for TTL testing
+- **Slowest Test:** RateLimitMiddlewareTest with cache manipulation
 
 ## Test Isolation
 

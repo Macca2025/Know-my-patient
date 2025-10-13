@@ -139,14 +139,37 @@ class RateLimitMiddlewareTest extends TestCase
 
     /**
      * Test rate limit reset after time window
-     * Note: Testing actual time-based expiry is unreliable in unit tests.
-     * The cache expiry logic is covered by the CacheService tests.
+     * Tests that expired cache entries are properly cleaned up
      */
     public function testRateLimitResetsAfterTimeWindow(): void
     {
-        // This test is skipped as it requires sleeping for the full decay window
-        // which would make tests too slow. The expiry mechanism is tested in CacheServiceTest.
-        $this->markTestSkipped('Time-based expiry testing is covered by CacheService tests');
+        $middleware = new RateLimitMiddleware(2, 1, $this->testCacheDir);
+        $request = $this->createMockRequest('192.168.1.30');
+        $handler = $this->createMockHandler();
+
+        // Make 2 requests (should succeed)
+        $response = $middleware->process($request, $handler);
+        $this->assertEquals(200, $response->getStatusCode());
+        $response = $middleware->process($request, $handler);
+        $this->assertEquals(200, $response->getStatusCode());
+
+        // 3rd request should be blocked
+        $response = $middleware->process($request, $handler);
+        $this->assertEquals(429, $response->getStatusCode());
+
+        // Manually expire the cache file by setting expires_at to the past
+        $cacheFiles = glob($this->testCacheDir . '/*');
+        $this->assertNotEmpty($cacheFiles, 'Cache file should exist');
+        
+        foreach ($cacheFiles as $file) {
+            $data = json_decode(file_get_contents($file), true);
+            $data['expires_at'] = time() - 3600; // Expired 1 hour ago
+            file_put_contents($file, json_encode($data));
+        }
+
+        // Request should now succeed again (expired cache is cleaned up)
+        $response = $middleware->process($request, $handler);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     /**
