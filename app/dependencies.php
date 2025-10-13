@@ -190,7 +190,14 @@ return function (ContainerBuilder $containerBuilder) {
                 },
                 'csrf' => function(ContainerInterface $c): \Slim\Csrf\Guard {
                     $responseFactory = $c->get(\Psr\Http\Message\ResponseFactoryInterface::class);
-                    return new \Slim\Csrf\Guard($responseFactory);
+                    
+                    // Use array storage for tests to avoid session issues
+                    if (defined('PHPUNIT_RUNNING') || (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'testing')) {
+                        $storage = [];
+                        return new \Slim\Csrf\Guard($responseFactory, 'csrf', $storage);
+                    } else {
+                        return new \Slim\Csrf\Guard($responseFactory);
+                    }
                 },
                 'pdo' => function (): \PDO {
                     $required = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS'];
