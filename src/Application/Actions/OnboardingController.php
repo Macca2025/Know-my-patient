@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Application\Actions;
 
 use App\Infrastructure\Persistence\Onboarding\DatabaseOnboardingEnquiryRepository;
@@ -55,12 +56,12 @@ class OnboardingController
         ]);
         $errors = [];
         $success = false;
-        
+
         // Company name validation
         if (empty($data['company_name']) || strlen(trim($data['company_name'])) < 2) {
             $errors['company_name'] = 'Company name is required (minimum 2 characters).';
         }
-        
+
         // Company website validation (optional, but validate format if provided)
         if (!empty($data['company_website'])) {
             $website = trim($data['company_website']);
@@ -72,22 +73,22 @@ class OnboardingController
                 }
             }
         }
-        
+
         // Organization type validation
         if (empty($data['organization_type'])) {
             $errors['organization_type'] = 'Organization type is required.';
         }
-        
+
         // Contact person validation
         if (empty($data['contact_person']) || strlen(trim($data['contact_person'])) < 2) {
             $errors['contact_person'] = 'Contact person is required.';
         }
-        
+
         // Email validation
         if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'A valid email is required.';
         }
-        
+
         // Phone validation (optional, but validate format if provided)
         if (!empty($data['phone'])) {
             // Remove spaces, dashes, parentheses for validation
@@ -96,7 +97,7 @@ class OnboardingController
                 $errors['phone'] = 'Please enter a valid phone number (10-15 digits).';
             }
         }
-        
+
         // GDPR consent validation (checkbox must be checked)
         // Checkboxes can send 'on', '1', 'true', or any truthy value
         if (empty($data['gdpr_consent'])) {

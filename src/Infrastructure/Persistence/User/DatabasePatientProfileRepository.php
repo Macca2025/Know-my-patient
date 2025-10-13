@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Infrastructure\Persistence\User;
 
 use App\Domain\User\PatientProfileRepository;

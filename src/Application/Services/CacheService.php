@@ -29,13 +29,13 @@ class CacheService
     public function get(string $key): mixed
     {
         $file = $this->getCacheFile($key);
-        
+
         if (!file_exists($file)) {
             return null;
         }
 
         $data = unserialize(file_get_contents($file));
-        
+
         if ($data['expires_at'] < time()) {
             unlink($file);
             return null;
@@ -66,14 +66,14 @@ class CacheService
     public function remember(string $key, callable $callback, ?int $ttl = null): mixed
     {
         $cached = $this->get($key);
-        
+
         if ($cached !== null) {
             return $cached;
         }
 
         $value = $callback();
         $this->set($key, $value, $ttl);
-        
+
         return $value;
     }
 
@@ -83,7 +83,7 @@ class CacheService
     public function forget(string $key): void
     {
         $file = $this->getCacheFile($key);
-        
+
         if (file_exists($file)) {
             unlink($file);
         }

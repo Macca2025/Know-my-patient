@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Application\Middleware;
@@ -8,12 +9,13 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Sentry\State\Scope;
+
 use function Sentry\captureException;
 use function Sentry\configureScope;
 
 /**
  * Sentry Error Monitoring Middleware
- * 
+ *
  * Captures unhandled exceptions and sends them to Sentry for monitoring
  */
 class SentryMiddleware implements MiddlewareInterface
@@ -57,7 +59,7 @@ class SentryMiddleware implements MiddlewareInterface
         } catch (\Throwable $e) {
             // Capture exception in Sentry
             captureException($e);
-            
+
             // Re-throw so the application's error handler can also handle it
             throw $e;
         }
@@ -65,14 +67,14 @@ class SentryMiddleware implements MiddlewareInterface
 
     /**
      * Sanitize headers to remove sensitive information
-     * 
+     *
      * @param array<string, array<string>> $headers
      * @return array<string, array<string>>
      */
     private function sanitizeHeaders(array $headers): array
     {
         $sensitiveHeaders = ['authorization', 'cookie', 'set-cookie', 'x-csrf-token'];
-        
+
         foreach ($sensitiveHeaders as $header) {
             $headerLower = strtolower($header);
             foreach ($headers as $key => $value) {
@@ -81,7 +83,7 @@ class SentryMiddleware implements MiddlewareInterface
                 }
             }
         }
-        
+
         return $headers;
     }
 
@@ -91,16 +93,16 @@ class SentryMiddleware implements MiddlewareInterface
     private function getClientIp(ServerRequestInterface $request): string
     {
         $serverParams = $request->getServerParams();
-        
+
         if (!empty($serverParams['HTTP_CLIENT_IP'])) {
             return $serverParams['HTTP_CLIENT_IP'];
         }
-        
+
         if (!empty($serverParams['HTTP_X_FORWARDED_FOR'])) {
             $ips = explode(',', $serverParams['HTTP_X_FORWARDED_FOR']);
             return trim($ips[0]);
         }
-        
+
         return $serverParams['REMOTE_ADDR'] ?? '0.0.0.0';
     }
 }

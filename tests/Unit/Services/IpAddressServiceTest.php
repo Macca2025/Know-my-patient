@@ -12,9 +12,9 @@ class IpAddressServiceTest extends TestCase
     public function testGetClientIpFromRemoteAddr(): void
     {
         $_SERVER['REMOTE_ADDR'] = '192.168.1.100';
-        
+
         $ip = IpAddressService::getClientIp();
-        
+
         $this->assertEquals('192.168.1.100', $ip);
     }
 
@@ -22,9 +22,9 @@ class IpAddressServiceTest extends TestCase
     {
         $_SERVER['HTTP_CF_CONNECTING_IP'] = '203.0.113.45';
         $_SERVER['REMOTE_ADDR'] = '192.168.1.100';
-        
+
         $ip = IpAddressService::getClientIp();
-        
+
         $this->assertEquals('203.0.113.45', $ip);
     }
 
@@ -32,16 +32,16 @@ class IpAddressServiceTest extends TestCase
     {
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $_SERVER['APP_ENV'] = 'development';
-        
+
         $ip = IpAddressService::getClientIp();
-        
+
         $this->assertEquals('localhost', $ip);
     }
 
     public function testGetClientIpReturnsUnknownWhenNoServerVars(): void
     {
         $ip = IpAddressService::getClientIp();
-        
+
         $this->assertEquals('unknown', $ip);
     }
 

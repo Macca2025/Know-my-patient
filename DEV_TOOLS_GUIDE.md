@@ -43,14 +43,17 @@ If you need to run tools directly with custom options:
 
 ### PHPStan
 ```bash
-# Analyze with default config
-./vendor/bin/phpstan analyse -c config/phpstan.neon.dist
+# Analyze with default config (includes 512MB memory limit)
+./vendor/bin/phpstan analyse -c config/phpstan.neon.dist --memory-limit=512M
 
 # Analyze specific directory
-./vendor/bin/phpstan analyse -c config/phpstan.neon.dist src/Domain/
+./vendor/bin/phpstan analyse -c config/phpstan.neon.dist --memory-limit=512M src/Domain/
 
 # Generate baseline
-./vendor/bin/phpstan analyse -c config/phpstan.neon.dist --generate-baseline
+./vendor/bin/phpstan analyse -c config/phpstan.neon.dist --memory-limit=512M --generate-baseline
+
+# Increase memory limit if needed
+./vendor/bin/phpstan analyse -c config/phpstan.neon.dist --memory-limit=1G
 ```
 
 ### PHP_CodeSniffer

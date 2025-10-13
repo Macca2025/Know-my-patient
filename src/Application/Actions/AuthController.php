@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Application\Actions;
 
 use App\Application\Services\CacheService;
@@ -7,7 +8,6 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 use Psr\Log\LoggerInterface;
 use Respect\Validation\Validator as v;
-
 use App\Application\Services\SessionService;
 
 class AuthController
@@ -33,9 +33,9 @@ class AuthController
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
-    $error = null;
-    $form = [];
-    $suspended = false;
+        $error = null;
+        $form = [];
+        $suspended = false;
 
         // 1. Check for remember me cookie if not logged in
         if (!isset($_SESSION['user_id']) && isset($_COOKIE['rememberme'])) {
@@ -91,15 +91,15 @@ class AuthController
                         $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
                         $_SESSION['user_role'] = $user['role'] ?? null;
                         $_SESSION['_last_activity'] = time(); // Initialize session timeout tracking
-                        
+
                         // Cache user role for 15 minutes (900 seconds)
                         $this->cacheService->set('user_role_' . $user['id'], $user['role'], 900);
-                        
+
                         // Update last_login
                         $updateLogin = $this->pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
                         $updateLogin->execute([$user['id']]);
                         $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
-                        
+
                         // Handle remember me
                         if ($remember) {
                             $token = bin2hex(random_bytes(32));
@@ -139,7 +139,7 @@ class AuthController
         $queryParams = $request->getQueryParams();
         $registered = $queryParams['registered'] ?? null;
         $deleted = $queryParams['deleted'] ?? null;
-        
+
         // Get flash messages and clear them after reading
         $flashMessage = $this->sessionService->get('flash_message');
         $flashType = $this->sessionService->get('flash_type');
@@ -147,7 +147,7 @@ class AuthController
             $this->sessionService->remove('flash_message');
             $this->sessionService->remove('flash_type');
         }
-        
+
         $body = $this->twig->getEnvironment()->render('login.html.twig', [
             'error' => $error,
             'form' => $form,
@@ -219,10 +219,10 @@ class AuthController
                         $hashedPassword,
                         $role
                     ]);
-                    
+
                     // Clear users cache after registration
                     $this->cacheService->forget('admin_users_list');
-                    
+
                     // Redirect to login with success alert
                     return $response->withHeader('Location', '/login?registered=1')->withStatus(302);
                 } catch (\Throwable $e) {

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit\Services;
@@ -78,7 +79,7 @@ class SessionServiceTest extends TestCase
     {
         $this->sessionService->set('key_to_remove', 'value');
         $this->assertTrue($this->sessionService->has('key_to_remove'));
-        
+
         $this->sessionService->remove('key_to_remove');
         $this->assertFalse($this->sessionService->has('key_to_remove'));
     }
@@ -90,14 +91,14 @@ class SessionServiceTest extends TestCase
     {
         $this->sessionService->set('key1', 'value1');
         $this->sessionService->set('key2', 'value2');
-        
+
         // Verify values exist
         $this->assertEquals('value1', $this->sessionService->get('key1'));
         $this->assertEquals('value2', $this->sessionService->get('key2'));
-        
+
         // Clear session data manually (session_unset doesn't work in tests without actual session)
         $_SESSION = [];
-        
+
         // Verify values are gone after clear
         $this->assertEmpty($_SESSION);
         $this->assertNull($this->sessionService->get('key1'));
@@ -114,10 +115,10 @@ class SessionServiceTest extends TestCase
             'role' => 'admin',
             'permissions' => ['read', 'write', 'delete']
         ];
-        
+
         $this->sessionService->set('user_data', $data);
         $retrieved = $this->sessionService->get('user_data');
-        
+
         $this->assertIsArray($retrieved);
         $this->assertEquals($data, $retrieved);
         $this->assertEquals(123, $retrieved['user_id']);
@@ -131,10 +132,10 @@ class SessionServiceTest extends TestCase
         $obj = new \stdClass();
         $obj->name = 'Test User';
         $obj->id = 456;
-        
+
         $this->sessionService->set('user_object', $obj);
         $retrieved = $this->sessionService->get('user_object');
-        
+
         $this->assertIsObject($retrieved);
         $this->assertEquals('Test User', $retrieved->name);
         $this->assertEquals(456, $retrieved->id);
@@ -147,7 +148,7 @@ class SessionServiceTest extends TestCase
     {
         $this->sessionService->set('flash_message', 'Success!');
         $this->sessionService->set('flash_type', 'success');
-        
+
         $this->assertEquals('Success!', $this->sessionService->get('flash_message'));
         $this->assertEquals('success', $this->sessionService->get('flash_type'));
     }
@@ -160,7 +161,7 @@ class SessionServiceTest extends TestCase
         $this->sessionService->set('key1', 'value1');
         $this->sessionService->set('key2', 'value2');
         $this->sessionService->set('key3', 'value3');
-        
+
         $this->assertEquals('value1', $this->sessionService->get('key1'));
         $this->assertEquals('value2', $this->sessionService->get('key2'));
         $this->assertEquals('value3', $this->sessionService->get('key3'));
@@ -173,7 +174,7 @@ class SessionServiceTest extends TestCase
     {
         $this->sessionService->set('key', 'original_value');
         $this->assertEquals('original_value', $this->sessionService->get('key'));
-        
+
         $this->sessionService->set('key', 'new_value');
         $this->assertEquals('new_value', $this->sessionService->get('key'));
     }
@@ -217,7 +218,7 @@ class SessionServiceTest extends TestCase
     {
         $this->sessionService->set('bool_true', true);
         $this->sessionService->set('bool_false', false);
-        
+
         $this->assertTrue($this->sessionService->get('bool_true'));
         $this->assertFalse($this->sessionService->get('bool_false'));
     }

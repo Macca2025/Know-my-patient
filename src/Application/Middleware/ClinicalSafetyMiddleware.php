@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Application\Middleware;
@@ -11,7 +12,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Clinical Safety Middleware
- * 
+ *
  * Implements NHS DCB0129 compliance features:
  * - Patient verification prompts
  * - Stale data warnings
@@ -21,38 +22,38 @@ use Psr\Log\LoggerInterface;
 class ClinicalSafetyMiddleware implements MiddlewareInterface
 {
     private LoggerInterface $logger;
-    
+
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
-    
+
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
     ): ResponseInterface {
         $uri = $request->getUri()->getPath();
-        
+
         // Track patient data access for audit
         if ($this->isPatientDataAccess($uri)) {
             $this->logPatientAccess($request);
         }
-        
+
         // Check for concurrent editing (stale data risk)
         if ($this->isPatientDataModification($request)) {
             $this->checkConcurrentEdit($request);
         }
-        
+
         $response = $handler->handle($request);
-        
+
         // Add cache control headers for patient data
         if ($this->isPatientDataAccess($uri)) {
             $response = $this->addCacheControlHeaders($response);
         }
-        
+
         return $response;
     }
-    
+
     /**
      * Determine if request accesses patient data
      */
@@ -64,16 +65,16 @@ class ClinicalSafetyMiddleware implements MiddlewareInterface
             '/dashboard/patient/',
             '/api/patient/',
         ];
-        
+
         foreach ($patientDataRoutes as $route) {
             if (strpos($uri, $route) !== false) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     /**
      * Determine if request modifies patient data
      */
@@ -81,11 +82,11 @@ class ClinicalSafetyMiddleware implements MiddlewareInterface
     {
         $method = $request->getMethod();
         $uri = $request->getUri()->getPath();
-        
-        return ($method === 'POST' || $method === 'PUT' || $method === 'PATCH') 
+
+        return ($method === 'POST' || $method === 'PUT' || $method === 'PATCH')
             && $this->isPatientDataAccess($uri);
     }
-    
+
     /**
      * Enhanced audit logging for patient access
      * Hazard H-001 mitigation
@@ -96,11 +97,11 @@ class ClinicalSafetyMiddleware implements MiddlewareInterface
         $method = $request->getMethod();
         $userId = $_SESSION['user']['id'] ?? null;
         $userRole = $_SESSION['user']['role'] ?? 'anonymous';
-        
+
         // Extract patient UID if present in URL
         if (preg_match('/patient\/([A-Z0-9-]+)/', $uri, $matches)) {
             $patientUid = $matches[1];
-            
+
             $this->logger->info('Patient data access', [
                 'hazard_reference' => 'H-001',
                 'user_id' => $userId,
@@ -115,7 +116,7 @@ class ClinicalSafetyMiddleware implements MiddlewareInterface
             ]);
         }
     }
-    
+
     /**
      * Check for concurrent editing (optimistic locking)
      * Hazard H-007 mitigation
@@ -123,7 +124,7 @@ class ClinicalSafetyMiddleware implements MiddlewareInterface
     private function checkConcurrentEdit(ServerRequestInterface $request): void
     {
         $body = $request->getParsedBody();
-        
+
         if (isset($body['version']) && isset($body['patient_uid'])) {
             // Version will be checked in the controller
             // This middleware just logs the attempt
@@ -135,7 +136,7 @@ class ClinicalSafetyMiddleware implements MiddlewareInterface
             ]);
         }
     }
-    
+
     /**
      * Add cache control headers to prevent stale data
      * Hazard H-007 mitigation

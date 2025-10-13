@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit\Validators;
@@ -18,7 +19,7 @@ class InputValidationTest extends TestCase
     public function testValidEmails(): void
     {
         $validator = v::email();
-        
+
         $validEmails = [
             'user@example.com',
             'user.name@example.com',
@@ -26,7 +27,7 @@ class InputValidationTest extends TestCase
             'user123@test-domain.com',
             'firstname.lastname@company.org',
         ];
-        
+
         foreach ($validEmails as $email) {
             $this->assertTrue(
                 $validator->validate($email),
@@ -41,7 +42,7 @@ class InputValidationTest extends TestCase
     public function testInvalidEmails(): void
     {
         $validator = v::email();
-        
+
         $invalidEmails = [
             'not-an-email',
             '@example.com',
@@ -52,7 +53,7 @@ class InputValidationTest extends TestCase
             'user@.com',
             'user..name@example.com',
         ];
-        
+
         foreach ($invalidEmails as $email) {
             $this->assertFalse(
                 $validator->validate($email),
@@ -67,12 +68,12 @@ class InputValidationTest extends TestCase
     public function testPasswordLengthValidation(): void
     {
         $validator = v::length(8, null);
-        
+
         // Valid passwords
         $this->assertTrue($validator->validate('12345678'));
         $this->assertTrue($validator->validate('Password123!'));
         $this->assertTrue($validator->validate(str_repeat('a', 100)));
-        
+
         // Invalid passwords (too short)
         $this->assertFalse($validator->validate('1234567'));
         $this->assertFalse($validator->validate('Pass'));
@@ -86,11 +87,11 @@ class InputValidationTest extends TestCase
     {
         // NHS number format: 10 digits
         $validator = v::digit()->length(10, 10);
-        
+
         // Valid NHS numbers (format only, not checking checksum)
         $this->assertTrue($validator->validate('1234567890'));
         $this->assertTrue($validator->validate('9876543210'));
-        
+
         // Invalid NHS numbers
         $this->assertFalse($validator->validate('123456789')); // Too short
         $this->assertFalse($validator->validate('12345678901')); // Too long
@@ -106,12 +107,12 @@ class InputValidationTest extends TestCase
     {
         // UK phone number: starts with 0 or +44, 10-15 digits
         $validator = v::regex('/^(\+44|0)[0-9]{9,14}$/');
-        
+
         // Valid UK phone numbers
         $this->assertTrue($validator->validate('07123456789'));
         $this->assertTrue($validator->validate('01234567890'));
         $this->assertTrue($validator->validate('+447123456789'));
-        
+
         // Invalid phone numbers
         $this->assertFalse($validator->validate('123456')); // Too short
         $this->assertFalse($validator->validate('12345678901234567')); // Too long
@@ -126,14 +127,14 @@ class InputValidationTest extends TestCase
     {
         // UK postcode format
         $validator = v::regex('/^[A-Z]{1,2}[0-9]{1,2}[A-Z]?\s?[0-9][A-Z]{2}$/i');
-        
+
         // Valid UK postcodes
         $this->assertTrue($validator->validate('SW1A 1AA'));
         $this->assertTrue($validator->validate('M1 1AE'));
         $this->assertTrue($validator->validate('B33 8TH'));
         $this->assertTrue($validator->validate('CR2 6XH'));
         $this->assertTrue($validator->validate('DN55 1PT'));
-        
+
         // Invalid postcodes
         $this->assertFalse($validator->validate('INVALID'));
         $this->assertFalse($validator->validate('12345'));
@@ -146,12 +147,12 @@ class InputValidationTest extends TestCase
     public function testNotEmptyValidation(): void
     {
         $validator = v::notEmpty();
-        
+
         // Valid (not empty) - Note: '0' is considered empty by PHP's empty() and Respect\Validation
         $this->assertTrue($validator->validate('text'));
         $this->assertTrue($validator->validate('123'));
         $this->assertTrue($validator->validate([1, 2, 3]));
-        
+
         // Invalid (empty) - Per PHP's empty(), these are all considered empty
         $this->assertFalse($validator->validate(''));
         $this->assertFalse($validator->validate('0'));
@@ -164,12 +165,12 @@ class InputValidationTest extends TestCase
     public function testAlphanumericValidation(): void
     {
         $validator = v::alnum();
-        
+
         // Valid
         $this->assertTrue($validator->validate('abc123'));
         $this->assertTrue($validator->validate('TestUser'));
         $this->assertTrue($validator->validate('12345'));
-        
+
         // Invalid
         $this->assertFalse($validator->validate('user@email'));
         $this->assertFalse($validator->validate('user name'));
@@ -182,12 +183,12 @@ class InputValidationTest extends TestCase
     public function testDateValidation(): void
     {
         $validator = v::date('Y-m-d');
-        
+
         // Valid dates
         $this->assertTrue($validator->validate('2025-01-15'));
         $this->assertTrue($validator->validate('1990-12-31'));
         $this->assertTrue($validator->validate('2000-06-15'));
-        
+
         // Invalid dates
         $this->assertFalse($validator->validate('2025-13-01')); // Invalid month
         $this->assertFalse($validator->validate('2025-02-30')); // Invalid day
@@ -201,13 +202,13 @@ class InputValidationTest extends TestCase
     public function testIntegerValidation(): void
     {
         $validator = v::intVal();
-        
+
         // Valid integers
         $this->assertTrue($validator->validate(123));
         $this->assertTrue($validator->validate('456'));
         $this->assertTrue($validator->validate(0));
         $this->assertTrue($validator->validate(-789));
-        
+
         // Invalid
         $this->assertFalse($validator->validate('123.45'));
         $this->assertFalse($validator->validate('abc'));
@@ -220,12 +221,12 @@ class InputValidationTest extends TestCase
     public function testUrlValidation(): void
     {
         $validator = v::url();
-        
+
         // Valid URLs
         $this->assertTrue($validator->validate('https://example.com'));
         $this->assertTrue($validator->validate('http://www.test.co.uk'));
         $this->assertTrue($validator->validate('https://subdomain.example.org/path'));
-        
+
         // Invalid URLs
         $this->assertFalse($validator->validate('not a url'));
         $this->assertFalse($validator->validate('example.com')); // Missing protocol
@@ -239,12 +240,12 @@ class InputValidationTest extends TestCase
     {
         $validRoles = ['patient', 'nhs_user', 'admin', 'family'];
         $validator = v::in($validRoles);
-        
+
         // Valid roles
         foreach ($validRoles as $role) {
             $this->assertTrue($validator->validate($role));
         }
-        
+
         // Invalid roles
         $this->assertFalse($validator->validate('superadmin'));
         $this->assertFalse($validator->validate('user'));
@@ -257,10 +258,10 @@ class InputValidationTest extends TestCase
     public function testCombinedValidation(): void
     {
         $validator = v::notEmpty()->email();
-        
+
         // Valid
         $this->assertTrue($validator->validate('user@example.com'));
-        
+
         // Invalid
         $this->assertFalse($validator->validate(''));
         $this->assertFalse($validator->validate('not-an-email'));
@@ -272,11 +273,11 @@ class InputValidationTest extends TestCase
     public function testOptionalValidation(): void
     {
         $validator = v::optional(v::email());
-        
+
         // Valid (null or valid email)
         $this->assertTrue($validator->validate(null));
         $this->assertTrue($validator->validate('user@example.com'));
-        
+
         // Invalid (not null and not valid email)
         $this->assertFalse($validator->validate('not-an-email'));
     }
@@ -293,9 +294,9 @@ class InputValidationTest extends TestCase
             "'; DROP TABLE users--",
             "1; DELETE FROM users WHERE 1=1--",
         ];
-        
+
         $emailValidator = v::email();
-        
+
         foreach ($sqlInjectionPatterns as $pattern) {
             $this->assertFalse(
                 $emailValidator->validate($pattern),
@@ -316,9 +317,9 @@ class InputValidationTest extends TestCase
             'javascript:alert("XSS")',
             '<iframe src="javascript:alert(\'XSS\')"></iframe>',
         ];
-        
+
         $emailValidator = v::email();
-        
+
         foreach ($xssPatterns as $pattern) {
             $this->assertFalse(
                 $emailValidator->validate($pattern),

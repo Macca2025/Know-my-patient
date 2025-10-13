@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit\Security;
@@ -60,7 +61,7 @@ class PasswordHashingTest extends TestCase
         $hash2 = password_hash($password, PASSWORD_ARGON2ID);
 
         $this->assertNotEquals($hash1, $hash2, 'Hashes should be unique due to random salt');
-        
+
         // But both should verify the same password
         $this->assertTrue(password_verify($password, $hash1));
         $this->assertTrue(password_verify($password, $hash2));
@@ -72,13 +73,13 @@ class PasswordHashingTest extends TestCase
     public function testBackwardCompatibilityWithBcrypt(): void
     {
         $password = 'LegacyPassword123!';
-        
+
         // Create BCRYPT hash (simulating old password)
         $bcryptHash = password_hash($password, PASSWORD_BCRYPT);
-        
+
         // Should still verify correctly
         $this->assertTrue(password_verify($password, $bcryptHash));
-        
+
         // Verify BCRYPT format
         $this->assertStringStartsWith('$2y$', $bcryptHash);
     }
@@ -89,10 +90,10 @@ class PasswordHashingTest extends TestCase
     public function testPasswordNeedsRehashDetectsOldAlgorithm(): void
     {
         $password = 'TestPassword456!';
-        
+
         // Create BCRYPT hash
         $bcryptHash = password_hash($password, PASSWORD_BCRYPT);
-        
+
         // Should need rehash to ARGON2ID
         $this->assertTrue(
             password_needs_rehash($bcryptHash, PASSWORD_ARGON2ID),
@@ -107,7 +108,7 @@ class PasswordHashingTest extends TestCase
     {
         $password = 'ModernPassword789!';
         $argon2idHash = password_hash($password, PASSWORD_ARGON2ID);
-        
+
         // Should NOT need rehash
         $this->assertFalse(
             password_needs_rehash($argon2idHash, PASSWORD_ARGON2ID),
@@ -122,7 +123,7 @@ class PasswordHashingTest extends TestCase
     {
         $emptyPassword = '';
         $hash = password_hash($emptyPassword, PASSWORD_ARGON2ID);
-        
+
         $this->assertIsString($hash);
         $this->assertTrue(password_verify($emptyPassword, $hash));
     }
@@ -134,7 +135,7 @@ class PasswordHashingTest extends TestCase
     {
         $longPassword = str_repeat('a', 1000);
         $hash = password_hash($longPassword, PASSWORD_ARGON2ID);
-        
+
         $this->assertIsString($hash);
         $this->assertTrue(password_verify($longPassword, $hash));
     }
@@ -146,7 +147,7 @@ class PasswordHashingTest extends TestCase
     {
         $specialPassword = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`"\'\\';
         $hash = password_hash($specialPassword, PASSWORD_ARGON2ID);
-        
+
         $this->assertTrue(password_verify($specialPassword, $hash));
     }
 
@@ -157,7 +158,7 @@ class PasswordHashingTest extends TestCase
     {
         $unicodePassword = 'пароль密码🔐';
         $hash = password_hash($unicodePassword, PASSWORD_ARGON2ID);
-        
+
         $this->assertTrue(password_verify($unicodePassword, $hash));
     }
 
@@ -168,7 +169,7 @@ class PasswordHashingTest extends TestCase
     {
         $password = 'CaseSensitive123!';
         $hash = password_hash($password, PASSWORD_ARGON2ID);
-        
+
         $this->assertTrue(password_verify('CaseSensitive123!', $hash));
         $this->assertFalse(password_verify('casesensitive123!', $hash));
         $this->assertFalse(password_verify('CASESENSITIVE123!', $hash));
@@ -181,10 +182,10 @@ class PasswordHashingTest extends TestCase
     {
         $password = 'FormatTest123!';
         $hash = password_hash($password, PASSWORD_ARGON2ID);
-        
+
         // ARGON2ID hash format: $argon2id$v=19$m=65536,t=4,p=1$salt$hash
         $parts = explode('$', $hash);
-        
+
         $this->assertGreaterThanOrEqual(6, count($parts), 'Hash should have correct structure');
         $this->assertEquals('', $parts[0]); // First element is empty due to leading $
         $this->assertEquals('argon2id', $parts[1]);
@@ -201,7 +202,7 @@ class PasswordHashingTest extends TestCase
     {
         $password = 'LengthTest123!';
         $hash = password_hash($password, PASSWORD_ARGON2ID);
-        
+
         // ARGON2ID hashes are typically around 90-100 characters
         $this->assertGreaterThan(80, strlen($hash));
         $this->assertLessThan(200, strlen($hash));
@@ -214,17 +215,17 @@ class PasswordHashingTest extends TestCase
     {
         $password = 'TimingTest123!';
         $hash = password_hash($password, PASSWORD_ARGON2ID);
-        
+
         // Measure time for correct password
         $start1 = microtime(true);
         password_verify($password, $hash);
         $time1 = microtime(true) - $start1;
-        
+
         // Measure time for incorrect password
         $start2 = microtime(true);
         password_verify('WrongPassword', $hash);
         $time2 = microtime(true) - $start2;
-        
+
         // Times should be relatively similar (within 50% of each other)
         // This is a basic check - true timing attack resistance is more complex
         $ratio = $time1 > 0 ? $time2 / $time1 : 1;
@@ -238,12 +239,12 @@ class PasswordHashingTest extends TestCase
     public function testMemoryHardProperty(): void
     {
         $password = 'MemoryTest123!';
-        
+
         // ARGON2ID should complete even with memory-hard algorithm
         $startMemory = memory_get_usage();
         $hash = password_hash($password, PASSWORD_ARGON2ID);
         $endMemory = memory_get_usage();
-        
+
         $this->assertIsString($hash);
         // Memory usage should increase (basic check)
         $this->assertGreaterThanOrEqual($startMemory, $endMemory);

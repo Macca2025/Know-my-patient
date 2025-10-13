@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Application\Actions;
@@ -28,7 +29,7 @@ class HealthCheckAction
         ResponseInterface $response
     ): ResponseInterface {
         $startTime = microtime(true);
-        
+
         $health = [
             'status' => 'healthy',
             'timestamp' => date('c'),
@@ -63,12 +64,12 @@ class HealthCheckAction
             $rootPath = __DIR__ . '/../../../';
             $freeSpace = disk_free_space($rootPath);
             $totalSpace = disk_total_space($rootPath);
-            
+
             if ($freeSpace !== false && $totalSpace !== false) {
                 $percentFree = ($freeSpace / $totalSpace) * 100;
                 $freeGB = round($freeSpace / 1024 / 1024 / 1024, 2);
                 $totalGB = round($totalSpace / 1024 / 1024 / 1024, 2);
-                
+
                 $diskStatus = 'ok';
                 if ($percentFree < 5) {
                     $diskStatus = 'critical';
@@ -79,7 +80,7 @@ class HealthCheckAction
                         $health['status'] = 'degraded';
                     }
                 }
-                
+
                 $health['checks']['disk_space'] = [
                     'status' => $diskStatus,
                     'free_gb' => $freeGB,
@@ -98,13 +99,13 @@ class HealthCheckAction
         try {
             $logsDir = __DIR__ . '/../../../logs';
             $isWritable = is_writable($logsDir);
-            
+
             $health['checks']['logs'] = [
                 'status' => $isWritable ? 'ok' : 'error',
                 'writable' => $isWritable,
                 'path' => $logsDir
             ];
-            
+
             if (!$isWritable) {
                 $health['status'] = 'unhealthy';
                 $this->logger->warning('Health check: Logs directory not writable');
@@ -123,13 +124,13 @@ class HealthCheckAction
                 mkdir($cacheDir, 0755, true);
             }
             $isWritable = is_writable($cacheDir);
-            
+
             $health['checks']['cache'] = [
                 'status' => $isWritable ? 'ok' : 'error',
                 'writable' => $isWritable,
                 'path' => $cacheDir
             ];
-            
+
             if (!$isWritable) {
                 if ($health['status'] === 'healthy') {
                     $health['status'] = 'degraded';
@@ -153,7 +154,7 @@ class HealthCheckAction
         // 6. Response time
         $responseTime = round((microtime(true) - $startTime) * 1000, 2);
         $health['response_time_ms'] = $responseTime;
-        
+
         if ($responseTime > 1000) {
             $health['checks']['performance'] = [
                 'status' => 'warning',
@@ -171,7 +172,7 @@ class HealthCheckAction
         }
 
         $response->getBody()->write(json_encode($health, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-        
+
         return $response
             ->withHeader('Content-Type', 'application/json')
             ->withHeader('Cache-Control', 'no-cache, no-store, must-revalidate')

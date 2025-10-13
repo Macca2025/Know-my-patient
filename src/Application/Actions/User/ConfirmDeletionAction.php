@@ -1,16 +1,13 @@
 <?php
-namespace App\Application\Actions\User;
 
+namespace App\Application\Actions\User;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
-
 use App\Application\Services\SessionService;
 use App\Application\Services\IpAddressService;
 use Psr\Log\LoggerInterface;
-
-
 
 class ConfirmDeletionAction
 {

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Application\Actions;
 
 use App\Application\Services\CacheService;
@@ -33,10 +34,10 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        
+
         // Cache users list for 5 minutes (300 seconds)
         // Frequently accessed by admins, but user data changes occasionally
-        $allUsers = $this->cacheService->remember('admin_users_list', function() {
+        $allUsers = $this->cacheService->remember('admin_users_list', function () {
             $stmt = $this->pdo->query('SELECT id, email, first_name, last_name, role, active, created_at, updated_at FROM users ORDER BY created_at DESC');
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }, 300);
@@ -48,7 +49,7 @@ class AdminController
         // Filter users if role selected
         $filteredUsers = $allUsers;
         if ($selectedRole) {
-            $filteredUsers = array_values(array_filter($allUsers, function($u) use ($selectedRole) {
+            $filteredUsers = array_values(array_filter($allUsers, function ($u) use ($selectedRole) {
                 return $u['role'] === $selectedRole;
             }));
         }
@@ -74,10 +75,18 @@ class AdminController
         $yesterday = $now->modify('-24 hours');
         foreach ($allUsers as $user) {
             $stats['total_users']++;
-            if ($user['role'] === 'admin') $stats['admins']++;
-            if ($user['role'] === 'patient') $stats['patients']++;
-            if ($user['role'] === 'nhs_user') $stats['nhs_users']++;
-            if ($user['role'] === 'family') $stats['family']++;
+            if ($user['role'] === 'admin') {
+                $stats['admins']++;
+            }
+            if ($user['role'] === 'patient') {
+                $stats['patients']++;
+            }
+            if ($user['role'] === 'nhs_user') {
+                $stats['nhs_users']++;
+            }
+            if ($user['role'] === 'family') {
+                $stats['family']++;
+            }
             if (!empty($user['last_login'])) {
                 $lastLogin = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $user['last_login']);
                 if ($lastLogin && $lastLogin > $yesterday) {
@@ -118,7 +127,7 @@ class AdminController
         if ($userId > 0) {
             $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = :id');
             $stmt->execute(['id' => $userId]);
-            
+
             // Clear users cache after deletion
             $this->cacheService->forget('admin_users_list');
         }
@@ -142,7 +151,7 @@ class AdminController
                 $stmt = $this->pdo->prepare('UPDATE users SET suspended_at = NOW(), active = 0 WHERE id = :id');
                 $stmt->execute(['id' => $userId]);
             }
-            
+
             // Clear users cache after status change
             $this->cacheService->forget('admin_users_list');
         }
@@ -226,7 +235,7 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        
+
         // Get CSRF tokens
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
@@ -236,7 +245,7 @@ class AdminController
                 'value' => 'csrf_value'
             ]
         ];
-        
+
         // Get all messages
         $stmt = $this->pdo->query('SELECT id, name, email, subject, message, status, ip_address, user_agent, created_at FROM support_messages ORDER BY created_at DESC');
         $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -286,17 +295,17 @@ class AdminController
             $response->getBody()->write('Forbidden');
             return $response;
         }
-        
+
         $data = $request->getParsedBody();
         $id = isset($data['id']) ? (int)$data['id'] : 0;
         $status = isset($data['status']) ? $data['status'] : null;
         $allowed = ['new', 'in_progress', 'responded', 'resolved', 'closed'];
-        
+
         if ($id > 0 && in_array($status, $allowed, true)) {
             try {
                 $stmt = $this->pdo->prepare('UPDATE support_messages SET status = :status, updated_at = NOW() WHERE id = :id');
                 $stmt->execute(['status' => $status, 'id' => $id]);
-                
+
                 // Set success message in session
                 $this->session->set('flash_message', 'Support message status updated successfully!');
                 $this->session->set('flash_type', 'success');
@@ -309,10 +318,10 @@ class AdminController
             $this->session->set('flash_message', 'Invalid status or message ID.');
             $this->session->set('flash_type', 'warning');
         }
-        
+
         return $response->withHeader('Location', '/admin/support-messages')->withStatus(302);
     }
-    
+
     public function deleteSupportMessage(Request $request, Response $response): Response
     {
         if ($this->session->get('user_role') !== 'admin') {
@@ -320,15 +329,15 @@ class AdminController
             $response->getBody()->write('Forbidden');
             return $response;
         }
-        
+
         $data = $request->getParsedBody();
         $id = isset($data['id']) ? (int)$data['id'] : 0;
-        
+
         if ($id > 0) {
             try {
                 $stmt = $this->pdo->prepare('DELETE FROM support_messages WHERE id = :id');
                 $stmt->execute(['id' => $id]);
-                
+
                 // Set success message in session
                 $this->session->set('flash_message', 'Support message deleted successfully!');
                 $this->session->set('flash_type', 'success');
@@ -341,7 +350,7 @@ class AdminController
             $this->session->set('flash_message', 'Invalid message ID.');
             $this->session->set('flash_type', 'warning');
         }
-        
+
         return $response->withHeader('Location', '/admin/support-messages')->withStatus(302);
     }
 
@@ -353,7 +362,7 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        
+
         // Get CSRF tokens
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
@@ -363,14 +372,14 @@ class AdminController
                 'value' => 'csrf_value'
             ]
         ];
-        
+
         // Cache testimonials for 15 minutes (900 seconds)
         // Invalidated when testimonials are added/deleted
-        $testimonials = $this->cacheService->remember('admin_testimonials_list', function() {
+        $testimonials = $this->cacheService->remember('admin_testimonials_list', function () {
             $stmt = $this->pdo->query('SELECT id, name, role, testimonial FROM testimonials ORDER BY id DESC');
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }, 900);
-        
+
         $vars = [
             'title' => 'Testimonials',
             'description' => 'Testimonials admin page',
@@ -398,7 +407,7 @@ class AdminController
         if ($id > 0) {
             $stmt = $this->pdo->prepare('DELETE FROM testimonials WHERE id = :id');
             $stmt->execute(['id' => $id]);
-            
+
             // Clear testimonials cache after deletion
             $this->cacheService->forget('testimonials_homepage');
             $this->cacheService->forget('admin_testimonials_list');
@@ -418,7 +427,7 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        
+
         // Get CSRF tokens
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
@@ -428,7 +437,7 @@ class AdminController
                 'value' => 'csrf_value'
             ]
         ];
-        
+
         $stmt = $this->pdo->query('SELECT id, company_name, company_website, organization_type, organization_size, contact_person, job_title, email, phone, gdpr_consent, marketing_consent, status, assigned_to, created_at FROM onboarding_enquiries ORDER BY created_at DESC');
         $enquiries = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $stmtUsers = $this->pdo->query('SELECT id, first_name, last_name FROM users ORDER BY first_name ASC');
@@ -546,13 +555,13 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        
+
         // Cache resources for 30 minutes (1800 seconds)
-        $resources = $this->cacheService->remember('admin_resources', function() {
+        $resources = $this->cacheService->remember('admin_resources', function () {
             $stmt = $this->pdo->query('SELECT id, title, description, file_path, file_type, category, uploaded_by, created_at, updated_at, status FROM resources ORDER BY id DESC');
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }, 1800);
-        
+
         $vars = [
             'title' => 'Resources',
             'description' => 'Resources admin page',

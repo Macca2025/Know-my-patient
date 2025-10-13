@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Application\Actions\Healthcare;
 
 use Psr\Http\Message\ResponseInterface as Response;

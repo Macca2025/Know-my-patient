@@ -6,6 +6,7 @@ namespace App\Application\Handlers;
 
 use App\Application\Actions\ActionError;
 use App\Application\Actions\ActionPayload;
+use App\Domain\DomainException\DomainRecordNotFoundException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpException;
@@ -78,17 +79,31 @@ class HttpErrorHandler extends SlimErrorHandler
             ActionError::SERVER_ERROR,
             'An internal error has occurred while processing your request.'
         );
-        if ($exception instanceof HttpException) {
+
+        // Handle HttpNotFoundException (includes wrapped DomainRecordNotFoundException)
+        if ($exception instanceof HttpNotFoundException) {
+            $statusCode = 404;
+            $error = new ActionError(
+                ActionError::RESOURCE_NOT_FOUND,
+                $exception->getMessage()
+            );
+        } elseif ($exception instanceof HttpMethodNotAllowedException) {
+            $statusCode = 405;
+            $error = new ActionError(
+                ActionError::NOT_ALLOWED,
+                $exception->getMessage()
+            );
+        } elseif ($exception instanceof HttpException) {
             $statusCode = $exception->getCode();
             $error->setDescription($exception->getMessage());
-        }
-        if (
+        } elseif (
             !($exception instanceof HttpException)
             && $exception instanceof Throwable
             && $this->displayErrorDetails
         ) {
             $error->setDescription($exception->getMessage());
         }
+
         $payload = new ActionPayload($statusCode, null, $error);
         $encodedPayload = json_encode($payload, JSON_PRETTY_PRINT);
         $response = $this->responseFactory->createResponse($statusCode);

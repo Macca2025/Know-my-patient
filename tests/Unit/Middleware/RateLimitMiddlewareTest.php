@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Unit\Middleware;
@@ -39,7 +40,7 @@ class RateLimitMiddlewareTest extends TestCase
             }
             rmdir($this->testCacheDir);
         }
-        
+
         // Clean up $_SERVER
         unset($_SERVER['HTTP_X_FORWARDED_FOR']);
     }
@@ -51,7 +52,7 @@ class RateLimitMiddlewareTest extends TestCase
     {
         // Set the IP in $_SERVER so IpAddressService can retrieve it
         $_SERVER['HTTP_X_FORWARDED_FOR'] = $ip;
-        
+
         $request = (new ServerRequestFactory())->createServerRequest('POST', '/login');
         return $request->withHeader('X-Forwarded-For', $ip);
     }
@@ -160,7 +161,7 @@ class RateLimitMiddlewareTest extends TestCase
         // Manually expire the cache file by setting expires_at to the past
         $cacheFiles = glob($this->testCacheDir . '/*');
         $this->assertNotEmpty($cacheFiles, 'Cache file should exist');
-        
+
         foreach ($cacheFiles as $file) {
             $data = json_decode(file_get_contents($file), true);
             $data['expires_at'] = time() - 3600; // Expired 1 hour ago
@@ -220,7 +221,7 @@ class RateLimitMiddlewareTest extends TestCase
     public function testHandlingMissingIPAddress(): void
     {
         $middleware = new RateLimitMiddleware(3, 1, $this->testCacheDir);
-        
+
         // Create request without IP headers
         $request = (new ServerRequestFactory())->createServerRequest('POST', '/login');
         $handler = $this->createMockHandler();
