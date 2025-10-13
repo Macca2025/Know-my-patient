@@ -33,9 +33,13 @@ class AdminController
             $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
             return $response;
         }
-        // Fetch all users
-        $stmt = $this->pdo->query('SELECT id, email, first_name, last_name, role, active, created_at, updated_at FROM users ORDER BY created_at DESC');
-        $allUsers = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Cache users list for 5 minutes (300 seconds)
+        // Frequently accessed by admins, but user data changes occasionally
+        $allUsers = $this->cacheService->remember('admin_users_list', function() {
+            $stmt = $this->pdo->query('SELECT id, email, first_name, last_name, role, active, created_at, updated_at FROM users ORDER BY created_at DESC');
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }, 300);
 
         // Get selected role from GET param
         $queryParams = $request->getQueryParams();
@@ -114,6 +118,9 @@ class AdminController
         if ($userId > 0) {
             $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = :id');
             $stmt->execute(['id' => $userId]);
+            
+            // Clear users cache after deletion
+            $this->cacheService->forget('admin_users_list');
         }
         return $response->withHeader('Location', '/admin/users')->withStatus(302);
     }
@@ -135,6 +142,9 @@ class AdminController
                 $stmt = $this->pdo->prepare('UPDATE users SET suspended_at = NOW(), active = 0 WHERE id = :id');
                 $stmt->execute(['id' => $userId]);
             }
+            
+            // Clear users cache after status change
+            $this->cacheService->forget('admin_users_list');
         }
         return $response->withHeader('Location', '/admin/users')->withStatus(302);
     }
@@ -354,8 +364,13 @@ class AdminController
             ]
         ];
         
-        $stmt = $this->pdo->query('SELECT id, name, role, testimonial FROM testimonials ORDER BY id DESC');
-        $testimonials = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        // Cache testimonials for 15 minutes (900 seconds)
+        // Invalidated when testimonials are added/deleted
+        $testimonials = $this->cacheService->remember('admin_testimonials_list', function() {
+            $stmt = $this->pdo->query('SELECT id, name, role, testimonial FROM testimonials ORDER BY id DESC');
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        }, 900);
+        
         $vars = [
             'title' => 'Testimonials',
             'description' => 'Testimonials admin page',
@@ -386,6 +401,7 @@ class AdminController
             
             // Clear testimonials cache after deletion
             $this->cacheService->forget('testimonials_homepage');
+            $this->cacheService->forget('admin_testimonials_list');
         }
         return $response->withHeader('Location', '/admin/testimonials')->withStatus(302);
     }

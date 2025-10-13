@@ -219,6 +219,10 @@ class AuthController
                         $hashedPassword,
                         $role
                     ]);
+                    
+                    // Clear users cache after registration
+                    $this->cacheService->forget('admin_users_list');
+                    
                     // Redirect to login with success alert
                     return $response->withHeader('Location', '/login?registered=1')->withStatus(302);
                 } catch (\Throwable $e) {
