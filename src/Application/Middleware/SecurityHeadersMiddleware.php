@@ -92,7 +92,8 @@ class SecurityHeadersMiddleware implements MiddlewareInterface
             "img-src 'self' data: https:",
             
             // AJAX, WebSocket, and EventSource connections
-            "connect-src 'self'",
+            // cdn.jsdelivr.net needed for loading source maps and QR scanner resources
+            "connect-src 'self' https://cdn.jsdelivr.net",
             
             // <object>, <embed>, and <applet> elements
             "object-src 'none'",
@@ -101,7 +102,8 @@ class SecurityHeadersMiddleware implements MiddlewareInterface
             "media-src 'self'",
             
             // Web Workers, Service Workers
-            "worker-src 'self'",
+            // blob: needed for QR scanner worker
+            "worker-src 'self' blob:",
             
             // Form submission targets
             "form-action 'self'",

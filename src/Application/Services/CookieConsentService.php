@@ -183,7 +183,7 @@ class CookieConsentService
     /**
      * Get consent data for template rendering
      * 
-     * @return array
+     * @return array<string, mixed>
      */
     public function getConsentData(): array
     {

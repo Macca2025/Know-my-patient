@@ -7,7 +7,7 @@ use PDO;
 
 class DatabaseAuditLogRepository implements AuditLogRepository
 {
-    private $pdo;
+    private PDO $pdo;
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;

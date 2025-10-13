@@ -44,8 +44,26 @@ class PatientPassportAction
             $uid = $parsedBody['uid'] ?? null;
 
             if ($uid) {
-                // Fetch patient data
-                $stmt = $this->pdo->prepare("SELECT * FROM patient_profiles WHERE patient_uid = :uid LIMIT 1");
+                // Fetch patient data with account information from users table
+                // JOIN on users.uid = patient_profiles.patient_uid
+                $stmt = $this->pdo->prepare("
+                    SELECT pp.*, 
+                           u.is_verified, 
+                           u.role, 
+                           u.created_at as user_created_at, 
+                           u.updated_at as user_updated_at, 
+                           u.uid as user_uid,
+                           u.email_verified_at,
+                           u.last_login,
+                           u.first_name,
+                           u.last_name,
+                           u.email as user_email,
+                           u.id as users_id
+                    FROM patient_profiles pp
+                    LEFT JOIN users u ON u.uid = pp.patient_uid
+                    WHERE pp.patient_uid = :uid 
+                    LIMIT 1
+                ");
                 $stmt->execute(['uid' => $uid]);
                 $patientData = $stmt->fetch(PDO::FETCH_ASSOC);
 

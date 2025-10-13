@@ -237,14 +237,12 @@ class AuthController
             // Enhanced password validation: minimum 8 characters and must contain a special character
             $password = $data['password'] ?? '';
             if (empty($password)) {
-                $errors['password'] = 'Password is required.';
-            } elseif (strlen($password) < 8) {
-                $errors['password'] = 'Password must be at least 8 characters long.';
-            } elseif (!preg_match('/[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\\/;~`]/', $password)) {
-                $errors['password'] = 'Password must contain at least one special character (e.g., !@#$%^&*).';
-            }
-            
-            // Check if email already exists
+            $errors['password'] = 'Password is required.';
+        } elseif (strlen($password) < 8) {
+            $errors['password'] = 'Password must be at least 8 characters long.';
+        } elseif (!preg_match('/[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\\\\\/;~`]/', $password)) {
+            $errors['password'] = 'Password must contain at least one special character (e.g., !@#$%^&*).';
+        }            // Check if email already exists
             if (empty($errors['email'])) {
                 $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM users WHERE email = ?');
                 $stmt->execute([$data['email']]);

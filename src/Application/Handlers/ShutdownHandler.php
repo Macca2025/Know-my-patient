@@ -37,7 +37,7 @@ class ShutdownHandler
 
             // Ignore deprecation warnings and notices in production
             // These are library-level warnings that don't affect functionality
-            if (in_array($errorType, [E_DEPRECATED, E_USER_DEPRECATED, E_NOTICE, E_USER_NOTICE, E_STRICT]) && !$this->displayErrorDetails) {
+            if (in_array($errorType, [E_DEPRECATED, E_USER_DEPRECATED, E_NOTICE, E_USER_NOTICE]) && !$this->displayErrorDetails) {
                 return;
             }
 

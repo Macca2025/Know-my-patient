@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Testimonial;
 
 class InMemoryTestimonialRepository
 {
+    /** @var array<int, array<string, string>> */
     private array $testimonials;
 
     public function __construct()
@@ -24,6 +25,9 @@ class InMemoryTestimonialRepository
         ];
     }
 
+    /**
+     * @return array<int, array<string, string>>
+     */
     public function getTestimonials(): array
     {
         return $this->testimonials;

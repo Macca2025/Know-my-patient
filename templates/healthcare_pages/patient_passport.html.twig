@@ -5,163 +5,223 @@
 
 {% block after_body_scripts %}
 <script type="module">
-import { startQRScanner } from '/js/qr_scanner_prod.js';
+import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
 
-const permissionStatusText = document.getElementById('permissionStatusText');
-const startScanBtn = document.getElementById('startScanBtn');
-const requestPermissionBtn = document.getElementById('requestPermissionBtn');
-const forcePermissionBtn = document.getElementById('forcePermissionBtn');
-const testCameraBtn = document.getElementById('testCameraBtn');
-const qrReaderDiv = document.getElementById('qr-reader');
+console.log('✅ QR Scanner module loaded');
 
-function updatePermissionStatus(msg, type = 'info') {
-    if (permissionStatusText) {
-        permissionStatusText.textContent = msg;
-        permissionStatusText.className = '';
-        if (type === 'error') permissionStatusText.classList.add('text-danger');
-        else if (type === 'success') permissionStatusText.classList.add('text-success');
-        else permissionStatusText.classList.add('text-muted');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Setting up QR scanner...');
+    
+    const requestPermissionBtn = document.getElementById('requestPermissionBtn');
+    const startScanBtn = document.getElementById('startScanBtn');
+    const stopScanBtn = document.getElementById('stopScanBtn');
+    const videoElement = document.getElementById('qr-video');
+    const readerDiv = document.getElementById('qr-reader');
+    const statusText = document.getElementById('permissionStatusText');
+    const scanResultDiv = document.getElementById('scanResult');
+    
+    let scanner = null;
+    let isScanning = false;
+    
+    // Update status
+    function updateStatus(message, type = 'info') {
+        if (statusText) {
+            statusText.textContent = message;
+            statusText.className = `text-${type}`;
+        }
+        console.log('Status:', message);
     }
-}
-
-async function requestCameraPermission() {
-    updatePermissionStatus('Requesting camera permission...', 'info');
-    console.log('Enable Camera Permission button clicked');
-    if (window.isSecureContext !== true) {
-        updatePermissionStatus('Camera access requires HTTPS (or localhost).', 'error');
-        return;
-    }
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(track => track.stop());
-        updatePermissionStatus('Camera permission granted.', 'success');
-    } catch (e) {
-        updatePermissionStatus('Camera access denied or unavailable.', 'error');
-        console.error('Camera permission error:', e);
-        if (e && e.name === 'NotAllowedError') {
-            updatePermissionStatus('Camera permission denied. Please check your browser settings and allow camera access.', 'error');
-        } else if (e && e.name === 'NotFoundError') {
-            updatePermissionStatus('No camera found on this device.', 'error');
-        } else if (e && e.name === 'NotReadableError') {
-            updatePermissionStatus('Camera is already in use by another application.', 'error');
-        } else if (e && e.name === 'SecurityError') {
-            updatePermissionStatus('Camera access is blocked by browser security settings.', 'error');
+    
+    // Show scan result
+    function showScanResult(data) {
+        if (scanResultDiv) {
+            scanResultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <strong>QR Code Detected!</strong><br>
+                    <small>Data: ${data}</small>
+                </div>
+            `;
         }
     }
-}
-
-async function requestAndStartCamera() {
-    try {
-        await navigator.mediaDevices.getUserMedia({ video: true });
-        updatePermissionStatus('Camera permission granted.', 'success');
-        showCameraForQR();
-    } catch (e) {
-        updatePermissionStatus('Camera access denied or unavailable.', 'error');
-    }
-}
-
-async function forceCameraRequest() {
-    try {
-        const streams = await navigator.mediaDevices.enumerateDevices();
-        streams.forEach(device => {
-            if (device.kind === 'videoinput') {
-                // No direct way to stop, but this is a placeholder for future logic
+    
+    // Request camera permission button
+    if (requestPermissionBtn) {
+        requestPermissionBtn.addEventListener('click', async function() {
+            console.log('Requesting camera permission...');
+            updateStatus('Requesting camera permission...', 'info');
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' }
+                });
+                
+                // Stop stream immediately
+                stream.getTracks().forEach(track => track.stop());
+                
+                updateStatus('Camera permission granted! ✓ Click "Start Scanning" to begin.', 'success');
+                
+                // Enable start button
+                if (startScanBtn) {
+                    startScanBtn.disabled = false;
+                    startScanBtn.classList.remove('btn-secondary');
+                    startScanBtn.classList.add('btn-success');
+                }
+                
+                // Hide permission button
+                requestPermissionBtn.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Permission error:', error);
+                let errorMessage = 'Camera permission denied. Please click the camera icon in your address bar and allow camera access.';
+                
+                if (error.name === 'NotFoundError') {
+                    errorMessage = 'No camera found on this device.';
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage = 'Camera is already in use.';
+                }
+                
+                updateStatus(errorMessage, 'danger');
             }
         });
-        await navigator.mediaDevices.getUserMedia({ video: true });
-        updatePermissionStatus('Camera permission forced and granted.', 'success');
-    } catch (e) {
-        updatePermissionStatus('Force request failed: Camera access denied or unavailable.', 'error');
     }
-}
-
-async function testCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        updatePermissionStatus('Camera test successful.', 'success');
-        qrReaderDiv.innerHTML = '';
-        const video = document.createElement('video');
-        video.style.width = '100%';
-        video.style.maxHeight = '240px';
-        video.autoplay = true;
-        qrReaderDiv.appendChild(video);
-        video.srcObject = stream;
-        setTimeout(() => {
-            stream.getTracks().forEach(track => track.stop());
-            video.remove();
-            updatePermissionStatus('Camera test complete.', 'info');
-        }, 2000);
-    } catch (e) {
-        updatePermissionStatus('Camera test failed: ' + (e.message || e), 'error');
-    }
-}
-
-function showCameraForQR() {
-    qrReaderDiv.innerHTML = '';
-    const video = document.createElement('video');
-    video.style.width = '100%';
-    video.style.maxHeight = '240px';
-    qrReaderDiv.appendChild(video);
-    startQRScanner(video, (result) => {
-        updatePermissionStatus('QR code detected: ' + result, 'success');
-        
-        // Handle the scanned result by submitting the form
-        const lookupForm = document.getElementById('lookupForm');
-        const uidInput = document.getElementById('uid');
-        const accessMethodInput = document.getElementById('accessMethod');
-        
-        if (lookupForm && uidInput && accessMethodInput) {
-            // Set the scanned UID and access method
-            uidInput.value = result;
-            accessMethodInput.value = 'qr_scan';
+    
+    // Start scanning button
+    if (startScanBtn) {
+        startScanBtn.addEventListener('click', async function() {
+            if (isScanning) return;
             
-            // Stop the camera
-            if (video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
+            console.log('Starting QR scanner...');
+            updateStatus('Starting camera...', 'info');
+            
+            try {
+                // Show video element
+                if (readerDiv) readerDiv.style.display = 'block';
+                if (videoElement) videoElement.style.display = 'block';
+                
+                // Create scanner with better detection settings
+                scanner = new QrScanner(
+                    videoElement,
+                    result => {
+                        showScanResult(result.data);
+                        updateStatus('✅ QR Code detected! Processing...', 'success');
+                        
+                        // Vibrate if supported
+                        if ('vibrate' in navigator) {
+                            navigator.vibrate(200);
+                        }
+                        
+                        // Submit the form with the scanned UID
+                        const uidInput = document.querySelector('input[name="uid"]');
+                        
+                        if (uidInput) {
+                            uidInput.value = result.data;
+                            
+                            // Auto-submit the form
+                            const form = uidInput.closest('form');
+                            
+                            if (form) {
+                                scanner.stop();
+                                form.submit();
+                            }
+                        }
+                    },
+                    {
+                        onDecodeError: error => {
+                            // Silent - keep scanning
+                        },
+                        highlightScanRegion: true,
+                        highlightCodeOutline: true,
+                        maxScansPerSecond: 10,
+                        preferredCamera: 'environment',
+                        calculateScanRegion: (video) => {
+                            // Use larger scan region for better detection
+                            const smallestDimension = Math.min(video.videoWidth, video.videoHeight);
+                            const scanRegionSize = Math.round(0.75 * smallestDimension);
+                            return {
+                                x: Math.round((video.videoWidth - scanRegionSize) / 2),
+                                y: Math.round((video.videoHeight - scanRegionSize) / 2),
+                                width: scanRegionSize,
+                                height: scanRegionSize,
+                            };
+                        }
+                    }
+                );
+                
+                await scanner.start();
+                isScanning = true;
+                
+                updateStatus('📷 Camera active - Hold QR code steady in the frame', 'success');
+                console.log('✅ Scanner started successfully');
+                
+                // Show stop button, hide start button
+                if (startScanBtn) {
+                    startScanBtn.style.display = 'none';
+                }
+                if (stopScanBtn) {
+                    stopScanBtn.style.display = 'inline-block';
+                }
+                
+            } catch (error) {
+                console.error('Scanner error:', error);
+                updateStatus('Error starting camera: ' + error.message, 'danger');
+            }
+        });
+    }
+    
+    // Stop scanning button
+    if (stopScanBtn) {
+        stopScanBtn.addEventListener('click', function() {
+            console.log('Stopping scanner...');
+            
+            if (scanner) {
+                scanner.stop();
+                scanner.destroy();
+                scanner = null;
             }
             
-            // Submit the form with CSRF tokens
-            lookupForm.submit();
-        }
-    }, (err) => {
-        updatePermissionStatus(err, 'error');
-    });
-}
-
-if (startScanBtn) {
-    startScanBtn.addEventListener('click', requestAndStartCamera);
-}
-if (requestPermissionBtn) {
-    requestPermissionBtn.addEventListener('click', requestCameraPermission);
-}
-if (forcePermissionBtn) {
-    forcePermissionBtn.addEventListener('click', forceCameraRequest);
-}
-if (testCameraBtn) {
-    testCameraBtn.addEventListener('click', testCamera);
-}
+            isScanning = false;
+            
+            // Hide video
+            if (readerDiv) readerDiv.style.display = 'none';
+            if (videoElement) videoElement.style.display = 'none';
+            
+            // Show start button, hide stop button
+            if (startScanBtn) {
+                startScanBtn.style.display = 'inline-block';
+            }
+            if (stopScanBtn) {
+                stopScanBtn.style.display = 'none';
+            }
+            
+            updateStatus('Scanning stopped.', 'info');
+        });
+    }
+    
+    // Initial state
+    updateStatus('Click "Enable Camera Permission" to start.', 'muted');
+    if (startScanBtn) startScanBtn.disabled = true;
+    if (stopScanBtn) stopScanBtn.style.display = 'none';
+});
 </script>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2 bg-light navbar-offset">
+<div class="container-fluid py-2 bg-light navbar-offset pb-5" style="padding-top: 90px !important;">
             <!-- Header Section -->
-            <div class="row mb-3">
-                <div class="col-12">
-                    <div class="d-flex align-items-center justify-content-between pt-2">
-                        <div>
-                            <h1 class="fw-bold text-purple-primary mb-2">
-                                <i class="bi bi-qr-code-scan me-2"></i>Patient Lookup
-                            </h1>
-                            <p class="lead text-secondary mb-0">
-                                Scan QR codes or enter patient UID to access medical records
-                            </p>
-                        </div>
-                        <div>
-                            <a href="user_dashboard.php" class="btn btn-outline-primary">
-                                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
-                            </a>
-                        </div>
+            <div class="admin-header section-gradient-light rounded-4 shadow-sm mb-4 p-4 mt-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="fw-bold text-purple-primary mb-2">
+                            <i class="bi bi-qr-code-scan me-2"></i>Patient Lookup
+                        </h1>
+                        <p class="lead text-secondary mb-0">
+                            Scan QR codes or enter patient UID to access medical records
+                        </p>
+                    </div>
+                    <div>
+                        <a href="user_dashboard.php" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                        </a>
                     </div>
                 </div>
             </div>
@@ -179,7 +239,7 @@ if (testCameraBtn) {
             </div>
             {% endif %}
 
-            <div class="row g-4">
+            <div class="row g-4 mb-5">
                 <!-- Lookup Form -->
                 <div class="col-12 col-lg-4">
                     <div class="card h-100 shadow border-0">
@@ -213,19 +273,24 @@ if (testCameraBtn) {
                                                 <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" id="startScanBtn">
                                                     <i class="bi bi-camera me-2"></i>Start QR Scanner
                                                 </button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm w-100 mb-2" id="stopScanBtn" style="display: none;">
+                                                    <i class="bi bi-stop-circle me-2"></i>Stop Scanning
+                                                </button>
                                                 <button type="button" class="btn btn-outline-info btn-sm w-100 mb-2" id="requestPermissionBtn">
                                                     <i class="bi bi-shield-check me-2"></i>Enable Camera Permission
-                                                </button>
-                                                <button type="button" class="btn btn-outline-warning btn-sm w-100 mb-2 lookup-force-permission-btn" id="forcePermissionBtn">
-                                                    <i class="bi bi-exclamation-triangle me-2"></i>Force Camera Request
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="testCameraBtn">
-                                                    <i class="bi bi-gear me-2"></i>Test Camera
                                                 </button>
                                             </div>
                                             
                                             <!-- Camera preview -->
-                                            <div id="qr-reader" class="lookup-qr-reader"></div>
+                                            <div id="qr-reader" class="lookup-qr-reader text-center" style="display: none; background: #000; padding: 10px; border-radius: 8px;">
+                                                <video id="qr-video" style="width: 100%; max-width: 600px; height: auto; border: 3px solid #17a2b8; border-radius: 8px; display: block; margin: 0 auto;"></video>
+                                                <div class="mt-2">
+                                                    <small class="text-white">
+                                                        <i class="bi bi-crosshair"></i> Center QR code in frame and hold steady
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div id="scanResult" class="mt-2"></div>
                                             <div id="qr-reader-results" class="mt-2"></div>
                                             
                                             <!-- Camera troubleshooting guide -->
@@ -235,8 +300,7 @@ if (testCameraBtn) {
                                                     <strong>1. Permissions:</strong> Click "Enable Camera Permission" first<br>
                                                     <strong>2. Browser:</strong> Look for camera icon in address bar<br>
                                                     <strong>3. Security:</strong> HTTPS required (not localhost)<br>
-                                                    <strong>4. Testing:</strong> Use "Test Camera" to verify functionality<br>
-                                                    <strong>5. Fallback:</strong> Use manual UID entry if camera fails
+                                                    <strong>4. Fallback:</strong> Use manual UID entry if camera fails
                                                 </small>
                                             </div>
                                         </div>
@@ -365,7 +429,7 @@ if (testCameraBtn) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for access in accessHistory %}
+                                                {% for access in accessHistory|slice(0, 3) %}
                                                 <tr>
                                                     <td>{{ access.timestamp|date('d/m/Y H:i:s') }}</td>
                                                     <td>
@@ -382,7 +446,7 @@ if (testCameraBtn) {
                                         </table>
                                     </div>
                                     <small class="text-muted d-block mt-2">
-                                        <i class="bi bi-info-circle me-1"></i>Showing last {{ accessHistory|length }} access{{ accessHistory|length > 1 ? 'es' : '' }}
+                                        <i class="bi bi-info-circle me-1"></i>Showing last 3 most recent access{{ (accessHistory|slice(0, 3))|length > 1 ? 'es' : '' }}
                                     </small>
                                 </div>
                             </div>
@@ -468,33 +532,33 @@ if (testCameraBtn) {
                                                     <div class="row g-2 mb-3">
                                                         <div class="col-sm-3"><strong>Allergies:</strong></div>
                                                         <div class="col-sm-9">
-                                                            <?php if (!empty($patientData['allergies'])): ?>
-                                                                <div class="alert alert-warning py-2"><?php echo nl2br(htmlspecialchars($patientData['allergies'])); ?></div>
-                                                            <?php else: ?>
+                                                            {% if patientData.allergies is not empty %}
+                                                                <div class="alert alert-warning py-2">{{ patientData.allergies|nl2br }}</div>
+                                                            {% else %}
                                                                 <span class="text-muted">No known allergies recorded</span>
-                                                            <?php endif; ?>
+                                                            {% endif %}
                                                         </div>
                                                     </div>
                                                     
                                                     <div class="row g-2 mb-3">
                                                         <div class="col-sm-3"><strong>Medical Conditions:</strong></div>
                                                         <div class="col-sm-9">
-                                                            <?php if (!empty($patientData['medical_conditions'])): ?>
-                                                                <div class="alert alert-info py-2"><?php echo nl2br(htmlspecialchars($patientData['medical_conditions'])); ?></div>
-                                                            <?php else: ?>
+                                                            {% if patientData.medical_conditions is not empty %}
+                                                                <div class="alert alert-info py-2">{{ patientData.medical_conditions|nl2br }}</div>
+                                                            {% else %}
                                                                 <span class="text-muted">No medical conditions recorded</span>
-                                                            <?php endif; ?>
+                                                            {% endif %}
                                                         </div>
                                                     </div>
                                                     
                                                     <div class="row g-2">
                                                         <div class="col-sm-3"><strong>Current Medications:</strong></div>
                                                         <div class="col-sm-9">
-                                                            <?php if (!empty($patientData['medications'])): ?>
-                                                                <div class="alert alert-primary py-2"><?php echo nl2br(htmlspecialchars($patientData['medications'])); ?></div>
-                                                            <?php else: ?>
+                                                            {% if patientData.medications is not empty %}
+                                                                <div class="alert alert-primary py-2">{{ patientData.medications|nl2br }}</div>
+                                                            {% else %}
                                                                 <span class="text-muted">No medications recorded</span>
-                                                            <?php endif; ?>
+                                                            {% endif %}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -517,26 +581,34 @@ if (testCameraBtn) {
                                                     <div class="row g-2">
                                                         <div class="col-sm-6"><strong>ReSPECT Form:</strong></div>
                                                         <div class="col-sm-6">
-                                                            <?php if (!empty($patientData['has_respect_form'])): ?>
-                                                                <span class="badge bg-<?php echo $patientData['has_respect_form'] === 'yes' ? 'success' : ($patientData['has_respect_form'] === 'no' ? 'secondary' : 'warning'); ?>">
-                                                                    <?php echo ucfirst(htmlspecialchars($patientData['has_respect_form'])); ?>
+                                                            {% if patientData.has_respect_form is not empty %}
+                                                                <span class="badge bg-{{ patientData.has_respect_form == 'yes' ? 'success' : (patientData.has_respect_form == 'no' ? 'secondary' : 'warning') }}">
+                                                                    {{ patientData.has_respect_form|capitalize }}
                                                                 </span>
-                                                            <?php else: ?>
+                                                            {% else %}
                                                                 <span class="text-muted">Not specified</span>
-                                                            <?php endif; ?>
+                                                            {% endif %}
                                                         </div>
                                                         
                                                         <div class="col-sm-6"><strong>Resuscitation Status:</strong></div>
                                                         <div class="col-sm-6">
-                                                            <?php if (!empty($patientData['resuscitation_status'])): ?>
-                                                                <span class="badge bg-<?php echo $patientData['resuscitation_status'] === 'full' ? 'success' : 'warning'; ?>">
-                                                                    <?php echo ucfirst(htmlspecialchars($patientData['resuscitation_status'])); ?>
+                                                            {% if patientData.resuscitation_status is not empty %}
+                                                                <span class="badge bg-{{ patientData.resuscitation_status == 'full_active' ? 'success' : 'warning' }}">
+                                                                    {{ patientData.resuscitation_status|replace({'_': ' '})|capitalize }}
                                                                 </span>
-                                                            <?php else: ?>
+                                                            {% else %}
                                                                 <span class="text-muted">Not specified</span>
-                                                            <?php endif; ?>
+                                                            {% endif %}
                                                         </div>
                                                     </div>
+                                                    
+                                                    {% if patientData.respect_document_path is not empty %}
+                                                    <div class="mt-3">
+                                                        <a href="{{ patientData.respect_document_path }}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                                            <i class="bi bi-file-earmark-pdf me-2"></i>View ReSPECT Form Document
+                                                        </a>
+                                                    </div>
+                                                    {% endif %}
                                                 </div>
                                                 <div class="col-md-6">
                                                     <?php if (!empty($patientData['advance_directives'])): ?>
@@ -768,21 +840,21 @@ if (testCameraBtn) {
                                                     <h6 class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Emergency Contact</h6>
                                                     <div class="row g-2">
                                                         <div class="col-sm-4"><strong>Name:</strong></div>
-                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['emergency_contact_1_name'] ?? 'Not provided'); ?></div>
+                                                        <div class="col-sm-8">{{ patientData.emergency_contact_1_name|default('Not provided') }}</div>
                                                         
                                                         <div class="col-sm-4"><strong>Phone:</strong></div>
                                                         <div class="col-sm-8">
-                                                            <?php if (!empty($patientData['emergency_contact_1_phone'])): ?>
-                                                                <a href="tel:<?php echo htmlspecialchars($patientData['emergency_contact_1_phone']); ?>" class="text-decoration-none">
-                                                                    <i class="bi bi-telephone me-1"></i><?php echo htmlspecialchars($patientData['emergency_contact_1_phone']); ?>
+                                                            {% if patientData.emergency_contact_1_phone is not empty %}
+                                                                <a href="tel:{{ patientData.emergency_contact_1_phone }}" class="text-decoration-none">
+                                                                    <i class="bi bi-telephone me-1"></i>{{ patientData.emergency_contact_1_phone }}
                                                                 </a>
-                                                            <?php else: ?>
+                                                            {% else %}
                                                                 Not provided
-                                                            <?php endif; ?>
+                                                            {% endif %}
                                                         </div>
                                                         
                                                         <div class="col-sm-4"><strong>Relationship:</strong></div>
-                                                        <div class="col-sm-8"><?php echo htmlspecialchars($patientData['emergency_contact_1_relationship'] ?? 'Not specified'); ?></div>
+                                                        <div class="col-sm-8">{{ patientData.emergency_contact_1_relationship|default('Not specified') }}</div>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
@@ -812,7 +884,6 @@ if (testCameraBtn) {
                                 </div>
 
                                 <!-- LPA Information -->
-                                {% if patientData.lpa_health_attorney_name is not empty or patientData.lpa_finance_attorney_name is not empty %}
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="headingLPA">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLPA" aria-expanded="false" aria-controls="collapseLPA">
@@ -822,9 +893,9 @@ if (testCameraBtn) {
                                     <div id="collapseLPA" class="accordion-collapse collapse" aria-labelledby="headingLPA" data-bs-parent="#patientInfoAccordion">
                                         <div class="accordion-body">
                                             <div class="row g-3">
-                                                {% if patientData.lpa_health_attorney_name is not empty %}
                                                 <div class="col-md-6">
                                                     <h6 class="text-success"><i class="bi bi-heart-pulse me-1"></i>Health & Welfare LPA</h6>
+                                                    {% if patientData.lpa_health_attorney_name is not empty %}
                                                     <div class="row g-2">
                                                         <div class="col-sm-4"><strong>Attorney:</strong></div>
                                                         <div class="col-sm-8">{{ patientData.lpa_health_attorney_name }}</div>
@@ -839,20 +910,23 @@ if (testCameraBtn) {
                                                                 Not provided
                                                             {% endif %}
                                                         </div>
-                                                        
-                                                        {% if patientData.lpa_health_document_name is not empty %}
-                                                        <div class="col-sm-4"><strong>Document:</strong></div>
-                                                        <div class="col-sm-8">
-                                                            <small class="text-muted">{{ patientData.lpa_health_document_name }}</small>
-                                                        </div>
-                                                        {% endif %}
                                                     </div>
+                                                    {% else %}
+                                                        <p class="text-muted mb-0">No Health & Welfare LPA information recorded</p>
+                                                    {% endif %}
+                                                    
+                                                    {% if patientData.lpa_health_document_path is not empty %}
+                                                    <div class="mt-3">
+                                                        <a href="{{ patientData.lpa_health_document_path }}" target="_blank" class="btn btn-sm btn-outline-success w-100">
+                                                            <i class="bi bi-file-earmark-pdf me-2"></i>View Health & Welfare LPA Document
+                                                        </a>
+                                                    </div>
+                                                    {% endif %}
                                                 </div>
-                                                {% endif %}
                                                 
-                                                {% if patientData.lpa_finance_attorney_name is not empty %}
                                                 <div class="col-md-6">
                                                     <h6 class="text-warning"><i class="bi bi-currency-pound me-1"></i>Property & Financial Affairs LPA</h6>
+                                                    {% if patientData.lpa_finance_attorney_name is not empty %}
                                                     <div class="row g-2">
                                                         <div class="col-sm-4"><strong>Attorney:</strong></div>
                                                         <div class="col-sm-8">{{ patientData.lpa_finance_attorney_name }}</div>
@@ -867,16 +941,19 @@ if (testCameraBtn) {
                                                                 Not provided
                                                             {% endif %}
                                                         </div>
-                                                        
-                                                        {% if patientData.lpa_finance_document_name is not empty %}
-                                                        <div class="col-sm-4"><strong>Document:</strong></div>
-                                                        <div class="col-sm-8">
-                                                            <small class="text-muted">{{ patientData.lpa_finance_document_name }}</small>
-                                                        </div>
-                                                        {% endif %}
                                                     </div>
+                                                    {% else %}
+                                                        <p class="text-muted mb-0">No Property & Financial Affairs LPA information recorded</p>
+                                                    {% endif %}
+                                                    
+                                                    {% if patientData.lpa_finance_document_path is not empty %}
+                                                    <div class="mt-3">
+                                                        <a href="{{ patientData.lpa_finance_document_path }}" target="_blank" class="btn btn-sm btn-outline-warning w-100">
+                                                            <i class="bi bi-file-earmark-pdf me-2"></i>View Property & Finance LPA Document
+                                                        </a>
+                                                    </div>
+                                                    {% endif %}
                                                 </div>
-                                                {% endif %}
                                             </div>
                                             
                                             {% if patientData.lpa_additional_notes is not empty %}
@@ -890,7 +967,6 @@ if (testCameraBtn) {
                                         </div>
                                     </div>
                                 </div>
-                                {% endif %}
 
                                 <!-- End-of-Life Planning -->
                                 {% if patientData.funeral_arrangements is not empty or patientData.organ_donation is not empty or patientData.funeral_details_notes is not empty %}
@@ -966,29 +1042,41 @@ if (testCameraBtn) {
                                             <div class="row g-2">
                                                 <div class="col-sm-3"><strong>Account Status:</strong></div>
                                                 <div class="col-sm-9">
-                                                    <span class="badge bg-{{ patientData.is_verified ? 'success' : 'warning' }}">
-                                                        {{ patientData.is_verified ? 'Verified' : 'Pending Verification' }}
-                                                    </span>
+                                                    {% if patientData.is_verified is defined %}
+                                                        <span class="badge bg-{{ patientData.is_verified ? 'success' : 'warning' }}">
+                                                            {{ patientData.is_verified ? 'Verified' : 'Pending Verification' }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-muted">Not available</span>
+                                                    {% endif %}
                                                 </div>
                                                 
                                                 <div class="col-sm-3"><strong>Role:</strong></div>
                                                 <div class="col-sm-9">
-                                                    <span class="badge bg-{{ patientData.role == 'patient' ? 'primary' : 'info' }}">
-                                                        {{ patientData.role|title }}
-                                                    </span>
+                                                    {% if patientData.role is defined and patientData.role is not empty %}
+                                                        <span class="badge bg-{{ patientData.role == 'patient' ? 'primary' : 'info' }}">
+                                                            {{ patientData.role|title }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-muted">Not available</span>
+                                                    {% endif %}
                                                 </div>
                                                 
                                                 <div class="col-sm-3"><strong>Registered:</strong></div>
                                                 <div class="col-sm-9">
-                                                    {{ patientData.created_at|date('j M Y, g:i A') }}
+                                                    {{ patientData.user_created_at ? patientData.user_created_at|date('j M Y, g:i A') : 'Not available' }}
                                                 </div>
                                                 <div class="col-sm-3"><strong>Last Updated:</strong></div>
                                                 <div class="col-sm-9">
-                                                    {{ patientData.updated_at|date('j M Y, g:i A') }}
+                                                    {{ patientData.user_updated_at ? patientData.user_updated_at|date('j M Y, g:i A') : 'Not available' }}
                                                 </div>
                                                 <div class="col-sm-3"><strong>Patient UID:</strong></div>
                                                 <div class="col-sm-9">
-                                                    <code class="small">{{ patientData.uid }}</code>
+                                                    <code class="small">{{ patientData.patient_uid }}</code>
+                                                </div>
+                                                <div class="col-sm-3"><strong>User Account UID:</strong></div>
+                                                <div class="col-sm-9">
+                                                    <code class="small">{{ patientData.user_uid }}</code>
                                                 </div>
                                             </div>
                                         </div>
@@ -1003,7 +1091,7 @@ if (testCameraBtn) {
                     
                     <!-- Empty State - Only show when no patient is selected -->
                     {% if not patientData %}
-                    <div class="card shadow border-0 h-100">
+                    <div class="card shadow border-0 h-100 mb-5">
                         <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
                             <i class="bi bi-person-slash display-1 text-muted mb-3"></i>
                             <h4 class="text-muted mb-3">No Patient Selected</h4>

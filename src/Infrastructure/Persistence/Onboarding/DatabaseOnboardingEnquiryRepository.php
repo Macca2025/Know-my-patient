@@ -17,7 +17,7 @@ class DatabaseOnboardingEnquiryRepository
 
     /**
      * Insert a new onboarding enquiry into the database.
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return int Inserted ID
      */
     public function insert(array $data): int

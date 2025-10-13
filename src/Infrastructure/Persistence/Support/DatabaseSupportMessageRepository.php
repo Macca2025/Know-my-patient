@@ -7,7 +7,7 @@ use PDOException;
 
 class DatabaseSupportMessageRepository
 {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo)
     {
@@ -16,7 +16,7 @@ class DatabaseSupportMessageRepository
 
     /**
      * Insert a new support message into the database.
-     * @param array $data
+     * @param array<string, mixed> $data
      * @return int Inserted ID
      * @throws PDOException
      */

@@ -15,6 +15,9 @@ class DatabaseTestimonialRepository
         $this->pdo = $pdo;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getTestimonials(): array
     {
         $stmt = $this->pdo->prepare('SELECT testimonial, name, role FROM testimonials');

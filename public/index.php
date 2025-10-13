@@ -81,10 +81,19 @@ use Slim\Factory\ServerRequestCreatorFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+// Suppress PHP 8.4 deprecation warnings from PHP-DI vendor library
+// These are third-party library issues that will be fixed in future PHP-DI releases
+// They do not affect functionality and are safe to ignore
+error_reporting(E_ALL & ~E_DEPRECATED);
+ini_set('display_errors', '0');
+
 // Load environment variables from .env using vlucas/phpdotenv
 if (class_exists('Dotenv\\Dotenv')) {
 	(Dotenv\Dotenv::createImmutable(__DIR__ . '/../'))->safeLoad();
 }
+
+// Restore error reporting after PHP-DI is loaded (will be set by app settings)
+// The ShutdownHandler will handle errors properly after bootstrap
 
 // Instantiate PHP-DI ContainerBuilder
 // Instantiate PHP-DI ContainerBuilder
@@ -108,6 +117,11 @@ $repositories($containerBuilder);
 
 // Build PHP-DI Container instance
 $container = $containerBuilder->build();
+
+// Restore full error reporting after PHP-DI container is built
+// This allows the app's error handlers to work properly
+error_reporting(E_ALL);
+// display_errors will be set by SettingsInterface based on environment
 
 // Instantiate the app
 AppFactory::setContainer($container);
