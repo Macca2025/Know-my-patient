@@ -1,5 +1,8 @@
+{% extends 'layouts/base.html.twig' %}
+
 {% block scripts %}
 {% endblock %}
+
 {% block after_body_scripts %}
 <script type="module">
 import { startQRScanner } from '/js/qr_scanner_prod.js';
@@ -121,8 +124,7 @@ if (testCameraBtn) {
 }
 </script>
 {% endblock %}
-{% endblock %}
-{% extends 'layouts/base.html.twig' %}
+
 {% block content %}
 <div class="container-fluid py-2 bg-light navbar-offset">
             <!-- Header Section -->
@@ -233,6 +235,11 @@ if (testCameraBtn) {
                                     <div id="collapseManualEntry" class="accordion-collapse collapse" aria-labelledby="headingManualEntry" data-bs-parent="#patientLookupAccordion">
                                         <div class="accordion-body">
                                             <form method="POST" id="lookupForm">
+                                                {# CSRF token fields #}
+                                                {% if csrf is defined %}
+                                                    <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
+                                                    <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
+                                                {% endif %}
                                                 <input type="hidden" id="accessMethod" name="access_method" value="manual">
                                                 <div class="mb-3">
                                                     <label for="uid" class="form-label">Patient UID</label>

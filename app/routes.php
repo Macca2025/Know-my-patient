@@ -128,6 +128,16 @@ return function (App $app) {
     $app->get('/privacy-policy', [\App\Application\Actions\HomeController::class, 'privacyPolicy'])->setName('privacy_policy');
 
     // --------------------
+    // Terms of Service Route (GET)
+    // --------------------
+    $app->get('/terms-of-service', [\App\Application\Actions\HomeController::class, 'termsOfService'])->setName('terms_of_service');
+
+    // --------------------
+    // Accessibility Statement Route (GET)
+    // --------------------
+    $app->get('/accessibility', [\App\Application\Actions\HomeController::class, 'accessibility'])->setName('accessibility');
+
+    // --------------------
     // Delete Account Route (GET, POST)
     // --------------------
     $app->map(['GET', 'POST'], '/delete-account', [\App\Application\Actions\DashboardController::class, 'deleteAccount'])->setName('delete_account');

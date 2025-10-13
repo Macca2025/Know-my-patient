@@ -26,7 +26,7 @@ class SupportController
 
     public function support(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
+        $data = $request->getParsedBody() ?? [];
         $errors = [];
         $success = false;
         $csrf = [
@@ -37,7 +37,10 @@ class SupportController
                 'value' => 'csrf_value'
             ]
         ];
+        
         if ($request->getMethod() === 'POST') {
+            $this->logger->info('Support form submitted', ['method' => 'POST', 'has_data' => !empty($data)]);
+            
             $nameValidator = v::notEmpty()->length(2, 100);
             $emailValidator = v::notEmpty()->email();
             $subjectValidator = v::notEmpty()->length(2, 150);
@@ -67,16 +70,34 @@ class SupportController
                         'ip_address' => IpAddressService::getClientIp(),
                         'user_agent' => $request->getServerParams()['HTTP_USER_AGENT'] ?? null,
                     ];
-                    $this->supportRepo->insert($insertData);
+                    
+                    $this->logger->info('Attempting to insert support message', ['data' => $insertData]);
+                    $insertedId = $this->supportRepo->insert($insertData);
+                    $this->logger->info('Support message inserted successfully', ['id' => $insertedId]);
+                    
                     $success = true;
-                    $data = [];
+                    $data = []; // Clear form data on success
                 } catch (\Throwable $e) {
-                    $this->logger->error('Error submitting support message', ['exception' => $e, 'data' => $data]);
+                    $this->logger->error('Error submitting support message', [
+                        'exception' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                        'data' => $insertData ?? []
+                    ]);
                     $errors['general'] = 'There was an error submitting your message. Please try again later.';
                 }
+            } else {
+                $this->logger->warning('Support form validation failed', ['errors' => $errors, 'data' => $data]);
             }
-            // Always get fresh CSRF tokens after POST
-            $csrf = $request->getAttribute('csrf');
+            
+            // Regenerate CSRF tokens after POST
+            $csrf = [
+                'name' => $request->getAttribute('csrf_name'),
+                'value' => $request->getAttribute('csrf_value'),
+                'keys' => [
+                    'name' => 'csrf_name',
+                    'value' => 'csrf_value'
+                ]
+            ];
         }
 
         $body = $this->twig->getEnvironment()->render('support.html.twig', [

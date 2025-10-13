@@ -1,0 +1,254 @@
+{% extends 'layouts/base.html.twig' %}
+{% block content %}
+<div class="d-flex flex-column min-vh-100 navbar-offset">
+    <main class="flex-grow-1 py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card shadow border-0">
+                        <div class="card-header bg-primary text-white py-4">
+                            <h1 class="mb-0 h2">
+                                <i class="bi bi-file-text me-2"></i>Terms of Service
+                            </h1>
+                            <p class="mb-0 mt-2 opacity-75">
+                                Last Updated: 13 October 2025
+                            </p>
+                        </div>
+                        <div class="card-body p-4 p-md-5">
+                            
+                            <!-- Introduction -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">1. Introduction</h2>
+                                <p>Welcome to Know My Patient. These Terms of Service ("Terms") govern your access to and use of the Know My Patient digital patient passport platform ("Service"). By accessing or using our Service, you agree to be bound by these Terms.</p>
+                                <p>If you do not agree to these Terms, please do not use our Service.</p>
+                            </section>
+
+                            <!-- Definitions -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">2. Definitions</h2>
+                                <ul>
+                                    <li><strong>"Service"</strong> refers to the Know My Patient digital patient passport platform</li>
+                                    <li><strong>"User"</strong> refers to any individual accessing or using the Service</li>
+                                    <li><strong>"Patient"</strong> refers to individuals whose medical information is stored in the Service</li>
+                                    <li><strong>"Healthcare Provider"</strong> refers to NHS staff and authorized medical professionals</li>
+                                    <li><strong>"Content"</strong> refers to all information, data, text, and materials on the Service</li>
+                                </ul>
+                            </section>
+
+                            <!-- User Accounts -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">3. User Accounts</h2>
+                                <h3 class="h5 mb-2">3.1 Registration</h3>
+                                <p>To use certain features of the Service, you must register for an account. You agree to:</p>
+                                <ul>
+                                    <li>Provide accurate, current, and complete information during registration</li>
+                                    <li>Maintain and update your information to keep it accurate and current</li>
+                                    <li>Maintain the security of your password and account credentials</li>
+                                    <li>Notify us immediately of any unauthorized access to your account</li>
+                                    <li>Accept responsibility for all activities that occur under your account</li>
+                                </ul>
+
+                                <h3 class="h5 mb-2 mt-4">3.2 Account Types</h3>
+                                <p>Different account types have different access levels:</p>
+                                <ul>
+                                    <li><strong>Patient Accounts:</strong> Manage personal medical information and control access</li>
+                                    <li><strong>Family Member Accounts:</strong> Manage patient profiles on behalf of family members</li>
+                                    <li><strong>NHS User Accounts:</strong> Access patient records via QR code scanning for care delivery</li>
+                                    <li><strong>Administrator Accounts:</strong> System administration and user management</li>
+                                </ul>
+                            </section>
+
+                            <!-- Use of Service -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">4. Acceptable Use</h2>
+                                <h3 class="h5 mb-2">4.1 Permitted Use</h3>
+                                <p>You may use the Service only for lawful purposes and in accordance with these Terms. Specifically, you agree to:</p>
+                                <ul>
+                                    <li>Use the Service only for its intended healthcare purposes</li>
+                                    <li>Comply with all applicable laws and regulations, including GDPR and NHS guidelines</li>
+                                    <li>Respect the privacy and confidentiality of patient information</li>
+                                    <li>Access only information you are authorized to view</li>
+                                </ul>
+
+                                <h3 class="h5 mb-2 mt-4">4.2 Prohibited Use</h3>
+                                <p>You agree NOT to:</p>
+                                <ul>
+                                    <li>Access or attempt to access accounts or data you are not authorized to access</li>
+                                    <li>Use the Service for any fraudulent or unlawful purpose</li>
+                                    <li>Interfere with or disrupt the Service or servers</li>
+                                    <li>Attempt to bypass any security measures</li>
+                                    <li>Share, sell, or distribute patient data without authorization</li>
+                                    <li>Use automated systems (bots, scrapers) to access the Service</li>
+                                    <li>Upload viruses or malicious code</li>
+                                    <li>Impersonate another user or healthcare provider</li>
+                                </ul>
+                            </section>
+
+                            <!-- Medical Information -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">5. Medical Information and Disclaimers</h2>
+                                <h3 class="h5 mb-2">5.1 Not Medical Advice</h3>
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <strong>Important:</strong> The Service is a tool for storing and accessing patient information. It does not provide medical advice, diagnosis, or treatment. Always consult qualified healthcare professionals for medical decisions.
+                                </div>
+
+                                <h3 class="h5 mb-2 mt-4">5.2 Information Accuracy</h3>
+                                <p>While we strive to ensure the Service operates correctly, we cannot guarantee:</p>
+                                <ul>
+                                    <li>The accuracy or completeness of information entered by users</li>
+                                    <li>That the Service will be error-free or uninterrupted</li>
+                                    <li>That information will always be available when needed</li>
+                                </ul>
+                                <p>Healthcare providers should verify critical information through official NHS systems.</p>
+
+                                <h3 class="h5 mb-2 mt-4">5.3 Emergency Situations</h3>
+                                <p class="text-danger"><strong>In case of medical emergency, always call 999 immediately. Do not rely solely on this Service in emergency situations.</strong></p>
+                            </section>
+
+                            <!-- Data and Privacy -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">6. Data Protection and Privacy</h2>
+                                <h3 class="h5 mb-2">6.1 Data Collection</h3>
+                                <p>We collect and process personal data as described in our <a href="{{ url_for('privacy_policy')|default('/privacy-policy') }}" class="link-primary">Privacy Policy</a>. By using the Service, you consent to such processing.</p>
+
+                                <h3 class="h5 mb-2 mt-4">6.2 Your Rights</h3>
+                                <p>Under GDPR, you have the right to:</p>
+                                <ul>
+                                    <li>Access your personal data</li>
+                                    <li>Correct inaccurate data</li>
+                                    <li>Request deletion of your data</li>
+                                    <li>Object to processing of your data</li>
+                                    <li>Data portability</li>
+                                    <li>Withdraw consent at any time</li>
+                                </ul>
+
+                                <h3 class="h5 mb-2 mt-4">6.3 Audit Logging</h3>
+                                <p>For security and compliance purposes, we log all access to patient records, including:</p>
+                                <ul>
+                                    <li>Who accessed the information</li>
+                                    <li>When it was accessed</li>
+                                    <li>What information was viewed</li>
+                                    <li>IP address and device information</li>
+                                </ul>
+                            </section>
+
+                            <!-- Intellectual Property -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">7. Intellectual Property</h2>
+                                <p>The Service and its original content, features, and functionality are owned by Know My Patient and are protected by international copyright, trademark, and other intellectual property laws.</p>
+                                <p>You may not copy, modify, distribute, sell, or lease any part of our Service without our prior written consent.</p>
+                            </section>
+
+                            <!-- Liability and Indemnification -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">8. Limitation of Liability</h2>
+                                <h3 class="h5 mb-2">8.1 Service Availability</h3>
+                                <p>We provide the Service "as is" and "as available" without warranties of any kind. We do not guarantee that the Service will be:</p>
+                                <ul>
+                                    <li>Always available or uninterrupted</li>
+                                    <li>Free from errors or viruses</li>
+                                    <li>Secure from unauthorized access</li>
+                                </ul>
+
+                                <h3 class="h5 mb-2 mt-4">8.2 Disclaimer of Warranties</h3>
+                                <p>To the maximum extent permitted by law, we disclaim all warranties, express or implied, including warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
+
+                                <h3 class="h5 mb-2 mt-4">8.3 Limitation of Liability</h3>
+                                <p>To the maximum extent permitted by law, Know My Patient shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of data, revenue, or profits.</p>
+
+                                <h3 class="h5 mb-2 mt-4">8.4 Indemnification</h3>
+                                <p>You agree to indemnify and hold harmless Know My Patient from any claims, damages, losses, or expenses arising from:</p>
+                                <ul>
+                                    <li>Your use of the Service</li>
+                                    <li>Your violation of these Terms</li>
+                                    <li>Your violation of any rights of another user</li>
+                                </ul>
+                            </section>
+
+                            <!-- Account Termination -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">9. Account Termination</h2>
+                                <h3 class="h5 mb-2">9.1 By You</h3>
+                                <p>You may delete your account at any time through your account settings. Upon deletion:</p>
+                                <ul>
+                                    <li>Your access to the Service will be terminated immediately</li>
+                                    <li>Your personal data will be deleted in accordance with our Privacy Policy</li>
+                                    <li>Some data may be retained for legal and audit purposes</li>
+                                </ul>
+
+                                <h3 class="h5 mb-2 mt-4">9.2 By Us</h3>
+                                <p>We reserve the right to suspend or terminate your account if:</p>
+                                <ul>
+                                    <li>You violate these Terms</li>
+                                    <li>You engage in fraudulent or illegal activities</li>
+                                    <li>Your account has been inactive for an extended period</li>
+                                    <li>We are required to do so by law</li>
+                                </ul>
+                            </section>
+
+                            <!-- Changes to Terms -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">10. Changes to Terms</h2>
+                                <p>We reserve the right to modify these Terms at any time. We will notify users of significant changes by:</p>
+                                <ul>
+                                    <li>Posting the updated Terms on the Service</li>
+                                    <li>Sending email notifications to registered users</li>
+                                    <li>Displaying a notice on the login page</li>
+                                </ul>
+                                <p>Your continued use of the Service after changes constitutes acceptance of the new Terms.</p>
+                            </section>
+
+                            <!-- Governing Law -->
+                            <section class="mb-5">
+                                <h2 class="h4 text-purple-primary mb-3">11. Governing Law</h2>
+                                <p>These Terms shall be governed by and construed in accordance with the laws of England and Wales, without regard to its conflict of law provisions.</p>
+                                <p>Any disputes arising from these Terms or use of the Service shall be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
+                            </section>
+
+                            <!-- Contact Information -->
+                            <section class="mb-4">
+                                <h2 class="h4 text-purple-primary mb-3">12. Contact Information</h2>
+                                <p>If you have any questions about these Terms, please contact us:</p>
+                                <div class="card bg-light border-0 p-4 mt-3">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="mb-2">
+                                            <i class="bi bi-envelope me-2 text-primary"></i>
+                                            Email: <a href="mailto:support@knowmypatient.co.uk">support@knowmypatient.co.uk</a>
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="bi bi-telephone me-2 text-primary"></i>
+                                            Phone: 0800 123 4567
+                                        </li>
+                                        <li>
+                                            <i class="bi bi-geo-alt me-2 text-primary"></i>
+                                            Address: Know My Patient Ltd, London, United Kingdom
+                                        </li>
+                                    </ul>
+                                </div>
+                            </section>
+
+                            <!-- Acknowledgment -->
+                            <div class="alert alert-info mt-4">
+                                <i class="bi bi-info-circle me-2"></i>
+                                By creating an account and using the Service, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+                            </div>
+
+                            <!-- Back to Register -->
+                            <div class="text-center mt-4">
+                                <a href="{{ url_for('register')|default('/register') }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-arrow-left me-2"></i>Back to Registration
+                                </a>
+                                <a href="{{ url_for('home')|default('/') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-house me-2"></i>Home
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -179,6 +179,13 @@ class AuthController
             $this->sessionService->remove('flash_type');
         }
 
+        // Get timeout message and clear it after reading
+        $timeoutMessage = $this->sessionService->get('timeout_message');
+        if ($timeoutMessage) {
+            $this->sessionService->remove('timeout_message');
+            $this->sessionService->remove('timeout_redirect');
+        }
+
         $body = $this->twig->getEnvironment()->render('login.html.twig', [
             'error' => $error,
             'form' => $form,
@@ -189,6 +196,7 @@ class AuthController
             'session' => array_merge($this->sessionService->all(), [
                 'flash_message' => $flashMessage,
                 'flash_type' => $flashType,
+                'timeout_message' => $timeoutMessage,
             ]),
             'title' => 'Login',
             'description' => 'Login to Know My Patient',

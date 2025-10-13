@@ -162,11 +162,28 @@
                         <div class="card-body support-form">
                             {# Success and error messages #}
                             {% if success is defined and success %}
-                                <div class="alert alert-success text-center">Thank you for your message! Our support team will contact you soon.</div>
+                                <div class="alert alert-success alert-dismissible fade show text-center pe-5" role="alert">
+                                    <i class="bi bi-check-circle me-2"></i>Thank you for your message! Our support team will contact you soon.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
                             {% elseif errors is defined and errors %}
-                                {% if errors.general is defined %}
-                                    <div class="alert alert-danger text-center">{{ errors.general }}</div>
-                                {% endif %}
+                                <div class="alert alert-danger alert-dismissible fade show pe-5" role="alert">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    {% if errors.general is defined %}
+                                        {{ errors.general }}
+                                    {% elseif errors.message is defined %}
+                                        {{ errors.message }}
+                                    {% elseif errors.name is defined %}
+                                        {{ errors.name }}
+                                    {% elseif errors.email is defined %}
+                                        {{ errors.email }}
+                                    {% elseif errors.subject is defined %}
+                                        {{ errors.subject }}
+                                    {% else %}
+                                        Please correct the errors in the form below.
+                                    {% endif %}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
                             {% endif %}
                             <p class="text-center text-muted mb-4">Send us a message and we'll help you out</p>
                             <form method="post" action="{{ url_for(support_route) }}" id="supportForm">
@@ -223,16 +240,55 @@
                                               id="message"
                                               name="message"
                                               rows="4"
+                                              minlength="10"
                                               placeholder="Please describe your question or issue in detail..."
                                               required>{{ form.message|default('') }}</textarea>
+                                    <div class="form-text">
+                                        <span id="charCount" class="text-muted">0 characters</span>
+                                        <span id="charWarning" class="text-danger ms-2" style="display:none;">
+                                            <i class="bi bi-exclamation-circle"></i> Minimum 10 characters required
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div class="d-grid">
-                                    <button type="submit" name="submit_support" value="1" class="btn btn-modern-outline-primary w-100 mb-4">
+                                    <button type="submit" name="submit_support" value="1" id="submitBtn" class="btn btn-modern-outline-primary w-100 mb-4">
                                         <i class="bi bi-send me-2"></i>Send Message
                                     </button>
                                 </div>
                             </form>
+                            
+                            <script>
+                            // Character counter for message field
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const messageField = document.getElementById('message');
+                                const charCount = document.getElementById('charCount');
+                                const charWarning = document.getElementById('charWarning');
+                                const submitBtn = document.getElementById('submitBtn');
+                                
+                                function updateCharCount() {
+                                    const length = messageField.value.length;
+                                    charCount.textContent = length + ' character' + (length !== 1 ? 's' : '');
+                                    
+                                    if (length < 10 && length > 0) {
+                                        charWarning.style.display = 'inline';
+                                        charCount.classList.add('text-warning');
+                                        charCount.classList.remove('text-success');
+                                    } else if (length >= 10) {
+                                        charWarning.style.display = 'none';
+                                        charCount.classList.remove('text-warning');
+                                        charCount.classList.add('text-success');
+                                    } else {
+                                        charWarning.style.display = 'none';
+                                        charCount.classList.remove('text-warning', 'text-success');
+                                    }
+                                }
+                                
+                                messageField.addEventListener('input', updateCharCount);
+                                messageField.addEventListener('keyup', updateCharCount);
+                                updateCharCount(); // Initial check
+                            });
+                            </script>
                         </div>
                     </div>
                 </div>

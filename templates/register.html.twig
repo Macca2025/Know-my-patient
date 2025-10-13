@@ -144,32 +144,35 @@
                                 </div>
                             </div>
                             
-                            <!-- Terms and Conditions -->
-                            <div class="form-group-modern mb-4">
-                                <div class="custom-checkbox">
-                                    <input type="checkbox" class="checkbox-input" id="termsCheck" name="termsCheck" required>
-                                    <label class="checkbox-label" for="termsCheck">
-                                        <span class="checkbox-custom"></span>
-                                        I agree to the <a href="#" class="link-primary-modern">Terms of Service</a> 
-                                        and <a href="#" class="link-primary-modern">Privacy Policy</a>
-                                    </label>
-                                    
-                                </div>
+                        <!-- Terms and Conditions -->
+                        <div class="form-group-modern mb-4">
+                            <div class="custom-checkbox">
+                                <input type="checkbox" class="checkbox-input" id="termsCheck" name="termsCheck" required>
+                                <label class="checkbox-label" for="termsCheck">
+                                    <span class="checkbox-custom"></span>
+                                    I agree to the <a href="{{ url_for('terms_of_service')|default('/terms-of-service') }}" target="_blank" class="link-primary-modern">Terms of Service</a> 
+                                    and <a href="{{ url_for('privacy_policy')|default('/privacy-policy') }}" target="_blank" class="link-primary-modern">Privacy Policy</a>
+                                </label>
+                                
                             </div>
-                            
-                            <button type="submit" class="btn-modern-outline-primary w-100 mb-4" id="registerBtn" >
+                        </div>                            <button type="submit" class="btn-modern-outline-primary w-100 mb-4" id="registerBtn" >
                                 <i class="bi bi-person-plus me-2"></i>Create Account
                             </button>
-                        </form>
-                        
-                        <div class="register-footer text-center">
-                            <p class="login-link">
-                                Already have an account? 
-                                <a href="{{ url_for('login') }}" class="link-primary-modern">Sign in here</a>
-                            </p>
-                        </div>
+                    </form>
                     
-                        </div>
+                    <div class="register-footer text-center">
+                        <p class="login-link">
+                            Already have an account? 
+                            <a href="{{ url_for('login') }}" class="link-primary-modern">Sign in here</a>
+                        </p>
+                        <p class="text-muted small mt-3">
+                            <a href="{{ url_for('terms_of_service')|default('/terms-of-service') }}" target="_blank" class="text-decoration-none text-muted">Terms of Service</a>
+                            <span class="mx-2">•</span>
+                            <a href="{{ url_for('privacy_policy')|default('/privacy-policy') }}" target="_blank" class="text-decoration-none text-muted">Privacy Policy</a>
+                            <span class="mx-2">•</span>
+                            <a href="{{ url_for('support')|default('/support') }}" class="text-decoration-none text-muted">Support</a>
+                        </p>
+                    </div>                        </div>
                     </div>
                 </main>
             </div>

@@ -45,4 +45,22 @@ class HomeController
         $response->getBody()->write($body);
         return $response;
     }
+
+    public function termsOfService(Request $request, Response $response): Response
+    {
+        $body = $this->twig->getEnvironment()->render('terms_of_service.html.twig', [
+            'current_route' => 'terms_of_service'
+        ]);
+        $response->getBody()->write($body);
+        return $response;
+    }
+
+    public function accessibility(Request $request, Response $response): Response
+    {
+        $body = $this->twig->getEnvironment()->render('accessibility.html.twig', [
+            'current_route' => 'accessibility'
+        ]);
+        $response->getBody()->write($body);
+        return $response;
+    }
 }
