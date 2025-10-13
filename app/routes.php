@@ -192,4 +192,12 @@ return function (App $app) {
         '__invoke'
     ]);
 
+    // --------------------
+    // Test Routes (only for PHPUnit tests)
+    // --------------------
+    if (defined('PHPUNIT_RUNNING')) {
+        $app->get('/users', ListUsersAction::class);
+        $app->get('/users/{id}', ViewUserAction::class);
+    }
+
 };
