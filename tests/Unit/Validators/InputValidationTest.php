@@ -147,14 +147,14 @@ class InputValidationTest extends TestCase
     {
         $validator = v::notEmpty();
         
-        // Valid (not empty)
+        // Valid (not empty) - Note: '0' is considered empty by PHP's empty() and Respect\Validation
         $this->assertTrue($validator->validate('text'));
-        $this->assertTrue($validator->validate('0'));
+        $this->assertTrue($validator->validate('123'));
         $this->assertTrue($validator->validate([1, 2, 3]));
         
-        // Invalid (empty)
+        // Invalid (empty) - Per PHP's empty(), these are all considered empty
         $this->assertFalse($validator->validate(''));
-        $this->assertFalse($validator->validate(null));
+        $this->assertFalse($validator->validate('0'));
         $this->assertFalse($validator->validate([]));
     }
 
