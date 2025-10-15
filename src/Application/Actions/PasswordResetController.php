@@ -7,6 +7,7 @@ namespace App\Application\Actions;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Application\Services\SessionService;
+use App\Application\Services\EmailService;
 use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 use Respect\Validation\Validator as v;
@@ -30,17 +31,20 @@ class PasswordResetController
     private SessionService $sessionService;
     private Twig $twig;
     private LoggerInterface $logger;
+    private EmailService $emailService;
 
     public function __construct(
         \PDO $pdo,
         SessionService $sessionService,
         Twig $twig,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        EmailService $emailService
     ) {
         $this->pdo = $pdo;
         $this->sessionService = $sessionService;
         $this->twig = $twig;
         $this->logger = $logger;
+        $this->emailService = $emailService;
     }
 
     /**
@@ -324,52 +328,53 @@ class PasswordResetController
     private function sendResetEmail(array $user, string $resetLink): void
     {
         try {
-            // Use PHPMailer to send email
-            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-
-            // Server settings
-            $mail->isSMTP();
-            $mail->Host       = $_ENV['SMTP_HOST'] ?? 'localhost';
-            $mail->SMTPAuth   = filter_var($_ENV['SMTP_AUTH'] ?? true, FILTER_VALIDATE_BOOLEAN);
-            $mail->Username   = $_ENV['SMTP_USERNAME'] ?? '';
-            $mail->Password   = $_ENV['SMTP_PASSWORD'] ?? '';
-            $mail->SMTPSecure = $_ENV['SMTP_ENCRYPTION'] ?? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = (int) ($_ENV['SMTP_PORT'] ?? 587);
-
-            // Recipients
-            $mail->setFrom(
-                $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@knowmypatient.nhs.uk',
-                $_ENV['MAIL_FROM_NAME'] ?? 'Know My Patient'
+            // Use EmailService to send password reset email
+            $success = $this->emailService->send(
+                $user['email'],
+                'Password Reset Request - Know My Patient',
+                $this->getResetEmailHtml($user, $resetLink),
+                $this->getResetEmailText($user, $resetLink),
+                $user['first_name'] ?? 'User'
             );
-            $mail->addAddress($user['email'], $user['first_name'] ?? '');
-            $mail->addReplyTo($_ENV['MAIL_REPLY_TO'] ?? 'support@knowmypatient.nhs.uk', 'Support Team');
 
-            // Content
-            $mail->isHTML(true);
-            $mail->Subject = 'Password Reset Request - Know My Patient';
-            $mail->Body    = $this->getResetEmailHtml($user, $resetLink);
-            $mail->AltBody = $this->getResetEmailText($user, $resetLink);
+            if ($success) {
+                // Log successful email send
+                $this->logger->info('Password reset email sent successfully', [
+                    'user_id' => $user['id'],
+                    'email' => $user['email'],
+                ]);
 
-            $mail->send();
+                // Log to audit trail
+                $this->logAuditEvent($user['id'], 'PASSWORD_RESET_EMAIL_SENT', [
+                    'email' => $user['email'],
+                    'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                    'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+                ]);
+            } else {
+                // Log failure
+                $this->logger->error('Failed to send password reset email', [
+                    'user_id' => $user['id'],
+                    'email' => $user['email'],
+                ]);
 
-            // Log successful email send
-            $this->logger->info('Password reset email sent successfully', [
-                'user_id' => $user['id'],
-                'email' => $user['email'],
-            ]);
+                // Log to audit trail
+                $this->logAuditEvent($user['id'], 'PASSWORD_RESET_EMAIL_FAILED', [
+                    'email' => $user['email'],
+                    'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                ]);
+            }
 
-            // Log to audit trail
-            $this->logAuditEvent($user['id'], 'PASSWORD_RESET_EMAIL_SENT', [
-                'email' => $user['email'],
-                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-            ]);
-        } catch (\PHPMailer\PHPMailer\Exception $e) {
-            // Log error but don't expose details to user
-            $this->logger->error('Failed to send password reset email', [
+            // In development, log the reset link as fallback
+            if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
+                $this->logger->warning('Development mode: Password reset link', [
+                    'reset_link' => $resetLink,
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log any unexpected errors
+            $this->logger->error('Exception while sending password reset email', [
                 'email' => $user['email'],
                 'error' => $e->getMessage(),
-                'mailer_error' => $mail->ErrorInfo,
             ]);
 
             // Log to audit trail
@@ -378,13 +383,6 @@ class PasswordResetController
                 'error' => $e->getMessage(),
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
             ]);
-
-            // In development, log the reset link as fallback
-            if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-                $this->logger->warning('Development mode: Password reset link', [
-                    'reset_link' => $resetLink,
-                ]);
-            }
         }
     }
 

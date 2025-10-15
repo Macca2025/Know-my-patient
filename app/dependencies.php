@@ -119,6 +119,11 @@ return function (ContainerBuilder $containerBuilder) {
                     \App\Application\Services\SessionService::class => function (): \App\Application\Services\SessionService {
                     return new \App\Application\Services\SessionService();
                 },
+                \App\Application\Services\EmailService::class => function (ContainerInterface $c): \App\Application\Services\EmailService {
+                    return new \App\Application\Services\EmailService(
+                        $c->get(\Psr\Log\LoggerInterface::class)
+                    );
+                },
                 \App\Application\Services\ErrorMessageService::class => function (ContainerInterface $c): \App\Application\Services\ErrorMessageService {
                     $settings = $c->get(SettingsInterface::class);
                     $environment = $settings->get('environment') ?? 'production';
@@ -141,7 +146,8 @@ return function (ContainerBuilder $containerBuilder) {
                         $c->get(\PDO::class),
                         $c->get(\App\Application\Services\SessionService::class),
                         $c->get(\Slim\Views\Twig::class),
-                        $c->get(\Psr\Log\LoggerInterface::class)
+                        $c->get(\Psr\Log\LoggerInterface::class),
+                        $c->get(\App\Application\Services\EmailService::class)
                     );
                 },
                 \App\Application\Actions\AdminController::class => function (ContainerInterface $c): \App\Application\Actions\AdminController {
