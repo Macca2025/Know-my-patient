@@ -157,7 +157,7 @@ class PasswordResetController
                 ]);
 
                 // Send reset email
-                $resetLink = $this->getBaseUrl($request) . '/reset-password?token=' . urlencode($token);
+                $resetLink = $this->getBaseUrl($request) . '/reset-password?token=' . $token;
                 $this->sendResetEmail($user, $resetLink);
 
                 $this->logger->info('Password reset email sent', [
@@ -182,7 +182,7 @@ class PasswordResetController
     public function showResetPasswordForm(Request $request, Response $response): Response
     {
         $queryParams = $request->getQueryParams();
-        $token = urldecode($queryParams['token'] ?? '');
+        $token = $queryParams['token'] ?? '';
 
         $this->logger->info('Reset password form accessed', [
             'token_received' => substr($token, 0, 10) . '...',
@@ -248,15 +248,7 @@ class PasswordResetController
     public function handleResetPassword(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $token = trim(urldecode($data['token'] ?? ''));
-
-        $this->logger->info('Reset password form submitted', [
-            'token_received' => substr($token, 0, 10) . '...',
-            'token_length' => strlen($token),
-            'raw_form_token' => $data['token'] ?? 'NOT_SET',
-            'hashed_token' => substr(hash('sha256', $token), 0, 10) . '...'
-        ]);
-
+        $token = trim($data['token'] ?? '');
         $password = $data['password'] ?? '';
         $passwordConfirm = $data['password_confirm'] ?? '';
 
@@ -270,13 +262,13 @@ class PasswordResetController
         if (empty($password) || strlen($password) < 8) {
             $this->sessionService->set('flash_message', 'Password must be at least 8 characters long.');
             $this->sessionService->set('flash_type', 'danger');
-            return $response->withHeader('Location', '/reset-password?token=' . urlencode($token))->withStatus(302);
+            return $response->withHeader('Location', '/reset-password?token=' . $token)->withStatus(302);
         }
 
         if ($password !== $passwordConfirm) {
             $this->sessionService->set('flash_message', 'Passwords do not match.');
             $this->sessionService->set('flash_type', 'danger');
-            return $response->withHeader('Location', '/reset-password?token=' . urlencode($token))->withStatus(302);
+            return $response->withHeader('Location', '/reset-password?token=' . $token)->withStatus(302);
         }
 
         // Verify token
