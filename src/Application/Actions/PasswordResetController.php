@@ -136,12 +136,6 @@ class PasswordResetController
                 $token = bin2hex(random_bytes(32)); // 256-bit token
                 $expiresAt = date('Y-m-d H:i:s', time() + 3600); // 1 hour from now
 
-                $this->logger->info('Generated password reset token', [
-                    'token_preview' => substr($token, 0, 10) . '...',
-                    'token_length' => strlen($token),
-                    'hashed_token' => substr(hash('sha256', $token), 0, 10) . '...'
-                ]);
-
                 // Store token in database
                 $stmt = $this->pdo->prepare(
                     'INSERT INTO password_resets (user_id, email, token, expires_at, ip_address, user_agent) 
@@ -184,12 +178,6 @@ class PasswordResetController
         $queryParams = $request->getQueryParams();
         $token = $queryParams['token'] ?? '';
 
-        $this->logger->info('Reset password form accessed', [
-            'token_received' => substr($token, 0, 10) . '...',
-            'token_length' => strlen($token),
-            'raw_query_token' => $queryParams['token'] ?? 'NOT_SET'
-        ]);
-
         if (empty($token)) {
             $this->sessionService->set('flash_message', 'Invalid reset link.');
             $this->sessionService->set('flash_type', 'danger');
@@ -207,12 +195,6 @@ class PasswordResetController
         );
         $stmt->execute([$hashedToken]);
         $resetRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->logger->info('Token validation result', [
-            'hashed_token_lookup' => substr($hashedToken, 0, 10) . '...',
-            'record_found' => $resetRecord ? 'YES' : 'NO',
-            'record_email' => $resetRecord['email'] ?? 'N/A'
-        ]);
 
         if (!$resetRecord) {
             $this->logger->warning('Invalid or expired reset token accessed', ['token_hash' => substr($hashedToken, 0, 10) . '...']);
@@ -281,12 +263,6 @@ class PasswordResetController
         );
         $stmt->execute([$hashedToken]);
         $resetRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        $this->logger->info('Password reset token validation', [
-            'hashed_token_lookup' => substr($hashedToken, 0, 10) . '...',
-            'record_found' => $resetRecord ? 'YES' : 'NO',
-            'record_email' => $resetRecord['email'] ?? 'N/A'
-        ]);
 
         if (!$resetRecord) {
             $this->logger->warning('Attempted to use invalid/expired reset token', ['token_hash' => substr($hashedToken, 0, 10) . '...']);
