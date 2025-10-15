@@ -2530,19 +2530,19 @@ code {
 
 /* Fixed Navbar Offset */
 .navbar-offset {
-    padding-top: 100px;
+    padding-top: 140px;
 }
 
 /* Responsive navbar offset for different screen sizes */
 @media (max-width: 768px) {
     .navbar-offset {
-        padding-top: 90px;
+        padding-top: 130px;
     }
 }
 
 @media (max-width: 576px) {
     .navbar-offset {
-        padding-top: 80px;
+        padding-top: 120px;
     }
 }
 
@@ -4663,13 +4663,13 @@ code {
 }
 
 #profileAccordion .accordion-button:not(.collapsed) {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     color: white;
     box-shadow: none;
 }
 
 #profileAccordion .accordion-button:focus {
-    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 0 0.25rem rgba(23, 162, 184, 0.25);
 }
 
 #profileAccordion .accordion-button::after {
@@ -4687,7 +4687,7 @@ code {
 }
 
 #profileAccordion .accordion-button:not(.collapsed):hover {
-    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
 }
 
 /* Profile page specific cards */
