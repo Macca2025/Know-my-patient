@@ -395,60 +395,11 @@ class PasswordResetController
      */
     private function getResetEmailHtml(array $user, string $resetLink): string
     {
-        $firstName = htmlspecialchars($user['first_name'] ?? 'User', ENT_QUOTES, 'UTF-8');
-
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background-color: #005EB8; color: white; padding: 20px; text-align: center;">
-        <h1 style="margin: 0;">Know My Patient</h1>
-        <p style="margin: 5px 0 0 0;">NHS Patient Passport System</p>
-    </div>
-    
-    <div style="background-color: #f4f4f4; padding: 30px; margin-top: 0;">
-        <h2 style="color: #005EB8; margin-top: 0;">Password Reset Request</h2>
-        
-        <p>Hello {$firstName},</p>
-        
-        <p>We received a request to reset your password for your Know My Patient account. If you made this request, click the button below to reset your password:</p>
-        
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="{$resetLink}" style="background-color: #005EB8; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Reset Password</a>
-        </div>
-        
-        <p>Or copy and paste this link into your browser:</p>
-        <p style="background-color: white; padding: 10px; border-left: 4px solid #005EB8; word-break: break-all;">
-            <a href="{$resetLink}" style="color: #005EB8;">{$resetLink}</a>
-        </p>
-        
-        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
-            <strong>⚠️ Important:</strong>
-            <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>This link expires in <strong>1 hour</strong></li>
-                <li>The link can only be used <strong>once</strong></li>
-                <li>If you didn't request this, you can safely ignore this email</li>
-            </ul>
-        </div>
-        
-        <p style="color: #666; font-size: 14px; margin-top: 30px;">
-            <strong>Security Notice:</strong> Never share this link with anyone. Our team will never ask for your password via email.
-        </p>
-    </div>
-    
-    <div style="background-color: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
-        <p>Know My Patient - NHS Digital Health Platform</p>
-        <p>This is an automated message. Please do not reply to this email.</p>
-        <p>If you need assistance, contact support at <a href="mailto:support@knowmypatient.nhs.uk" style="color: #4da6ff;">support@knowmypatient.nhs.uk</a></p>
-    </div>
-</body>
-</html>
-HTML;
+        // Render the HTML email using Twig template
+        return $this->twig->fetch('email_templates/password_reset.html.twig', [
+            'first_name' => $user['first_name'] ?? 'User',
+            'reset_link' => $resetLink,
+        ]);
     }
 
     /**
