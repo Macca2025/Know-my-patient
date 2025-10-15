@@ -270,23 +270,23 @@ return function (ContainerBuilder $containerBuilder) {
                     );
                 },
                 \App\Application\Middleware\RateLimitMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\RateLimitMiddleware {
-                    // 10 login attempts per 5 minutes (development setting)
+                    // 50 login attempts per 5 minutes (development mode)
                     // Production recommendation: 5 attempts per 15 minutes
                     $cacheDir = __DIR__ . '/../var/cache/rate_limit_login';
                     if (!is_dir($cacheDir)) {
                         mkdir($cacheDir, 0755, true);
                     }
-                    return new \App\Application\Middleware\RateLimitMiddleware(10, 5, $cacheDir);
+                    return new \App\Application\Middleware\RateLimitMiddleware(50, 5, $cacheDir);
                 },
                 'RegistrationRateLimitMiddleware' => function (ContainerInterface $c): \App\Application\Middleware\RateLimitMiddleware {
-                    // 3 registration attempts per 30 minutes (stricter than login)
+                    // 15 registration attempts per 30 minutes (development mode)
                     // Prevents spam account creation
                     // Production: Consider 3 attempts per 60 minutes
                     $cacheDir = __DIR__ . '/../var/cache/rate_limit_registration';
                     if (!is_dir($cacheDir)) {
                         mkdir($cacheDir, 0755, true);
                     }
-                    return new \App\Application\Middleware\RateLimitMiddleware(3, 30, $cacheDir);
+                    return new \App\Application\Middleware\RateLimitMiddleware(15, 30, $cacheDir);
                 },
                 \App\Application\Middleware\HttpsMiddleware::class => function (ContainerInterface $c): \App\Application\Middleware\HttpsMiddleware {
                     $settings = $c->get(SettingsInterface::class);
