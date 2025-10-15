@@ -89,14 +89,14 @@ class OnboardingController
             $errors['email'] = 'A valid email is required.';
         }
 
-        // Phone validation (optional - no validation required)
-        // if (!empty($data['phone'])) {
-        //     // Remove spaces, dashes, parentheses for validation
-        //     $cleanPhone = preg_replace('/[\s\-\(\)\+]/', '', $data['phone']);
-        //     if (!preg_match('/^[0-9]{10,15}$/', $cleanPhone)) {
-        //         $errors['phone'] = 'Please enter a valid phone number (10-15 digits).';
-        //     }
-        // }
+        // Phone validation (optional, but validate format if provided)
+        if (!empty($data['phone'])) {
+            // Remove spaces, dashes, parentheses for validation
+            $cleanPhone = preg_replace('/[\s\-\(\)\+]/', '', $data['phone']);
+            if (!preg_match('/^[0-9]{10,15}$/', $cleanPhone)) {
+                $errors['phone'] = 'Please enter a valid phone number (10-15 digits).';
+            }
+        }
 
         // GDPR consent validation (checkbox must be checked)
         // Checkboxes can send 'on', '1', 'true', or any truthy value
