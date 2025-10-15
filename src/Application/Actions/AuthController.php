@@ -215,7 +215,10 @@ class AuthController
         $data = $request->getParsedBody() ?: [];
 
         if ($request->getMethod() === 'POST') {
-            $registerTypeValidator = v::notEmpty()->in(['nhs', 'nhs_user', 'healthcare_Worker', 'family', 'patient']);
+            if (isset($data['register_type'])) {
+                $data['register_type'] = strtolower($data['register_type']);
+            }
+            $registerTypeValidator = v::notEmpty()->in(['nhs', 'nhs_user', 'healthcare_worker', 'family', 'patient']);
             $firstNameValidator = v::notEmpty()->alpha();
             $lastNameValidator = v::notEmpty()->alpha();
             $emailValidator = v::notEmpty()->email();
@@ -257,8 +260,8 @@ class AuthController
                     $hashedPassword = password_hash($data['password'], PASSWORD_ARGON2ID);
                     if ($data['register_type'] === 'nhs' || $data['register_type'] === 'nhs_user') {
                         $role = 'nhs_user';
-                    } elseif ($data['register_type'] === 'healthcare_Worker') {
-                        $role = 'healthcare_Worker';
+                    } elseif ($data['register_type'] === 'healthcare_worker') {
+                        $role = 'healthcare_worker';
                     } elseif ($data['register_type'] === 'family') {
                         $role = 'family';
                     } else {
