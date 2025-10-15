@@ -215,6 +215,7 @@ class AuthController
         $data = $request->getParsedBody() ?: [];
 
         if ($request->getMethod() === 'POST') {
+            $this->logger->debug('Registration POST data', ['register_type' => $data['register_type'] ?? null, 'all_data' => $data]);
             if (isset($data['register_type'])) {
                 $data['register_type'] = strtolower($data['register_type']);
             }
