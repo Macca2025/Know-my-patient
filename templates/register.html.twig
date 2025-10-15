@@ -53,10 +53,10 @@
                                     <i class="bi bi-person-badge select-icon"></i>
                                     <select class="form-select-modern" name="register_type" required>
                                         <option value="" disabled {{ form.register_type is not defined or not form.register_type ? 'selected' : '' }}>Select registration type</option>
-                                        <option value="patient" {{ form.register_type is defined and form.register_type == 'patient' ? 'selected' : '' }}>Patient</option>
-                                        <option value="family" {{ form.register_type is defined and form.register_type == 'family' ? 'selected' : '' }}>Family Member</option>
-                                        <option value="healthcare_Worker" {{ form.register_type is defined and form.register_type == 'healthcare_Worker' ? 'selected' : '' }}>Healthcare Worker</option>
-                                        <option value="nhs_user" {{ form.register_type is defined and form.register_type == 'nhs_user' ? 'selected' : '' }}>NHS Staff</option>
+                                        <option value="patient" {{ form.register_type is defined and form.register_type|lower == 'patient' ? 'selected' : '' }}>Patient</option>
+                                        <option value="family" {{ form.register_type is defined and form.register_type|lower == 'family' ? 'selected' : '' }}>Family Member</option>
+                                        <option value="healthcare_worker" {{ form.register_type is defined and form.register_type|lower == 'healthcare_worker' ? 'selected' : '' }}>Healthcare Worker</option>
+                                        <option value="nhs_user" {{ form.register_type is defined and form.register_type|lower == 'nhs_user' ? 'selected' : '' }}>NHS Staff</option>
                                     </select>
                                 </div>
                                 <div class="form-hint">
