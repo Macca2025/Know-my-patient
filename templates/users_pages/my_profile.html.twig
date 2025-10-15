@@ -100,12 +100,13 @@
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
                                     <span class="text-muted">Role:</span>
-                                    <span class="badge bg-primary rounded-pill">{{ currentUser.role|default(userRole)|title }}</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                    <span class="text-muted">Status:</span>
-                                    <span class="badge bg-{{ (currentUser.is_verified|default(1)) ? 'success' : 'warning' }} rounded-pill">
-                                        {{ (currentUser.is_verified|default(1)) ? 'Active' : 'Pending' }}
+                                    <span class="badge bg-primary rounded-pill">
+                                        {% set role_display = currentUser.role|default(userRole) %}
+                                        {% if role_display == 'nhs_user' %}
+                                            NHS Access
+                                        {% else %}
+                                            {{ role_display|title }}
+                                        {% endif %}
                                     </span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
@@ -260,7 +261,7 @@
                                                     </p>
                                                 </div>
                                                 <div class="mt-3 mt-md-0">
-                                                    <a href="#" class="btn btn-danger rounded-pill">
+                                                    <a href="/delete-account" onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.');" class="btn btn-danger rounded-pill">
                                                         <i class="bi bi-trash me-1"></i>Delete Account
                                                     </a>
                                                 </div>

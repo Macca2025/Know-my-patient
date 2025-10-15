@@ -224,6 +224,7 @@ class DashboardController
 
         // Handle POST request (profile update or password change)
         if ($request->getMethod() === 'POST') {
+            $this->logger->info('POST request to myProfile', ['data' => $request->getParsedBody()]);
             $data = $request->getParsedBody();
 
             // Check if this is a password change request
@@ -266,6 +267,19 @@ class DashboardController
                         $message = 'Current password is incorrect.';
                         $messageType = 'danger';
                     }
+                }
+            } elseif (isset($data['delete_account'])) {
+                // Handle account deletion
+                try {
+                    $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = ?');
+                    $stmt->execute([$userId]);
+                    $this->sessionService->clear();
+                    $this->sessionService->destroy();
+                    return $response->withHeader('Location', '/login')->withStatus(302);
+                } catch (\PDOException $e) {
+                    $this->logger->error("Account deletion error: " . $e->getMessage(), ['exception' => $e, 'user_id' => $userId]);
+                    $message = 'An error occurred while deleting your account. Please try again.';
+                    $messageType = 'danger';
                 }
             } else {
                 // Handle profile update
@@ -335,6 +349,7 @@ class DashboardController
             'messageType' => $messageType,
             'csrf' => $csrf
         ]);
+        $this->logger->info('CSRF tokens for profile', ['name' => $csrf['name'], 'value' => $csrf['value']]);
         $response->getBody()->write($body);
         return $response;
     }
@@ -587,7 +602,7 @@ class DashboardController
     private function buildUpdateFields(array $data): array
     {
         $allowedFields = [
-            'patient_name', 'date_of_birth', 'gender', 'blood_type', 'nhs_number',
+            'patient_name', 'date_of_birth', 'gender', 'nhs_number',
             'phone_number', 'address', 'postcode', 'occupation', 'workplace',
             'allergies', 'medical_conditions', 'medications',
             'has_dementia', 'has_learning_disability', 'previous_stroke',
