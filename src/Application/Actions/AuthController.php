@@ -215,7 +215,7 @@ class AuthController
         $data = $request->getParsedBody() ?: [];
 
         if ($request->getMethod() === 'POST') {
-            $registerTypeValidator = v::notEmpty()->in(['nhs', 'family', 'patient']);
+            $registerTypeValidator = v::notEmpty()->in(['nhs', 'nhs_user', 'healthcare_Worker', 'family', 'patient']);
             $firstNameValidator = v::notEmpty()->alpha();
             $lastNameValidator = v::notEmpty()->alpha();
             $emailValidator = v::notEmpty()->email();
@@ -255,7 +255,15 @@ class AuthController
                     $stmt = $this->pdo->prepare('INSERT INTO users (uid, first_name, last_name, email, password, role, created_at, updated_at, active) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)');
                     $uid = bin2hex(random_bytes(16));
                     $hashedPassword = password_hash($data['password'], PASSWORD_ARGON2ID);
-                    $role = $data['register_type'] === 'nhs' ? 'nhs_user' : ($data['register_type'] === 'family' ? 'family' : 'patient');
+                    if ($data['register_type'] === 'nhs' || $data['register_type'] === 'nhs_user') {
+                        $role = 'nhs_user';
+                    } elseif ($data['register_type'] === 'healthcare_Worker') {
+                        $role = 'healthcare_Worker';
+                    } elseif ($data['register_type'] === 'family') {
+                        $role = 'family';
+                    } else {
+                        $role = 'patient';
+                    }
                     $stmt->execute([
                         $uid,
                         $data['firstName'],
