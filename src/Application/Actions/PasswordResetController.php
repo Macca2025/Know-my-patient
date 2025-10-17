@@ -123,7 +123,6 @@ class PasswordResetController
             // Check if account is active
             if ($user['active'] == 0) {
                 $this->logger->warning('Password reset requested for suspended account', ['email' => $email]);
-
                 // Log attempt for suspended account
                 $this->logAuditEvent($user['id'], 'PASSWORD_RESET_SUSPENDED_ACCOUNT', [
                     'email' => $email,
@@ -132,33 +131,53 @@ class PasswordResetController
                 ]);
                 // Still show generic success message
             } else {
-                // Generate secure token
-                $token = bin2hex(random_bytes(32)); // 256-bit token
-                $expiresAt = date('Y-m-d H:i:s', time() + 3600); // 1 hour from now
+                try {
+                    $this->pdo->beginTransaction();
+                    // Generate secure token ONCE
+                    $token = bin2hex(random_bytes(32)); // 256-bit token
+                    $tokenHash = hash('sha256', $token);
+                    $expiresAt = date('Y-m-d H:i:s', time() + 3600); // 1 hour from now
 
-                // Store token in database
-                $stmt = $this->pdo->prepare(
-                    'INSERT INTO password_resets (user_id, email, token, expires_at, ip_address, user_agent) 
-                     VALUES (?, ?, ?, ?, ?, ?)'
-                );
-                $stmt->execute([
-                    $user['id'],
-                    $email,
-                    hash('sha256', $token), // Hash token before storing
-                    $expiresAt,
-                    $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                    $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-                ]);
+                    // Remove any previous unused tokens for this user/email
+                    $stmt = $this->pdo->prepare('DELETE FROM password_resets WHERE user_id = ? AND email = ? AND used_at IS NULL');
+                    $stmt->execute([$user['id'], $email]);
 
-                // Send reset email
-                $resetLink = $this->getBaseUrl($request) . '/reset-password?token=' . $token;
-                $this->sendResetEmail($user, $resetLink);
+                    // Store token in database
+                    $stmt = $this->pdo->prepare(
+                        'INSERT INTO password_resets (user_id, email, token, expires_at, ip_address, user_agent) 
+                         VALUES (?, ?, ?, ?, ?, ?)'
+                    );
+                    $stmt->execute([
+                        $user['id'],
+                        $email,
+                        $tokenHash, // Hash token before storing
+                        $expiresAt,
+                        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                        $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+                    ]);
+                    $this->pdo->commit();
 
-                $this->logger->info('Password reset email sent', [
-                    'user_id' => $user['id'],
-                    'email' => $email,
-                    'expires_at' => $expiresAt,
-                ]);
+                    // Send reset email with the same token
+                    $resetLink = $this->getBaseUrl($request) . '/reset-password?token=' . $token;
+                    $this->sendResetEmail($user, $resetLink);
+
+                    $this->logger->info('Password reset email sent', [
+                        'user_id' => $user['id'],
+                        'email' => $email,
+                        'expires_at' => $expiresAt,
+                        'token' => $token,
+                        'token_hash' => $tokenHash,
+                    ]);
+                } catch (\Exception $e) {
+                    if ($this->pdo->inTransaction()) {
+                        $this->pdo->rollBack();
+                    }
+                    $this->logger->error('Password reset transaction failed', [
+                        'user_id' => $user['id'],
+                        'email' => $email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         } else {
             $this->logger->warning('Password reset requested for non-existent email', ['email' => $email]);

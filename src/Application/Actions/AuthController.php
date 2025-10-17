@@ -171,6 +171,13 @@ class AuthController
         $registered = $queryParams['registered'] ?? null;
         $deleted = $queryParams['deleted'] ?? null;
 
+        // If query param indicates deletion, set flash so template shows message
+        if ($deleted === '1' || $deleted === 1) {
+            $flashMessage = 'Your account has been deleted. We\'re sorry to see you go.';
+            $flashType = 'info';
+            $this->logger->info('Rendering login after account deletion (query param).');
+        }
+
         // Get flash messages and clear them after reading
         $flashMessage = $this->sessionService->get('flash_message');
         $flashType = $this->sessionService->get('flash_type');
@@ -178,6 +185,8 @@ class AuthController
             $this->sessionService->remove('flash_message');
             $this->sessionService->remove('flash_type');
         }
+
+        // Note: cookie-based deleted-flash handling removed; rely on query param or session flash
 
         // Get timeout message and clear it after reading
         $timeoutMessage = $this->sessionService->get('timeout_message');

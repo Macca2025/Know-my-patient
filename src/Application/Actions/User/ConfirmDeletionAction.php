@@ -46,8 +46,18 @@ class ConfirmDeletionAction
                 // Destroy session
                 $this->sessionService->clear();
                 $this->sessionService->destroy();
-                // Redirect to login with deleted message
-                return $response->withHeader('Location', '/login?deleted=1')->withStatus(302);
+                // Redirect to login with deleted message using absolute URL
+                $uri = $request->getUri();
+                $scheme = $uri->getScheme();
+                $host = $uri->getHost();
+                $port = $uri->getPort();
+                $baseUrl = $scheme . '://' . $host;
+                if (($scheme === 'http' && $port && $port !== 80) || ($scheme === 'https' && $port && $port !== 443)) {
+                    $baseUrl .= ':' . $port;
+                }
+                $location = $baseUrl . '/login?deleted=1';
+                $this->logger->info('ConfirmDeletionAction redirect', ['from' => (string)$uri, 'to' => $location]);
+                return $response->withHeader('Location', $location)->withStatus(302);
             } else {
                 $error = 'You must type the exact phrase to confirm deletion.';
             }
