@@ -17,7 +17,7 @@ class DatabasePatientProfileRepository implements PatientProfileRepository
     public function findByUid(string $uid): ?array
     {
         $stmt = $this->pdo->prepare('
-            SELECT id, patient_uid, user_id, created_by, full_name, date_of_birth, gender, blood_type, 
+            SELECT id, patient_uid, user_id, created_by, patient_name, date_of_birth, gender, blood_type, 
                    allergies, medical_conditions, current_medications, emergency_contact_name, 
                    emergency_contact_phone, emergency_contact_relation, nhs_number, gp_surgery, 
                    mobility_issues, communication_needs, dietary_requirements, special_instructions, 
