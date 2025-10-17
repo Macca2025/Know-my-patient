@@ -269,31 +269,18 @@ class DashboardController
                     }
                 }
             } elseif (isset($data['delete_account'])) {
-                // Handle account deletion
-                try {
-                    $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = ?');
-                    $stmt->execute([$userId]);
-                    // Clear session and destroy
-                    $this->sessionService->clear();
-                    $this->sessionService->destroy();
-
-                    // Build absolute redirect URL to ensure query string is preserved
-                    $uri = $request->getUri();
-                    $scheme = $uri->getScheme();
-                    $host = $uri->getHost();
-                    $port = $uri->getPort();
-                    $baseUrl = $scheme . '://' . $host;
-                    if (($scheme === 'http' && $port && $port !== 80) || ($scheme === 'https' && $port && $port !== 443)) {
-                        $baseUrl .= ':' . $port;
-                    }
-                    $location = $baseUrl . '/login?deleted=1';
-                    $this->logger->info('myProfile delete redirect', ['from' => (string)$uri, 'to' => $location]);
-                    return $response->withHeader('Location', $location)->withStatus(302);
-                } catch (\PDOException $e) {
-                    $this->logger->error("Account deletion error: " . $e->getMessage(), ['exception' => $e, 'user_id' => $userId]);
-                    $message = 'An error occurred while deleting your account. Please try again.';
-                    $messageType = 'danger';
+                // Redirect to confirm-deletion page so the user must explicitly confirm
+                $uri = $request->getUri();
+                $scheme = $uri->getScheme();
+                $host = $uri->getHost();
+                $port = $uri->getPort();
+                $baseUrl = $scheme . '://' . $host;
+                if (($scheme === 'http' && $port && $port !== 80) || ($scheme === 'https' && $port && $port !== 443)) {
+                    $baseUrl .= ':' . $port;
                 }
+                $location = $baseUrl . '/confirm-deletion';
+                $this->logger->info('myProfile redirect to confirm-deletion', ['from' => (string)$uri, 'to' => $location]);
+                return $response->withHeader('Location', $location)->withStatus(302);
             } else {
                 // Handle profile update
                 $firstName = trim($data['first_name'] ?? '');

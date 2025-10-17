@@ -62,8 +62,19 @@ class ConfirmDeletionAction
                 $error = 'You must type the exact phrase to confirm deletion.';
             }
         }
+        // Prepare CSRF tokens if available from middleware
+        $csrf = [
+            'name' => $request->getAttribute('csrf_name'),
+            'value' => $request->getAttribute('csrf_value'),
+            'keys' => [
+                'name' => 'csrf_name',
+                'value' => 'csrf_value'
+            ]
+        ];
+
         $body = $this->twig->getEnvironment()->render('confirm_deletion.html.twig', [
-            'error' => $error
+            'error' => $error,
+            'csrf' => $csrf
         ]);
         $response->getBody()->write($body);
         return $response;
