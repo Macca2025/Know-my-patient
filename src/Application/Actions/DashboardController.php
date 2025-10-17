@@ -357,28 +357,11 @@ class DashboardController
 
     public function deleteAccount(Request $request, Response $response): Response
     {
-        $userId = $this->sessionService->get('user_id');
-        if ($userId) {
-            $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = ?');
-            $stmt->execute([$userId]);
-
-            // Clear session and destroy
-            $this->sessionService->clear();
-            $this->sessionService->destroy();
-
-            // Build absolute redirect URL to ensure query string is preserved
-            $uri = $request->getUri();
-            $scheme = $uri->getScheme();
-            $host = $uri->getHost();
-            $port = $uri->getPort();
-            $baseUrl = $scheme . '://' . $host;
-            if (($scheme === 'http' && $port && $port !== 80) || ($scheme === 'https' && $port && $port !== 443)) {
-                $baseUrl .= ':' . $port;
-            }
-            $location = $baseUrl . '/login?deleted=1';
-            $this->logger->info('deleteAccount redirect', ['from' => (string)$uri, 'to' => $location]);
-            return $response->withHeader('Location', $location)->withStatus(302);
-        }
+        // Immediate deletion via this controller was removed to enforce the
+        // confirm-deletion flow. All deletion requests should use the
+        // `/confirm-deletion` route which renders the confirmation form and
+        // performs the delete after an explicit typed confirmation. Keep a
+        // safe redirect in case this route is accidentally hit.
         return $response->withHeader('Location', '/login?deleted=1')->withStatus(302);
     }
 

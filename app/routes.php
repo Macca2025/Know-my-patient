@@ -137,10 +137,10 @@ return function (App $app) {
     // --------------------
     $app->get('/accessibility', [\App\Application\Actions\HomeController::class, 'accessibility'])->setName('accessibility');
 
-    // --------------------
-    // Delete Account Route (GET, POST)
-    // --------------------
-    $app->map(['GET', 'POST'], '/delete-account', [\App\Application\Actions\DashboardController::class, 'deleteAccount'])->setName('delete_account');
+    // Note: immediate /delete-account route removed. Account deletion must
+    // go through the `/confirm-deletion` flow which requires an explicit
+    // typed confirmation. This reduces accidental deletions and centralises
+    // deletion logic in a single action.
 
 
     // --------------------
