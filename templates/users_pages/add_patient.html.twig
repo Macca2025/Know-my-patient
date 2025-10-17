@@ -4,6 +4,11 @@
 {# Set edit mode based on whether patient data exists #}
 {% set isEdit = patient is defined and patient is not empty %}
 {% set patient = patient|default({}) %}
+{# Avoid complex inline conditional expressions that can confuse Twig parsing. #}
+{% set prefill_name = '' %}
+{% if not isEdit and current_user is defined and current_user %}
+    {% set prefill_name = current_user.first_name ~ ' ' ~ current_user.last_name %}
+{% endif %}
 
 <div class="container my-5" style="padding-top: 80px;">
     <div class="row justify-content-center">
@@ -66,9 +71,9 @@
                                         </label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                            <input type="text" class="form-control" id="patient_name" 
-                                                   name="patient_name" required maxlength="200" 
-                                                   value="{{ patient.patient_name|default(not isEdit and current_user ? (current_user.first_name ~ ' ' ~ current_user.last_name) : '') }}">
+                          <input type="text" class="form-control" id="patient_name" 
+                              name="patient_name" required maxlength="200" 
+                              value="{{ patient.patient_name|default(prefill_name) }}">
                                         </div>
                                         <div class="invalid-feedback">Please enter your name.</div>
                                         {% if not isEdit and current_user %}
