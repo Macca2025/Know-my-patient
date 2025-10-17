@@ -355,15 +355,7 @@ class DashboardController
     }
 
 
-    public function deleteAccount(Request $request, Response $response): Response
-    {
-        // Immediate deletion via this controller was removed to enforce the
-        // confirm-deletion flow. All deletion requests should use the
-        // `/confirm-deletion` route which renders the confirmation form and
-        // performs the delete after an explicit typed confirmation. Keep a
-        // safe redirect in case this route is accidentally hit.
-        return $response->withHeader('Location', '/login?deleted=1')->withStatus(302);
-    }
+    
 
     public function addPatient(Request $request, Response $response): Response
     {
