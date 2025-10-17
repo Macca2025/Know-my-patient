@@ -136,7 +136,8 @@ class PasswordResetController
                     // Generate secure token ONCE
                     $token = bin2hex(random_bytes(32)); // 256-bit token
                     $tokenHash = hash('sha256', $token);
-                    $expiresAt = date('Y-m-d H:i:s', time() + 3600); // 1 hour from now
+                    // Do not compute expires_at in PHP; use DB's NOW() + INTERVAL to avoid
+                    // timezone mismatches and ensure consistency.
 
                     // Remove any previous unused tokens for this user/email
                     $stmt = $this->pdo->prepare('DELETE FROM password_resets WHERE user_id = ? AND email = ? AND used_at IS NULL');
@@ -145,51 +146,42 @@ class PasswordResetController
                     // Store token in database
                     $stmt = $this->pdo->prepare(
                         'INSERT INTO password_resets (user_id, email, token, expires_at, ip_address, user_agent) 
-                         VALUES (?, ?, ?, ?, ?, ?)'
+                         VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR), ?, ?)'
                     );
                     $stmt->execute([
                         $user['id'],
                         $email,
                         $tokenHash, // Hash token before storing
-                        $expiresAt,
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                         $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
                     ]);
-                    // Non-production: verify stored token was written correctly
-                    if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-                        try {
-                            $lastId = (int) $this->pdo->lastInsertId();
-                            if ($lastId) {
-                                $checkStmt = $this->pdo->prepare('SELECT token FROM password_resets WHERE id = ? LIMIT 1');
-                                $checkStmt->execute([$lastId]);
-                                $stored = $checkStmt->fetch(\PDO::FETCH_ASSOC);
-                                if ($stored && isset($stored['token'])) {
-                                    $storedToken = $stored['token'];
-                                    $this->logger->debug('Stored password_resets.token info', [
-                                        'id' => $lastId,
-                                        'token_length' => strlen($storedToken),
-                                        'token_prefix' => substr($storedToken, 0, 24),
-                                    ]);
-                                } else {
-                                    $this->logger->warning('Unable to read back stored password_resets token', ['id' => $lastId]);
-                                }
-                            }
-                        } catch (\Exception $e) {
-                            $this->logger->error('Error verifying stored reset token', ['error' => $e->getMessage()]);
-                        }
-                    }
+                    // (No debug logging in production)
                     $this->pdo->commit();
 
                     // Send reset email with the same token (URL-encoded for safety)
                     $resetLink = $this->getBaseUrl($request) . '/reset-password?token=' . rawurlencode($token);
                     $this->sendResetEmail($user, $resetLink);
-  
+
+                    // Read back expires_at from DB for accurate logging
+                    $loggedExpiresAt = null;
+                    try {
+                        $lastId = (int) $this->pdo->lastInsertId();
+                        if ($lastId) {
+                            $expiresStmt = $this->pdo->prepare('SELECT expires_at FROM password_resets WHERE id = ? LIMIT 1');
+                            $expiresStmt->execute([$lastId]);
+                            $expiresRow = $expiresStmt->fetch(\PDO::FETCH_ASSOC);
+                            if ($expiresRow && isset($expiresRow['expires_at'])) {
+                                $loggedExpiresAt = $expiresRow['expires_at'];
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        $this->logger->warning('Unable to read back expires_at after insert', ['error' => $e->getMessage()]);
+                    }
+
                     $this->logger->info('Password reset email sent', [
                         'user_id' => $user['id'],
                         'email' => $email,
-                        'expires_at' => $expiresAt,
-                        'token' => $token,
-                        'token_hash' => $tokenHash,
+                        'expires_at' => $loggedExpiresAt,
                     ]);
                 } catch (\Exception $e) {
                     if ($this->pdo->inTransaction()) {
@@ -231,66 +223,14 @@ class PasswordResetController
         // Verify token exists and is not expired
         $hashedToken = hash('sha256', $token);
 
-        // Additional debugging (non-production): check whether the DB contains
-        // the hashed token, contains the raw token (in case of a previous bug),
-        // and compare DB NOW() with stored expires_at to detect timezone/truncation issues.
-        if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-            try {
-                // Check for hashed token
-                $checkHashed = $this->pdo->prepare('SELECT id, user_id, token, expires_at, used_at, created_at FROM password_resets WHERE token = ? LIMIT 1');
-                $checkHashed->execute([$hashedToken]);
-                $rowHashed = $checkHashed->fetch(\PDO::FETCH_ASSOC);
+        // Production: do not log sensitive token data or perform debug queries here.
 
-                // Check for raw token (just in case it was stored raw)
-                $checkRaw = $this->pdo->prepare('SELECT id, user_id, token, expires_at, used_at, created_at FROM password_resets WHERE token = ? LIMIT 1');
-                $checkRaw->execute([$token]);
-                $rowRaw = $checkRaw->fetch(\PDO::FETCH_ASSOC);
-
-                // Get DB time
-                $nowStmt = $this->pdo->query('SELECT NOW() as now_ts');
-                $nowRow = $nowStmt->fetch(\PDO::FETCH_ASSOC);
-
-                $this->logger->debug('Password reset debug - token checks', [
-                    'provided_token' => $token,
-                    'hashed_token' => $hashedToken,
-                    'row_for_hashed' => $rowHashed,
-                    'row_for_raw' => $rowRaw,
-                    'db_now' => $nowRow['now_ts'] ?? null,
-                ]);
-            } catch (\Exception $e) {
-                $this->logger->error('Error running password reset debug queries', ['error' => $e->getMessage()]);
-            }
-        }
-
-        // Temporary debug logging to diagnose invalid-token issues. Only
-        // log full token in non-production environments.
-        if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-            $this->logger->debug('Password reset token verification attempt', [
-                'token' => $token,
-                'token_hash' => $hashedToken,
-                'request_uri' => (string)$request->getUri(),
-            ]);
-        } else {
-            $this->logger->debug('Password reset token verification attempt', ['token_hash' => substr($hashedToken, 0, 10) . '...']);
-        }
-        // First, in non-production, attempt a direct lookup of the password_resets
-        // row to help diagnose issues (e.g. truncation, missing row)
-        if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-            try {
-                $debugStmt = $this->pdo->prepare('SELECT id, user_id, email, token, expires_at, used_at, created_at FROM password_resets WHERE token = ? LIMIT 1');
-                $debugStmt->execute([$hashedToken]);
-                $debugRow = $debugStmt->fetch(\PDO::FETCH_ASSOC);
-                if ($debugRow) {
-                    $this->logger->debug('Debug password_resets row', [
-                        'row' => $debugRow,
-                    ]);
-                } else {
-                    $this->logger->debug('No password_resets row found for hashed token', ['token_hash' => $hashedToken]);
-                }
-            } catch (\Exception $e) {
-                $this->logger->error('Error running debug password_resets lookup', ['error' => $e->getMessage()]);
-            }
-        }
+        // Log a minimal, non-sensitive event for audit purposes. Avoid including
+        // token values or hashes in logs.
+        $this->logger->info('Password reset verification attempt', [
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        ]);
 
         $stmt = $this->pdo->prepare(
             'SELECT pr.id, pr.email, pr.expires_at, pr.used_at, u.first_name 
@@ -301,6 +241,37 @@ class PasswordResetController
         );
         $stmt->execute([$hashedToken]);
         $resetRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$resetRecord) {
+            // Attempt a fallback lookup that does not require the JOIN to users.
+            // This can help if the users row is missing or the JOIN fails for any
+            // reason (schema change, deleted user, etc.). If we find a matching
+            // password_resets row, fetch the user separately.
+            try {
+                $fallbackStmt = $this->pdo->prepare('SELECT id, user_id, email, expires_at, used_at FROM password_resets WHERE token = ? AND expires_at > NOW() AND used_at IS NULL LIMIT 1');
+                $fallbackStmt->execute([$hashedToken]);
+                $pr = $fallbackStmt->fetch(\PDO::FETCH_ASSOC);
+                if ($pr) {
+                    $userStmt = $this->pdo->prepare('SELECT first_name, id, active FROM users WHERE id = ? LIMIT 1');
+                    $userStmt->execute([$pr['user_id']]);
+                    $userRow = $userStmt->fetch(\PDO::FETCH_ASSOC);
+                    if ($userRow) {
+                        $resetRecord = [
+                            'id' => $pr['id'],
+                            'email' => $pr['email'],
+                            'expires_at' => $pr['expires_at'],
+                            'used_at' => $pr['used_at'],
+                            'first_name' => $userRow['first_name'] ?? '',
+                        ];
+                        $this->logger->info('Fallback password_resets lookup succeeded', ['password_reset_id' => $pr['id'], 'user_id' => $pr['user_id']]);
+                    } else {
+                        $this->logger->warning('Password reset token found but user record missing', ['password_reset_id' => $pr['id'], 'user_id' => $pr['user_id']]);
+                    }
+                }
+            } catch (\Exception $e) {
+                $this->logger->error('Error during fallback password_resets lookup', ['error' => $e->getMessage()]);
+            }
+        }
 
         if (!$resetRecord) {
             $this->logger->warning('Invalid or expired reset token accessed', ['token_hash' => substr($hashedToken, 0, 10) . '...']);
@@ -470,12 +441,7 @@ class PasswordResetController
                 ]);
             }
 
-            // In development, log the reset link as fallback
-            if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-                $this->logger->warning('Development mode: Password reset link', [
-                    'reset_link' => $resetLink,
-                ]);
-            }
+            // Do not log the reset link to protect sensitive data.
         } catch (\Exception $e) {
             // Log any unexpected errors
             $this->logger->error('Exception while sending password reset email', [
