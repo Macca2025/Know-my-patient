@@ -29,8 +29,21 @@ class QRCodeManager {
 		this.addEventListeners();
 		this.addClickToCopyFunctionality();
 		this.addShareFunctionality();
-		this.startCountdown();
 		this.playEntranceAnimations();
+		// Always hide overlays on page load
+		if (this.elements.qrBlurOverlay) {
+			this.elements.qrBlurOverlay.classList.add('d-none');
+			this.elements.qrBlurOverlay.style.display = 'none';
+		}
+		if (this.elements.codeBlurOverlay) {
+			this.elements.codeBlurOverlay.classList.add('d-none');
+			this.elements.codeBlurOverlay.style.display = 'none';
+		}
+		// Hide reveal button if code is visible
+		if (!this.isHidden && this.elements.revealBtn) {
+			this.elements.revealBtn.style.display = 'none';
+		}
+		this.startCountdown();
 	}
 	playEntranceAnimations() {
 		const elements = [
