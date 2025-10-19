@@ -42,8 +42,13 @@ if (isset($_SESSION['user_id'])) {
             $userId = $_SESSION['user_id'];
             $userEmail = $_SESSION['user_email'] ?? 'unknown';
             
-            // Log the timeout event
-            error_log("Session timeout: User $userId ($userEmail) logged out after $inactiveTime seconds of inactivity");
+            // Log the timeout event using logger if available. This keeps log handling consistent.
+            if (isset($container) && $container->has(\Psr\Log\LoggerInterface::class)) {
+                $logger = $container->get(\Psr\Log\LoggerInterface::class);
+                $logger->info('Session timeout: user logged out after inactivity', ['user_id' => $userId, 'user_email' => $userEmail, 'inactive_seconds' => $inactiveTime]);
+            } else {
+                error_log("Session timeout: User $userId ($userEmail) logged out after $inactiveTime seconds of inactivity");
+            }
             
             // Clear session data
             session_unset();

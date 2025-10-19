@@ -42,8 +42,7 @@ class DatabaseSupportMessageRepository
             
             return (int)$this->pdo->lastInsertId();
         } catch (PDOException $e) {
-            error_log("DatabaseSupportMessageRepository::insert() error: " . $e->getMessage());
-            error_log("Data attempted to insert: " . json_encode($data));
+            // Rethrow; callers should handle logging. Avoid ad-hoc error_log here.
             throw $e;
         }
     }

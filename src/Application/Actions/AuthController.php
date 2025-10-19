@@ -186,8 +186,6 @@ class AuthController
             $this->sessionService->remove('flash_type');
         }
 
-        // Note: cookie-based deleted-flash handling removed; rely on query param or session flash
-
         // Get timeout message and clear it after reading
         $timeoutMessage = $this->sessionService->get('timeout_message');
         if ($timeoutMessage) {

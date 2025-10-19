@@ -442,6 +442,12 @@ class PasswordResetController
             }
 
             // Do not log the reset link to protect sensitive data.
+            // Defensive: ensure no logger context includes the reset link
+            // in case other code mistakenly attempted to add it.
+            if (method_exists($this->logger, 'info')) {
+                // Log a minimal event without sensitive data
+                $this->logger->debug('Password reset email flow completed (email send status recorded)', ['user_id' => $user['id']]);
+            }
         } catch (\Exception $e) {
             // Log any unexpected errors
             $this->logger->error('Exception while sending password reset email', [

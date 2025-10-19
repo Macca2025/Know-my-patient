@@ -110,8 +110,53 @@ return function (ContainerBuilder $containerBuilder) {
                     $settings = $c->get(\App\Application\Settings\SettingsInterface::class);
                     $loggerSettings = $settings->get('logger');
                     $logger = new \Monolog\Logger($loggerSettings['name']);
+                    // Add unique id processor
                     $processor = new \Monolog\Processor\UidProcessor();
                     $logger->pushProcessor($processor);
+
+                    // Sanitize sensitive values before logs are formatted/written.
+                    // This ensures tokens, reset links, and raw token-related fields
+                    // are never written to persistent logs even if some code mistakenly
+                    // passes them into the log context.
+                    $logger->pushProcessor(function (array $record) {
+                        $sensitiveKeys = [
+                            'reset_link', 'token', 'provided_token', 'hashed_token',
+                            'token_hash', 'token_prefix', 'row_for_hashed', 'row_for_raw'
+                        ];
+
+                        $maskValue = function ($value) {
+                            // For strings, show a tiny prefix and then mask the rest to help debugging
+                            if (is_string($value) && strlen($value) > 8) {
+                                return substr($value, 0, 4) . '...REDACTED...';
+                            }
+                            // For arrays or objects, replace with a simple marker
+                            if (is_array($value) || is_object($value)) {
+                                return 'REDACTED';
+                            }
+                            return 'REDACTED';
+                        };
+
+                        // Walk top-level context keys and redact known sensitive keys.
+                        foreach ($record['context'] as $k => $v) {
+                            if (in_array($k, $sensitiveKeys, true)) {
+                                $record['context'][$k] = $maskValue($v);
+                                continue;
+                            }
+
+                            // If the context contains nested arrays, recursively sanitize
+                            if (is_array($v)) {
+                                array_walk_recursive($v, function (&$item, $key) use ($sensitiveKeys, $maskValue) {
+                                    if (in_array($key, $sensitiveKeys, true)) {
+                                        $item = $maskValue($item);
+                                    }
+                                });
+                                $record['context'][$k] = $v;
+                            }
+                        }
+
+                        return $record;
+                    });
+
                     $handler = new \Monolog\Handler\StreamHandler($loggerSettings['path'], $loggerSettings['level']);
                     $logger->pushHandler($handler);
                     return $logger;
@@ -164,7 +209,8 @@ return function (ContainerBuilder $containerBuilder) {
                     return new \App\Application\Actions\CardRequestsController(
                         $c->get(\PDO::class),
                         $c->get(\App\Application\Services\SessionService::class),
-                        $c->get(\Slim\Views\Twig::class)
+                        $c->get(\Slim\Views\Twig::class),
+                        $c->get(\Psr\Log\LoggerInterface::class)
                     );
                 },
                 

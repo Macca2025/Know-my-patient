@@ -7,7 +7,7 @@
         <div class="card-icon">
             <i class="bi bi-plus-circle text-success"></i>
         </div>
-        <h5 class="card-title">Add Patient Information</h5>
+        <h5 class="card-title">Add To My Passport</h5>
         <p class="card-text">Add or update your digital hospital passport details here.</p>
         <div class="card-actions">
             <a href="{{ url_for('add_patient') }}" class="btn btn-outline-success">
@@ -142,14 +142,75 @@
             <!-- Show order button if no pending request -->
             <p class="card-text">Order a physical membership card with your unique QR code.</p>
             <div class="card-actions">
-                <form method="POST" action="/dashboard/request-card" class="full-width-form" id="cardRequestForm" onsubmit="console.log('Form submitting...'); return true;">
+                {# If user has a valid patient profile with address/postcode allow direct submission #}
+                {% if canRequestCard is defined and canRequestCard %}
+                <form method="POST" action="/dashboard/request-card" class="full-width-form" id="cardRequestForm">
                     <input type="hidden" name="{{ csrf.keys.name }}" value="{{ csrf.name }}">
                     <input type="hidden" name="{{ csrf.keys.value }}" value="{{ csrf.value }}">
-                    <button type="button" class="btn btn-outline-warning w-100" id="requestCardBtn" onclick="console.log('Button clicked inline'); if(confirm('Are you sure you want to order a patient card?')) { console.log('Submitting form'); document.getElementById('cardRequestForm').submit(); } else { console.log('Cancelled'); }">
+                    <button type="submit" class="btn btn-outline-warning w-100" id="requestCardBtn">
                         <i class="bi bi-credit-card me-2"></i>Order My Card
                     </button>
                 </form>
+                {% else %}
+                <a href="/add-patient" class="btn btn-outline-warning w-100" id="requestCardBtn">
+                    <i class="bi bi-credit-card me-2"></i>Complete Profile to Order Card
+                </a>
+                {% endif %}
             </div>
+            {# Confirmation modal for ordering a card - Bootstrap 5 #}
+            <div class="modal fade" id="confirmCardModal" tabindex="-1" aria-labelledby="confirmCardModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="confirmCardModalLabel">Confirm Card Order</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to order a physical patient card? This will use the delivery address on your profile.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" id="confirmCardOrderBtn">Yes, order my card</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var form = document.getElementById('cardRequestForm');
+                    var confirmModalEl = document.getElementById('confirmCardModal');
+                    if (!form || !confirmModalEl) return;
+
+                    // Use Bootstrap's Modal API
+                    var confirmModal = null;
+                    try {
+                        confirmModal = new bootstrap.Modal(confirmModalEl);
+                    } catch (e) {
+                        // If bootstrap not available, fall back to native confirm
+                        form.addEventListener('submit', function (ev) {
+                            if (!confirm('Are you sure you want to order a patient card?')) {
+                                ev.preventDefault();
+                            }
+                        });
+                        return;
+                    }
+
+                    // Intercept the form submit and show modal
+                    form.addEventListener('submit', function (ev) {
+                        ev.preventDefault();
+                        confirmModal.show();
+                    });
+
+                    // When user confirms in modal, submit the form
+                    var confirmBtn = document.getElementById('confirmCardOrderBtn');
+                    confirmBtn.addEventListener('click', function () {
+                        // disable button to prevent double submits
+                        confirmBtn.disabled = true;
+                        form.submit();
+                    });
+                });
+            </script>
         {% endif %}
         <div class="card-footer-info">
             <small><i class="bi bi-truck"></i>Free delivery within 5-7 business days</small>

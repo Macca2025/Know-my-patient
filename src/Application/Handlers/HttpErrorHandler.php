@@ -6,29 +6,34 @@ namespace App\Application\Handlers;
 
 use App\Application\Actions\ActionError;
 use App\Application\Actions\ActionPayload;
-use App\Domain\DomainException\DomainRecordNotFoundException;
 use Psr\Http\Message\ResponseInterface as Response;
-use Slim\Exception\HttpBadRequestException;
 use Slim\Exception\HttpException;
 use Slim\Exception\HttpForbiddenException;
 use Slim\Exception\HttpMethodNotAllowedException;
 use Slim\Exception\HttpNotFoundException;
-use Slim\Exception\HttpNotImplementedException;
-use Slim\Exception\HttpUnauthorizedException;
 use Slim\Handlers\ErrorHandler as SlimErrorHandler;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Throwable;
 use Slim\Views\Twig;
 
 class HttpErrorHandler extends SlimErrorHandler
 {
-    /** @var ContainerInterface */
-    private $container;
+    private ContainerInterface $container;
+    protected LoggerInterface $logger;
 
     public function setContainer(ContainerInterface $container): void
     {
         $this->container = $container;
+        if ($container->has(LoggerInterface::class)) {
+            $this->logger = $container->get(LoggerInterface::class);
+        } else {
+            // Ensure logger property always contains a LoggerInterface
+            $this->logger = new NullLogger();
+        }
     }
+
     /**
      * @inheritdoc
      */
@@ -42,12 +47,9 @@ class HttpErrorHandler extends SlimErrorHandler
         $acceptHeader = $request->getHeaderLine('Accept');
         $wantsHtml = strpos($acceptHeader, 'text/html') !== false;
 
-        // Map exception to template or static file
+        // Map exception to template
         $template = 'errors/error_500.html.twig';
-        if (
-            $exception instanceof HttpNotFoundException ||
-            $exception instanceof HttpMethodNotAllowedException
-        ) {
+        if ($exception instanceof HttpNotFoundException || $exception instanceof HttpMethodNotAllowedException) {
             $statusCode = 404;
             $template = 'errors/error_404.html.twig';
         } elseif ($exception instanceof HttpForbiddenException) {
@@ -67,8 +69,11 @@ class HttpErrorHandler extends SlimErrorHandler
                     'session' => $_SESSION ?? [],
                 ]);
                 return $response->withStatus($statusCode)->withHeader('Content-Type', 'text/html');
-            } catch (\Throwable $e) {
-                // Fallback: plain error message
+            } catch (Throwable $e) {
+                if ($this->logger) {
+                    // Log the Twig rendering exception so we can diagnose template errors
+                    $this->logger->error('Twig rendering error in HttpErrorHandler: ' . $e->getMessage(), ['exception' => $e]);
+                }
                 $response->getBody()->write('An error occurred rendering the error page.');
                 return $response->withHeader('Content-Type', 'text/plain');
             }
@@ -80,27 +85,16 @@ class HttpErrorHandler extends SlimErrorHandler
             'An internal error has occurred while processing your request.'
         );
 
-        // Handle HttpNotFoundException (includes wrapped DomainRecordNotFoundException)
         if ($exception instanceof HttpNotFoundException) {
             $statusCode = 404;
-            $error = new ActionError(
-                ActionError::RESOURCE_NOT_FOUND,
-                $exception->getMessage()
-            );
+            $error = new ActionError(ActionError::RESOURCE_NOT_FOUND, $exception->getMessage());
         } elseif ($exception instanceof HttpMethodNotAllowedException) {
             $statusCode = 405;
-            $error = new ActionError(
-                ActionError::NOT_ALLOWED,
-                $exception->getMessage()
-            );
+            $error = new ActionError(ActionError::NOT_ALLOWED, $exception->getMessage());
         } elseif ($exception instanceof HttpException) {
             $statusCode = $exception->getCode();
             $error->setDescription($exception->getMessage());
-        } elseif (
-            !($exception instanceof HttpException)
-            && $exception instanceof Throwable
-            && $this->displayErrorDetails
-        ) {
+        } elseif (!($exception instanceof HttpException) && $exception instanceof Throwable && $this->displayErrorDetails) {
             $error->setDescription($exception->getMessage());
         }
 

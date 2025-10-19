@@ -34,7 +34,7 @@ class AddPatientController
         // Fetch logged-in user's full information
         if ($userId) {
             $stmt = $this->pdo->prepare('
-                SELECT id, uid, first_name, last_name, email, role, created_at 
+                SELECT *
                 FROM users 
                 WHERE id = ?
             ');
@@ -55,12 +55,7 @@ class AddPatientController
         if ($patientUid && $userId) {
             // Load specific patient for editing via patient_uid parameter
             $stmt = $this->pdo->prepare('
-                SELECT id, patient_uid, user_id, created_by, patient_name, date_of_birth, gender, blood_type, 
-                       allergies, medical_conditions, medications, emergency_contact_name, 
-                       emergency_contact_phone, emergency_contact_relation, nhs_number, gp_surgery, 
-                       mobility_issues, communication_needs, dietary_requirements, special_instructions, 
-                       profile_picture, created_at, updated_at 
-                FROM patient_profiles 
+          SELECT * FROM patient_profiles 
                 WHERE patient_uid = ? AND (created_by = ? OR user_id = ?)
             ');
             $stmt->execute([$patientUid, $userId, $userId]);
@@ -77,11 +72,7 @@ class AddPatientController
         } elseif ($userId) {
             // No patient_uid provided - check if user already has their own patient profile
             $stmt = $this->pdo->prepare('
-                SELECT id, patient_uid, user_id, created_by, patient_name, date_of_birth, gender, blood_type, 
-                       allergies, medical_conditions, medications, emergency_contact_name, 
-                       emergency_contact_phone, emergency_contact_relation, nhs_number, gp_surgery, 
-                       mobility_issues, communication_needs, dietary_requirements, special_instructions, 
-                       profile_picture, created_at, updated_at 
+          SELECT *
                 FROM patient_profiles 
                 WHERE user_id = ? 
                 ORDER BY created_at DESC 
@@ -121,8 +112,12 @@ class AddPatientController
             'csrf' => $csrf,
             'formData' => $formData,
             'patient' => $formData,  // Template expects 'patient'
-            'current_user' => $currentUser  // Pass logged-in user's full data
+            'current_user' => $currentUser,  // Pass logged-in user's full data
+            'session' => $this->sessionService->all() // Pass session for flash messages
         ]);
+        // Clear flash message after rendering so it only shows once
+        $this->sessionService->remove('flash_message');
+        $this->sessionService->remove('flash_type');
         $response->getBody()->write($body);
         return $response;
     }

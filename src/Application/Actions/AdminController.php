@@ -372,7 +372,7 @@ class AdminController
                 $this->session->set('flash_message', 'Support message status updated successfully!');
                 $this->session->set('flash_type', 'success');
             } catch (\PDOException $e) {
-                error_log("Error updating support message status: " . $e->getMessage());
+                $this->logger->error('Error updating support message status', ['error' => $e->getMessage(), 'id' => $id]);
                 $this->session->set('flash_message', 'Error updating status. Please try again.');
                 $this->session->set('flash_type', 'danger');
             }
@@ -404,7 +404,7 @@ class AdminController
                 $this->session->set('flash_message', 'Support message deleted successfully!');
                 $this->session->set('flash_type', 'success');
             } catch (\PDOException $e) {
-                error_log("Error deleting support message: " . $e->getMessage());
+                $this->logger->error('Error deleting support message', ['error' => $e->getMessage(), 'id' => $id]);
                 $this->session->set('flash_message', 'Error deleting message. Please try again.');
                 $this->session->set('flash_type', 'danger');
             }

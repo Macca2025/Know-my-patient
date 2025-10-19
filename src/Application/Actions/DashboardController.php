@@ -74,12 +74,23 @@ class DashboardController
         $dashboardTitle = 'User Dashboard';
         $dashboardSubtitle = 'Manage your account, privacy, and records all in one place.';
 
-        // Fetch pending card request for patient users
+        // Fetch pending card request for patient users and whether they can request a card
         $pendingCardRequest = null;
+        $canRequestCard = false;
         if ($role === 'patient') {
             $userId = $this->sessionService->get('user_id');
             if ($userId) {
                 $pendingCardRequest = $this->cardRequestsController->getPendingCardRequest($userId);
+                try {
+                    $stmt = $this->pdo->prepare('SELECT address, postcode FROM patient_profiles WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
+                    $stmt->execute([$userId]);
+                    $profile = $stmt->fetch(\PDO::FETCH_ASSOC);
+                    if ($profile && !empty(trim((string)($profile['address'] ?? ''))) && !empty(trim((string)($profile['postcode'] ?? '')))) {
+                        $canRequestCard = true;
+                    }
+                } catch (\Exception $e) {
+                    $this->logger->warning('Error checking patient profile for card request', ['user_id' => $userId, 'error' => $e->getMessage()]);
+                }
             }
         }
 
@@ -117,7 +128,8 @@ class DashboardController
             'dashboardTitle' => $dashboardTitle,
             'dashboardSubtitle' => $dashboardSubtitle,
             'role' => $role,
-            'pendingCardRequest' => $pendingCardRequest
+            'pendingCardRequest' => $pendingCardRequest,
+            'canRequestCard' => $canRequestCard
         ]);
         $response->getBody()->write($body);
         return $response;
@@ -153,12 +165,23 @@ class DashboardController
             ]
         ];
 
-        // Fetch pending card request for current user
+        // Fetch pending card request for current user and whether they can request a card
         $userId = $this->sessionService->get('user_id');
         $pendingCardRequest = null;
+        $canRequestCard = false;
 
         if ($userId) {
             $pendingCardRequest = $this->cardRequestsController->getPendingCardRequest($userId);
+            try {
+                $stmt = $this->pdo->prepare('SELECT address, postcode FROM patient_profiles WHERE user_id = ? ORDER BY created_at DESC LIMIT 1');
+                $stmt->execute([$userId]);
+                $profile = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if ($profile && !empty(trim((string)($profile['address'] ?? ''))) && !empty(trim((string)($profile['postcode'] ?? '')))) {
+                    $canRequestCard = true;
+                }
+            } catch (\Exception $e) {
+                $this->logger->warning('Error checking patient profile for card request', ['user_id' => $userId, 'error' => $e->getMessage()]);
+            }
         }
 
         $body = $this->twig->getEnvironment()->render('dashboard/dashboard_patient.html.twig', [
@@ -166,6 +189,7 @@ class DashboardController
             'user_role' => $this->sessionService->get('user_role'),
             'csrf' => $csrf,
             'pendingCardRequest' => $pendingCardRequest
+            ,'canRequestCard' => $canRequestCard
         ]);
         $response->getBody()->write($body);
         return $response;

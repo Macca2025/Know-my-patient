@@ -8,6 +8,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Application\Services\SessionService;
 use App\Application\Services\IpAddressService;
+use Psr\Log\LoggerInterface;
 use Slim\Views\Twig;
 
 class CardRequestsController
@@ -15,12 +16,14 @@ class CardRequestsController
     private \PDO $pdo;
     private SessionService $sessionService;
     private Twig $twig;
+    private LoggerInterface $logger;
 
-    public function __construct(\PDO $pdo, SessionService $sessionService, Twig $twig)
+    public function __construct(\PDO $pdo, SessionService $sessionService, Twig $twig, LoggerInterface $logger)
     {
         $this->pdo = $pdo;
         $this->sessionService = $sessionService;
         $this->twig = $twig;
+        $this->logger = $logger;
     }
 
     /**
@@ -28,28 +31,19 @@ class CardRequestsController
      */
     public function requestPhysicalCard(Request $request, Response $response): Response
     {
-        // Write to a file to confirm method is called
-        file_put_contents(
-            '/Applications/MAMP/htdocs/know_my_patient/logs/card_request_debug.txt',
-            date('Y-m-d H:i:s') . " - Method called\n",
-            FILE_APPEND
-        );
+        // Record that the method was invoked (use structured logger instead of ad-hoc file writes)
+        $this->logger->info('CardRequestsController::requestPhysicalCard invoked');
 
         try {
             // Get user information from session
             $userId = $this->sessionService->get('user_id');
             $userEmail = $this->sessionService->get('user_email');
 
-            // Log the request for debugging
-            error_log("Card request initiated for user: " . ($userId ?? 'NULL'));
-            file_put_contents(
-                '/Applications/MAMP/htdocs/know_my_patient/logs/card_request_debug.txt',
-                "User ID: " . ($userId ?? 'NULL') . "\n",
-                FILE_APPEND
-            );
+            // Log the request invocation; avoid logging sensitive or PII data
+            $this->logger->info('Card request initiated', ['user_id' => $userId]);
 
             if (!$userId) {
-                error_log("Card request failed: No user ID in session");
+                $this->logger->warning('Card request attempted without authenticated user');
                 $this->sessionService->set('flash_message', 'You must be logged in to request a card.');
                 $this->sessionService->set('flash_type', 'danger');
                 return $response->withHeader('Location', '/login')->withStatus(302);
@@ -66,7 +60,7 @@ class CardRequestsController
             $existingRequest = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if ($existingRequest) {
-                error_log("Card request failed: Existing request found for user " . $userId);
+                $this->logger->warning('Existing card request found for user', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'You already have a card request in progress. Please wait for it to be processed.');
                 $this->sessionService->set('flash_type', 'warning');
                 return $response->withHeader('Location', '/dashboard')->withStatus(302);
@@ -79,7 +73,7 @@ class CardRequestsController
             $userUid = $userRecord['uid'] ?? null;
 
             if (!$userUid) {
-                error_log("Card request failed: No UID found for user " . $userId);
+                $this->logger->error('No UID found for user when attempting card request', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'Unable to process request. User UID not found.');
                 $this->sessionService->set('flash_type', 'danger');
                 return $response->withHeader('Location', '/dashboard')->withStatus(302);
@@ -97,17 +91,17 @@ class CardRequestsController
             $patientProfile = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$patientProfile) {
-                error_log("Card request failed: No patient profile found for user " . $userId);
+                $this->logger->warning('No patient profile found for card request', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'Please complete your patient profile before requesting a physical card.');
                 $this->sessionService->set('flash_type', 'danger');
                 return $response->withHeader('Location', '/add-patient')->withStatus(302);
             }
 
-            error_log("Patient profile found: " . $patientProfile['patient_uid']);
+            $this->logger->info('Patient profile found for card request', ['patient_uid' => $patientProfile['patient_uid']]);
 
             // Validate required fields
             if (empty($patientProfile['address']) || empty($patientProfile['postcode'])) {
-                error_log("Card request failed: Missing address or postcode");
+                $this->logger->warning('Missing address or postcode in patient profile when requesting card', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'Please add your delivery address and postcode to your patient profile before requesting a card.');
                 $this->sessionService->set('flash_type', 'danger');
                 return $response->withHeader('Location', '/add-patient')->withStatus(302);
@@ -132,29 +126,26 @@ class CardRequestsController
                 'status' => 'pending'
             ];
 
-            error_log("Attempting to insert card request with params: " . json_encode($params));
+            $this->logger->debug('Attempting to insert card request', ['user_id' => $userId, 'patient_uid' => $params['patient_uid'], 'card_type' => $params['card_type']]);
 
             $success = $stmt->execute($params);
 
             if ($success) {
-                error_log("Card request inserted successfully for user " . $userId);
+                $this->logger->info('Card request inserted successfully', ['user_id' => $userId]);
                 // Log the action
                 $this->logCardRequestAction($userId, 'card_request_created', 'Patient requested physical card');
 
                 $this->sessionService->set('flash_message', 'Your physical card request has been submitted successfully! We will process it within 2-3 business days.');
                 $this->sessionService->set('flash_type', 'success');
             } else {
-                error_log("Card request insert failed for user " . $userId);
                 $errorInfo = $stmt->errorInfo();
-                error_log("PDO Error: " . json_encode($errorInfo));
+                $this->logger->error('Card request insert failed', ['user_id' => $userId, 'pdo_error' => $errorInfo]);
                 $this->sessionService->set('flash_message', 'Failed to submit card request. Please try again later.');
                 $this->sessionService->set('flash_type', 'danger');
             }
         } catch (\Exception $e) {
-            // Log detailed error information for debugging (not exposed to users)
-            error_log("Card request exception: " . $e->getMessage());
-            error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
-            error_log("Stack trace: " . $e->getTraceAsString());
+            // Log concise error information via structured logger (avoid leaking stack traces into logs)
+            $this->logger->error('Card request exception', ['user_id' => $userId ?? null, 'error' => $e->getMessage()]);
 
             // Generic user-friendly message
             $this->sessionService->set('flash_message', 'An error occurred while processing your card request. Please try again.');
@@ -189,7 +180,7 @@ class CardRequestsController
                 return $pendingCardRequest;
             }
         } catch (\Exception $e) {
-            error_log("Error fetching pending card request: " . $e->getMessage());
+            $this->logger->error('Error fetching pending card request', ['user_id' => $userId ?? null, 'error' => $e->getMessage()]);
         }
 
         return null;
@@ -374,7 +365,7 @@ class CardRequestsController
             $this->sessionService->set('flash_message', 'Card request status updated successfully.');
             $this->sessionService->set('flash_type', 'success');
         } catch (\Exception $e) {
-            error_log("Error updating card request status: " . $e->getMessage());
+            $this->logger->error('Error updating card request status', ['error' => $e->getMessage(), 'request_id' => $requestId ?? null]);
             $this->sessionService->set('flash_message', 'Failed to update card request status.');
             $this->sessionService->set('flash_type', 'danger');
         }
@@ -418,7 +409,7 @@ class CardRequestsController
             $this->sessionService->set('flash_message', 'Card request deleted successfully.');
             $this->sessionService->set('flash_type', 'success');
         } catch (\Exception $e) {
-            error_log("Error deleting card request: " . $e->getMessage());
+            $this->logger->error('Error deleting card request', ['error' => $e->getMessage(), 'request_id' => $requestId ?? null]);
             $this->sessionService->set('flash_message', 'Failed to delete card request.');
             $this->sessionService->set('flash_type', 'danger');
         }
@@ -443,7 +434,7 @@ class CardRequestsController
                 'ip_address' => IpAddressService::getClientIp()
             ]);
         } catch (\Exception $e) {
-            error_log("Failed to log card request action: " . $e->getMessage());
+            $this->logger->warning('Failed to log card request action', ['error' => $e->getMessage(), 'user_id' => $userId]);
             // Silently fail - logging shouldn't break the request
         }
     }
