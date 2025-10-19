@@ -37,7 +37,9 @@
                     <div class="admin-stat-icon bg-info bg-opacity-10 mb-2">
                         <i class="bi bi-clock text-info"></i>
                     </div>
-                    <div class="admin-stat-value h4 mb-0">{{ stats.active_24h|default(0) }}</div>
+                    {% set now = "now"|date('U') %}
+                    {% set active_24h_count = users|filter(u => u.updated_at and (now - u.updated_at|date('U')) <= 86400)|length %}
+                    <div class="admin-stat-value h4 mb-0">{{ active_24h_count }}</div>
                     <div class="admin-stat-label small">Active (24h)</div>
                 </div>
             </div>
@@ -121,6 +123,7 @@
                         <th>Role</th>
                         <th>Registered</th>
                         <th>Last Login</th>
+                        <th>Last Activity</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -142,7 +145,15 @@
                             <span class="badge {{ role_badge }}">{{ user.role|capitalize }}</span>
                         </td>
                         <td>{{ user.created_at|date('Y-m-d H:i') }}</td>
-                        <td>{% if user.last_login %}{{ user.last_login|date('Y-m-d H:i') }}{% else %}Never{% endif %}</td>
+                        <td>{% if user.updated_at %}{{ user.updated_at|date('Y-m-d H:i') }}{% else %}Never{% endif %}</td>
+                        {# Optionally, highlight if user was active in last 24h #}
+                        {% set now = "now"|date('U') %}
+                        {% set updated = user.updated_at ? user.updated_at|date('U') : 0 %}
+                        {% if updated and (now - updated) <= 86400 %}
+                            <td><span class="badge bg-info">Active (24h)</span></td>
+                        {% else %}
+                            <td><span class="badge bg-secondary">Inactive</span></td>
+                        {% endif %}
                         <td>
                             {% if user.active == 0 %}
                                 <span class="badge bg-danger">Suspended</span>
