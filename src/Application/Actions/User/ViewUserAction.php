@@ -13,7 +13,12 @@ class ViewUserAction extends UserAction
      */
     protected function action(): Response
     {
-        $userId = (int) $this->resolveArg('id');
+        $idArg = $this->resolveArg('id');
+        if (!is_numeric($idArg)) {
+            $this->logger->warning('Invalid user id argument for ViewUserAction', ['id' => $idArg]);
+            return $this->respondWithData(['error' => 'Invalid user id'], 400);
+        }
+        $userId = (int) $idArg;
         $user = $this->userRepository->findUserOfId($userId);
 
         $this->logger->info("User of id `${userId}` was viewed.");

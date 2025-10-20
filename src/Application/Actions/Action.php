@@ -56,9 +56,14 @@ abstract class Action
     /**
      * @return array<string, mixed>|object
      */
-    protected function getFormData()
+    protected function getFormData(): array|object
     {
-        return $this->request->getParsedBody();
+        $data = $this->request->getParsedBody();
+        if (is_array($data) || is_object($data)) {
+            return $data;
+        }
+        // Return empty array if null or invalid type
+        return [];
     }
 
     /**
@@ -87,7 +92,7 @@ abstract class Action
     protected function respond(ActionPayload $payload): Response
     {
         $json = json_encode($payload, JSON_PRETTY_PRINT);
-        $this->response->getBody()->write($json);
+        $this->response->getBody()->write($json !== false ? $json : '');
 
         return $this->response
                     ->withHeader('Content-Type', 'application/json')

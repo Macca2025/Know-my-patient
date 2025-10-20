@@ -2,6 +2,7 @@
 
 namespace App\Application\Actions;
 
+
 use App\Application\Services\CacheService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -45,7 +46,7 @@ class AuthController
                 $stmt = $this->pdo->prepare('SELECT id, email, first_name, last_name, role, remember_token FROM users WHERE id = ? AND active = 1 LIMIT 1');
                 $stmt->execute([$userId]);
                 $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-                if ($user && $user['remember_token'] && password_verify($token, $user['remember_token'])) {
+                if (is_array($user) && isset($user['remember_token']) && $user['remember_token'] && password_verify($token, $user['remember_token'])) {
                     $this->sessionService->set('user_id', $user['id']);
                     $this->sessionService->set('user_email', $user['email']);
                     $this->sessionService->set('user_name', $user['first_name'] . ' ' . $user['last_name']);
@@ -60,6 +61,7 @@ class AuthController
         // 2. Handle POST login
         if ($request->getMethod() === 'POST') {
             $data = $request->getParsedBody();
+            $data = is_array($data) ? $data : [];
             $form = $data;
             $email = trim($data['email'] ?? '');
             $password = $data['password'] ?? '';
@@ -81,64 +83,33 @@ class AuthController
                     $suspended = true;
                     $this->logger->warning('Suspended user login attempt', ['email' => $email]);
                 } else {
-                    $stmt = $this->pdo->prepare('SELECT id, email, password, first_name, last_name, role, active, remember_token FROM users WHERE email = ? AND active = 1 LIMIT 1');
-                    $stmt->execute([$email]);
+                    $stmt = $this->pdo->prepare('SELECT id, email, password, first_name, last_name, role, active, is_verified FROM users WHERE email = ? LIMIT 1');
+                    $stmt->execute([isset($form['email']) ? $form['email'] : '']);
                     $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-                    if ($user && password_verify($password, $user['password'])) {
+                    if (is_array($user) && isset($form['password'], $user['password']) && password_verify($form['password'], $user['password'])) {
                         // Set session
-                        $_SESSION['user_id'] = $user['id'];
-                        $_SESSION['user_email'] = $user['email'];
-                        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-                        $_SESSION['user_role'] = $user['role'] ?? null;
+                        $this->sessionService->set('user_id', $user['id']);
+                        $this->sessionService->set('user_email', $user['email']);
+                        $this->sessionService->set('user_name', $user['first_name'] . ' ' . $user['last_name']);
+                        $this->sessionService->set('user_role', $user['role'] ?? null);
                         $_SESSION['_last_activity'] = time(); // Initialize session timeout tracking
 
-                        // Cache user role for 15 minutes (900 seconds)
-                        $this->cacheService->set('user_role_' . $user['id'], $user['role'], 900);
-
-                        // Update last_login
-                        $updateLogin = $this->pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = ?');
-                        $updateLogin->execute([$user['id']]);
-                        $this->logger->info('User login successful', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role']]);
-
-                        // Log audit event for successful login
-                        $auditStmt = $this->pdo->prepare(
-                            'INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
-                             VALUES (?, ?, ?, ?)'
-                        );
-                        $auditStmt->execute([
-                            $user['id'],
-                            'USER_LOGIN',
-                            json_encode([
-                                'email' => $user['email'],
-                                'role' => $user['role'],
-                                'remember_me' => $remember,
-                            ]),
-                            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                        ]);
-
-                        // Handle remember me
-                        if ($remember) {
-                            $token = bin2hex(random_bytes(32));
-                            $hashedToken = password_hash($token, PASSWORD_ARGON2ID);
-                            $update = $this->pdo->prepare('UPDATE users SET remember_token = ? WHERE id = ?');
-                            $update->execute([$hashedToken, $user['id']]);
-                            setcookie('rememberme', $user['id'] . ':' . $token, [
-                                'expires' => time() + (86400 * 30),
-                                'path' => '/',
-                                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-                                'httponly' => true,
-                                'samesite' => 'Lax',
-                            ]);
-                        } else {
-                            setcookie('rememberme', '', time() - 3600, '/');
-                            $update = $this->pdo->prepare('UPDATE users SET remember_token = NULL WHERE id = ?');
-                            $update->execute([$user['id']]);
+                        // NHS verify logic
+                        $this->logger->info('Login flow: starting NHS verification check', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role'], 'is_verified' => $user['is_verified'] ?? null]);
+                        if (isset($user['email']) && preg_match('/@nhs\\.(net|uk)$/i', $user['email'])) {
+                            $this->logger->info('Login flow: NHS email detected', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role'], 'is_verified' => $user['is_verified']]);
+                            $this->logger->info('NHS user login verification check', ['user_id' => $user['id'], 'is_verified' => $user['is_verified']]);
+                            if (empty($user['is_verified'])) {
+                                $this->logger->info('Login flow: NHS user not verified, redirecting to /nhsverify', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role'], 'is_verified' => $user['is_verified']]);
+                                return $response->withHeader('Location', '/nhsverify')->withStatus(302);
+                            }
+                            $this->logger->info('Login flow: NHS user verified, proceeding to dashboard', ['user_id' => $user['id'], 'email' => $user['email'], 'role' => $user['role'], 'is_verified' => $user['is_verified']]);
                         }
+                        $this->logger->info('User logged in', ['user_id' => $user['id'], 'email' => $user['email']]);
                         return $response->withHeader('Location', '/dashboard')->withStatus(302);
                     } else {
                         $error = 'Invalid email or password.';
                         $this->logger->warning('Failed login attempt', ['email' => $email]);
-                        
                         // Log audit event for failed login
                         $auditStmt = $this->pdo->prepare(
                             'INSERT INTO audit_log (user_id, activity_type, description, ip_address) 
@@ -217,13 +188,14 @@ class AuthController
 
     public function register(Request $request, Response $response): Response
     {
-        $errors = [];
-        $success = false;
-        $data = $request->getParsedBody() ?: [];
+    $errors = [];
+    $success = false;
+    $data = $request->getParsedBody();
+    $data = is_array($data) ? $data : [];
 
         if ($request->getMethod() === 'POST') {
-            $this->logger->debug('Registration POST data', ['register_type' => $data['register_type'] ?? null, 'all_data' => $data]);
-            if (isset($data['register_type'])) {
+            $this->logger->debug('Registration POST data', ['register_type' => isset($data['register_type']) ? $data['register_type'] : null, 'all_data' => $data]);
+            if (isset($data['register_type']) && is_string($data['register_type'])) {
                 $data['register_type'] = strtolower($data['register_type']);
             }
             $registerTypeValidator = v::notEmpty()->in(['nhs', 'nhs_user', 'healthcare_worker', 'family', 'patient']);
@@ -232,29 +204,30 @@ class AuthController
             $emailValidator = v::notEmpty()->email();
             $passwordValidator = v::notEmpty()->length(8, null);
 
-            if (!$registerTypeValidator->validate($data['register_type'] ?? null)) {
+            if (!$registerTypeValidator->validate(isset($data['register_type']) ? $data['register_type'] : null)) {
                 $errors['register_type'] = 'Please select a valid registration type.';
             }
-            if (!$firstNameValidator->validate($data['firstName'] ?? null)) {
+            if (!$firstNameValidator->validate(isset($data['firstName']) ? $data['firstName'] : null)) {
                 $errors['firstName'] = 'First name is required and must be alphabetic.';
             }
-            if (!$lastNameValidator->validate($data['lastName'] ?? null)) {
+            if (!$lastNameValidator->validate(isset($data['lastName']) ? $data['lastName'] : null)) {
                 $errors['lastName'] = 'Last name is required and must be alphabetic.';
             }
-            if (!$emailValidator->validate($data['email'] ?? null)) {
+            if (!$emailValidator->validate(isset($data['email']) ? $data['email'] : null)) {
                 $errors['email'] = 'A valid email is required.';
             }
-            
+
             // Enhanced password validation: minimum 8 characters and must contain a special character
-            $password = $data['password'] ?? '';
+            $password = isset($data['password']) ? $data['password'] : '';
             if (empty($password)) {
-            $errors['password'] = 'Password is required.';
-        } elseif (strlen($password) < 8) {
-            $errors['password'] = 'Password must be at least 8 characters long.';
-        } elseif (!preg_match('/[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\\\\\/;~`]/', $password)) {
-            $errors['password'] = 'Password must contain at least one special character (e.g., !@#$%^&*).';
-        }            // Check if email already exists
-            if (empty($errors['email'])) {
+                $errors['password'] = 'Password is required.';
+            } elseif (strlen($password) < 8) {
+                $errors['password'] = 'Password must be at least 8 characters long.';
+            } elseif (!preg_match('/[!@#$%^&*(),.?":{}|<>\-_=+\[\]\\\\\/;~`]/', $password)) {
+                $errors['password'] = 'Password must contain at least one special character (e.g., !@#$%^&*).';
+            }
+            // Check if email already exists
+            if (empty($errors['email']) && isset($data['email'])) {
                 $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM users WHERE email = ?');
                 $stmt->execute([$data['email']]);
                 if ($stmt->fetchColumn() > 0) {
@@ -265,21 +238,22 @@ class AuthController
                 try {
                     $stmt = $this->pdo->prepare('INSERT INTO users (uid, first_name, last_name, email, password, role, created_at, updated_at, active) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), 1)');
                     $uid = bin2hex(random_bytes(16));
-                    $hashedPassword = password_hash($data['password'], PASSWORD_ARGON2ID);
-                    if ($data['register_type'] === 'nhs' || $data['register_type'] === 'nhs_user') {
+                    $hashedPassword = password_hash(isset($data['password']) ? $data['password'] : '', PASSWORD_ARGON2ID);
+                    $registerType = isset($data['register_type']) ? $data['register_type'] : '';
+                    if ($registerType === 'nhs' || $registerType === 'nhs_user') {
                         $role = 'nhs_user';
-                    } elseif ($data['register_type'] === 'healthcare_worker') {
+                    } elseif ($registerType === 'healthcare_worker') {
                         $role = 'healthcare_worker';
-                    } elseif ($data['register_type'] === 'family') {
+                    } elseif ($registerType === 'family') {
                         $role = 'family';
                     } else {
                         $role = 'patient';
                     }
                     $stmt->execute([
                         $uid,
-                        $data['firstName'],
-                        $data['lastName'],
-                        $data['email'],
+                        isset($data['firstName']) ? $data['firstName'] : '',
+                        isset($data['lastName']) ? $data['lastName'] : '',
+                        isset($data['email']) ? $data['email'] : '',
                         $hashedPassword,
                         $role
                     ]);
@@ -296,10 +270,10 @@ class AuthController
                         $newUserId,
                         'USER_REGISTERED',
                         json_encode([
-                            'email' => $data['email'],
-                            'name' => $data['firstName'] . ' ' . $data['lastName'],
+                            'email' => isset($data['email']) ? $data['email'] : '',
+                            'name' => (isset($data['firstName']) ? $data['firstName'] : '') . ' ' . (isset($data['lastName']) ? $data['lastName'] : ''),
                             'role' => $role,
-                            'register_type' => $data['register_type'],
+                            'register_type' => $registerType,
                         ]),
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                     ]);

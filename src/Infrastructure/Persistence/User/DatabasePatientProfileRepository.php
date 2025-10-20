@@ -14,6 +14,10 @@ class DatabasePatientProfileRepository implements PatientProfileRepository
         $this->pdo = $pdo;
     }
 
+    /**
+     * @param string $uid
+     * @return array<string, mixed>|null
+     */
     public function findByUid(string $uid): ?array
     {
         $stmt = $this->pdo->prepare('
@@ -28,6 +32,6 @@ class DatabasePatientProfileRepository implements PatientProfileRepository
         ');
         $stmt->execute(['uid' => $uid]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return is_array($row) ? $row : null;
     }
 }

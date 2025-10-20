@@ -333,6 +333,29 @@ class EmailService
     }
 
     /**
+     * Send NHS verification email with token
+     */
+    public function sendNhsVerificationEmail(string $email, string $token): bool
+    {
+        try {
+            $this->mailer->setFrom('no-reply@knowmypatient.com', 'Know My Patient');
+            $this->mailer->addAddress($email);
+            $this->mailer->Subject = 'NHS Email Verification';
+            $verificationUrl = $_ENV['APP_URL'] . '/nhsverify/confirm?token=' . urlencode($token);
+            $body = "<p>Please verify your NHS email by clicking the link below:</p>"
+                . "<p><a href='$verificationUrl'>$verificationUrl</a></p>";
+            $this->mailer->isHTML(true);
+            $this->mailer->Body = $body;
+            $this->mailer->AltBody = "Please verify your NHS email: $verificationUrl";
+            $this->mailer->send();
+            return true;
+        } catch (PHPMailerException $e) {
+            $this->logger->error('Failed to send NHS verification email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Get password reset email HTML template
      *
      * @param string $recipientName Recipient name

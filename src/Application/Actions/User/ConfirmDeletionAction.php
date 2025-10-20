@@ -29,6 +29,7 @@ class ConfirmDeletionAction
         $error = null;
         if ($request->getMethod() === 'POST') {
             $data = $request->getParsedBody();
+            $data = is_array($data) ? $data : [];
             $confirmText = strtoupper(trim($data['confirmText'] ?? ''));
             if ($confirmText === 'I CONFIRM MY ACCOUNT FOR DELETION') {
                 $userId = $this->sessionService->get('user_id');

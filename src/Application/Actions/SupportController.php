@@ -26,7 +26,8 @@ class SupportController
 
     public function support(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody() ?? [];
+        $data = $request->getParsedBody();
+        $data = is_array($data) ? $data : [];
         $errors = [];
         $success = false;
         $csrf = [
@@ -63,10 +64,10 @@ class SupportController
                 try {
                     $insertData = [
                         'user_id' => $data['user_id'] ?? null,
-                        'name' => $data['name'],
-                        'email' => $data['email'],
-                        'message' => $data['message'],
-                        'subject' => $data['subject'],
+                        'name' => $data['name'] ?? '',
+                        'email' => $data['email'] ?? '',
+                        'message' => $data['message'] ?? '',
+                        'subject' => $data['subject'] ?? '',
                         'ip_address' => IpAddressService::getClientIp(),
                         'user_agent' => $request->getServerParams()['HTTP_USER_AGENT'] ?? null,
                     ];

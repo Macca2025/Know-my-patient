@@ -80,8 +80,9 @@ class PasswordResetController
      */
     public function handleForgotPassword(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
-        $email = trim($data['email'] ?? '');
+    $data = $request->getParsedBody();
+    $data = is_array($data) ? $data : [];
+    $email = trim(isset($data['email']) ? $data['email'] : '');
 
         // Validate email
         $emailValidator = v::notEmpty()->email();
@@ -99,8 +100,9 @@ class PasswordResetController
             $stmt = $this->pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
             $stmt->execute([$email]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if ($user) {
-                $this->logAuditEvent($user['id'], 'PASSWORD_RESET_RATE_LIMITED', [
+            $user = is_array($user) ? $user : null;
+            if ($user && isset($user['id'])) {
+                $this->logAuditEvent((int)$user['id'], 'PASSWORD_RESET_RATE_LIMITED', [
                     'email' => $email,
                     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
@@ -116,15 +118,16 @@ class PasswordResetController
         $stmt = $this->pdo->prepare('SELECT id, email, first_name, active FROM users WHERE email = ? LIMIT 1');
         $stmt->execute([$email]);
         $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $user = is_array($user) ? $user : null;
 
         // Always show success message (don't reveal if email exists)
         // This prevents email enumeration attacks
-        if ($user) {
+        if ($user && isset($user['id'])) {
             // Check if account is active
-            if ($user['active'] == 0) {
+            if (isset($user['active']) && $user['active'] == 0) {
                 $this->logger->warning('Password reset requested for suspended account', ['email' => $email]);
                 // Log attempt for suspended account
-                $this->logAuditEvent($user['id'], 'PASSWORD_RESET_SUSPENDED_ACCOUNT', [
+                $this->logAuditEvent((int)$user['id'], 'PASSWORD_RESET_SUSPENDED_ACCOUNT', [
                     'email' => $email,
                     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
@@ -141,7 +144,7 @@ class PasswordResetController
 
                     // Remove any previous unused tokens for this user/email
                     $stmt = $this->pdo->prepare('DELETE FROM password_resets WHERE user_id = ? AND email = ? AND used_at IS NULL');
-                    $stmt->execute([$user['id'], $email]);
+                    $stmt->execute([(int)$user['id'], $email]);
 
                     // Store token in database
                     $stmt = $this->pdo->prepare(
@@ -149,7 +152,7 @@ class PasswordResetController
                          VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR), ?, ?)'
                     );
                     $stmt->execute([
-                        $user['id'],
+                        (int)$user['id'],
                         $email,
                         $tokenHash, // Hash token before storing
                         $_SERVER['REMOTE_ADDR'] ?? 'unknown',
@@ -170,6 +173,7 @@ class PasswordResetController
                             $expiresStmt = $this->pdo->prepare('SELECT expires_at FROM password_resets WHERE id = ? LIMIT 1');
                             $expiresStmt->execute([$lastId]);
                             $expiresRow = $expiresStmt->fetch(\PDO::FETCH_ASSOC);
+                            $expiresRow = is_array($expiresRow) ? $expiresRow : null;
                             if ($expiresRow && isset($expiresRow['expires_at'])) {
                                 $loggedExpiresAt = $expiresRow['expires_at'];
                             }
@@ -179,7 +183,7 @@ class PasswordResetController
                     }
 
                     $this->logger->info('Password reset email sent', [
-                        'user_id' => $user['id'],
+                        'user_id' => (int)$user['id'],
                         'email' => $email,
                         'expires_at' => $loggedExpiresAt,
                     ]);
@@ -188,7 +192,7 @@ class PasswordResetController
                         $this->pdo->rollBack();
                     }
                     $this->logger->error('Password reset transaction failed', [
-                        'user_id' => $user['id'],
+                        'user_id' => (int)$user['id'],
                         'email' => $email,
                         'error' => $e->getMessage(),
                     ]);
@@ -209,10 +213,11 @@ class PasswordResetController
      */
     public function showResetPasswordForm(Request $request, Response $response): Response
     {
+    // $queryParams is always array due to Slim's getQueryParams() signature
     $queryParams = $request->getQueryParams();
-    // Normalize token: trim whitespace and URL-decode (defensive)
-    $token = trim($queryParams['token'] ?? '');
-    $token = rawurldecode($token);
+        // Normalize token: trim whitespace and URL-decode (defensive)
+        $token = trim($queryParams['token'] ?? '');
+        $token = rawurldecode($token);
 
         if (empty($token)) {
             $this->sessionService->set('flash_message', 'Invalid reset link.');
@@ -240,7 +245,8 @@ class PasswordResetController
              LIMIT 1'
         );
         $stmt->execute([$hashedToken]);
-        $resetRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
+    $resetRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
+    $resetRecord = is_array($resetRecord) ? $resetRecord : null;
 
         if (!$resetRecord) {
             // Attempt a fallback lookup that does not require the JOIN to users.
@@ -251,10 +257,12 @@ class PasswordResetController
                 $fallbackStmt = $this->pdo->prepare('SELECT id, user_id, email, expires_at, used_at FROM password_resets WHERE token = ? AND expires_at > NOW() AND used_at IS NULL LIMIT 1');
                 $fallbackStmt->execute([$hashedToken]);
                 $pr = $fallbackStmt->fetch(\PDO::FETCH_ASSOC);
-                if ($pr) {
+                $pr = is_array($pr) ? $pr : null;
+                if ($pr && isset($pr['user_id'])) {
                     $userStmt = $this->pdo->prepare('SELECT first_name, id, active FROM users WHERE id = ? LIMIT 1');
                     $userStmt->execute([$pr['user_id']]);
                     $userRow = $userStmt->fetch(\PDO::FETCH_ASSOC);
+                    $userRow = is_array($userRow) ? $userRow : null;
                     if ($userRow) {
                         $resetRecord = [
                             'id' => $pr['id'],
@@ -292,8 +300,8 @@ class PasswordResetController
         $html = $this->twig->fetch('reset_password.html.twig', [
             'csrf' => $csrf,
             'token' => $token,
-            'email' => $resetRecord['email'],
-            'first_name' => $resetRecord['first_name'],
+            'email' => $resetRecord['email'] ?? '',
+            'first_name' => $resetRecord['first_name'] ?? '',
             'session' => $_SESSION,
         ]);
 
@@ -307,6 +315,7 @@ class PasswordResetController
     public function handleResetPassword(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
+        $data = is_array($data) ? $data : [];
         $token = trim($data['token'] ?? '');
         $password = $data['password'] ?? '';
         $passwordConfirm = $data['password_confirm'] ?? '';
@@ -339,7 +348,8 @@ class PasswordResetController
              LIMIT 1'
         );
         $stmt->execute([$hashedToken]);
-        $resetRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
+    $resetRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
+    $resetRecord = is_array($resetRecord) ? $resetRecord : null;
 
         if (!$resetRecord) {
             $this->logger->warning('Attempted to use invalid/expired reset token', ['token_hash' => substr($hashedToken, 0, 10) . '...']);
@@ -351,29 +361,29 @@ class PasswordResetController
         // Update password
         $hashedPassword = password_hash($password, PASSWORD_ARGON2ID);
         $stmt = $this->pdo->prepare('UPDATE users SET password = ? WHERE id = ?');
-        $stmt->execute([$hashedPassword, $resetRecord['user_id']]);
+    $stmt->execute([$hashedPassword, $resetRecord['user_id'] ?? null]);
 
         // Mark token as used
         $stmt = $this->pdo->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?');
-        $stmt->execute([$resetRecord['id']]);
+    $stmt->execute([$resetRecord['id'] ?? null]);
 
         // Log the password reset
         $this->logger->info('Password reset successful', [
-            'user_id' => $resetRecord['user_id'],
-            'email' => $resetRecord['email'],
+            'user_id' => $resetRecord['user_id'] ?? null,
+            'email' => $resetRecord['email'] ?? '',
         ]);
 
         // Log to audit trail
-        $this->logAuditEvent((int) $resetRecord['user_id'], 'PASSWORD_RESET_COMPLETED', [
-            'email' => $resetRecord['email'],
-            'reset_token_id' => $resetRecord['id'],
+        $this->logAuditEvent((int) ($resetRecord['user_id'] ?? 0), 'PASSWORD_RESET_COMPLETED', [
+            'email' => $resetRecord['email'] ?? '',
+            'reset_token_id' => $resetRecord['id'] ?? null,
             'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
         ]);
 
         // Invalidate all other reset tokens for this user
         $stmt = $this->pdo->prepare('UPDATE password_resets SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL');
-        $stmt->execute([$resetRecord['user_id']]);
+    $stmt->execute([$resetRecord['user_id'] ?? null]);
 
         $this->sessionService->set('flash_message', 'Your password has been reset successfully. Please login with your new password.');
         $this->sessionService->set('flash_type', 'success');
@@ -392,6 +402,7 @@ class PasswordResetController
         );
         $stmt->execute([$email]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = is_array($result) ? $result : null;
 
         return ($result['count'] ?? 0) >= 3;
     }
@@ -404,39 +415,42 @@ class PasswordResetController
      */
     private function sendResetEmail(array $user, string $resetLink): void
     {
+        $email = $user['email'] ?? '';
+        $userId = $user['id'] ?? null;
+        $firstName = $user['first_name'] ?? 'User';
         try {
             // Use EmailService to send password reset email
             $success = $this->emailService->send(
-                $user['email'],
+                $email,
                 'Password Reset Request - Know My Patient',
                 $this->getResetEmailHtml($user, $resetLink),
                 $this->getResetEmailText($user, $resetLink),
-                $user['first_name'] ?? 'User'
+                $firstName
             );
 
             if ($success) {
                 // Log successful email send
                 $this->logger->info('Password reset email sent successfully', [
-                    'user_id' => $user['id'],
-                    'email' => $user['email'],
+                    'user_id' => $userId,
+                    'email' => $email,
                 ]);
 
                 // Log to audit trail
-                $this->logAuditEvent($user['id'], 'PASSWORD_RESET_EMAIL_SENT', [
-                    'email' => $user['email'],
+                $this->logAuditEvent((int) $userId, 'PASSWORD_RESET_EMAIL_SENT', [
+                    'email' => $email,
                     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
                 ]);
             } else {
                 // Log failure
                 $this->logger->error('Failed to send password reset email', [
-                    'user_id' => $user['id'],
-                    'email' => $user['email'],
+                    'user_id' => $userId,
+                    'email' => $email,
                 ]);
 
                 // Log to audit trail
-                $this->logAuditEvent($user['id'], 'PASSWORD_RESET_EMAIL_FAILED', [
-                    'email' => $user['email'],
+                $this->logAuditEvent((int) $userId, 'PASSWORD_RESET_EMAIL_FAILED', [
+                    'email' => $email,
                     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                 ]);
             }
@@ -446,18 +460,18 @@ class PasswordResetController
             // in case other code mistakenly attempted to add it.
             if (method_exists($this->logger, 'info')) {
                 // Log a minimal event without sensitive data
-                $this->logger->debug('Password reset email flow completed (email send status recorded)', ['user_id' => $user['id']]);
+                $this->logger->debug('Password reset email flow completed (email send status recorded)', ['user_id' => $userId]);
             }
         } catch (\Exception $e) {
             // Log any unexpected errors
             $this->logger->error('Exception while sending password reset email', [
-                'email' => $user['email'],
+                'email' => $email,
                 'error' => $e->getMessage(),
             ]);
 
             // Log to audit trail
-            $this->logAuditEvent($user['id'], 'PASSWORD_RESET_EMAIL_FAILED', [
-                'email' => $user['email'],
+            $this->logAuditEvent((int) $userId, 'PASSWORD_RESET_EMAIL_FAILED', [
+                'email' => $email,
                 'error' => $e->getMessage(),
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
             ]);

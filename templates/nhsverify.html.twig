@@ -1,0 +1,21 @@
+{% extends 'layouts/base.html.twig' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow p-4">
+                <h2 class="mb-3 text-purple-primary"><i class="bi bi-envelope-check me-2"></i>NHS Email Verification</h2>
+                <p class="lead">Your account uses an NHS email address but is not yet verified.</p>
+                <p>Please verify your NHS email to access all features. Click below to send a verification email to <strong>{{ user.email }}</strong>.</p>
+                {% if resent %}
+                    <div class="alert alert-success">Verification email sent! Please check your NHS inbox.</div>
+                {% endif %}
+                <form method="post" action="/nhsverify/send">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Send Verification Email</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

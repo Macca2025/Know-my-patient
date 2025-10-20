@@ -40,11 +40,15 @@ class HealthCheckAction
         // 1. Database connectivity check
         try {
             $stmt = $this->pdo->query('SELECT 1');
-            $stmt->fetch();
-            $health['checks']['database'] = [
-                'status' => 'ok',
-                'message' => 'Database connection successful'
-            ];
+            if ($stmt !== false) {
+                $stmt->fetch();
+                $health['checks']['database'] = [
+                    'status' => 'ok',
+                    'message' => 'Database connection successful'
+                ];
+            } else {
+                throw new \RuntimeException('Database query failed');
+            }
         } catch (\Exception $e) {
             $health['checks']['database'] = [
                 'status' => 'error',
@@ -171,7 +175,8 @@ class HealthCheckAction
             $statusCode = 503; // Service Unavailable
         }
 
-        $response->getBody()->write(json_encode($health, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $json = json_encode($health, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $response->getBody()->write($json !== false ? $json : '{}');
 
         return $response
             ->withHeader('Content-Type', 'application/json')

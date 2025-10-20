@@ -1,6 +1,48 @@
-<?php
 
 namespace App\Application\Actions;
+
+use App\Application\Services\SessionService;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Views\Twig;
+use Psr\Log\LoggerInterface;
+
+class DashboardController
+{
+    private Twig $twig;
+    private \PDO $pdo;
+    private LoggerInterface $logger;
+    private SessionService $sessionService;
+    private CardRequestsController $cardRequestsController;
+
+    public function __construct(Twig $twig, \PDO $pdo, LoggerInterface $logger, SessionService $sessionService, CardRequestsController $cardRequestsController)
+    {
+        $this->twig = $twig;
+        $this->pdo = $pdo;
+        $this->logger = $logger;
+        $this->sessionService = $sessionService;
+        $this->cardRequestsController = $cardRequestsController;
+    }
+
+    /**
+     * Redirect unverified NHS users to /nhsverify
+     */
+    private function enforceNhsVerification(Response $response): ?Response
+    {
+        $role = $_SESSION['user_role'] ?? null;
+        $userEmail = $_SESSION['user_email'] ?? '';
+        $userId = $_SESSION['user_id'] ?? null;
+        if ($role === 'nhs_user' && preg_match('/@nhs\.(net|uk)$/i', $userEmail)) {
+            $stmt = $this->pdo->prepare('SELECT is_verified FROM users WHERE id = ? LIMIT 1');
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($user && empty($user['is_verified'])) {
+                $this->logger->info('NHS user not verified, redirecting to /nhsverify', ['user_id' => $userId, 'email' => $userEmail, 'role' => $role]);
+                return $response->withHeader('Location', '/nhsverify')->withStatus(302);
+            }
+        }
+        return null;
+    }
 
 use App\Application\Services\SessionService;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -70,6 +112,14 @@ class DashboardController
         $this->logger->debug("Dashboard CSRF", ['name' => ($csrf['name'] ?? 'NULL'), 'value' => ($csrf['value'] ?? 'NULL')]);
 
         $role = $_SESSION['user_role'] ?? null;
+        $userEmail = $_SESSION['user_email'] ?? '';
+        $userId = $_SESSION['user_id'] ?? null;
+        $this->logger->info('Dashboard flow: starting NHS verification check', ['user_id' => $userId, 'email' => $userEmail, 'role' => $role]);
+        // Enforce NHS verification for all dashboard routes
+        if ($redirect = $this->enforceNhsVerification($response)) {
+            return $redirect;
+        }
+
         $dashboardPartial = null;
         $dashboardTitle = 'User Dashboard';
         $dashboardSubtitle = 'Manage your account, privacy, and records all in one place.';
@@ -137,6 +187,9 @@ class DashboardController
 
     public function dashboardNhsUser(Request $request, Response $response): Response
     {
+        if ($redirect = $this->enforceNhsVerification($response)) {
+            return $redirect;
+        }
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
             'value' => $request->getAttribute('csrf_value'),
@@ -156,6 +209,9 @@ class DashboardController
 
     public function dashboardPatient(Request $request, Response $response): Response
     {
+        if ($redirect = $this->enforceNhsVerification($response)) {
+            return $redirect;
+        }
         $csrf = [
             'name' => $request->getAttribute('csrf_name'),
             'value' => $request->getAttribute('csrf_value'),

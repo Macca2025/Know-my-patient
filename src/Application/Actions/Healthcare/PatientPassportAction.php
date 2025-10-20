@@ -41,6 +41,7 @@ class PatientPassportAction
         // Handle POST request (form submission)
         if ($method === 'POST') {
             $parsedBody = $request->getParsedBody();
+            $parsedBody = is_array($parsedBody) ? $parsedBody : [];
             $uid = $parsedBody['uid'] ?? null;
 
             if ($uid) {
@@ -66,8 +67,9 @@ class PatientPassportAction
                 ");
                 $stmt->execute(['uid' => $uid]);
                 $patientData = $stmt->fetch(PDO::FETCH_ASSOC);
+                $patientData = is_array($patientData) ? $patientData : null;
 
-                if ($patientData) {
+                if ($patientData && isset($patientData['user_id'])) {
                     $nhsUserId = $this->sessionService->get('user_id');
                     $patientId = $patientData['user_id'];
                     $ipAddress = IpAddressService::getClientIp();
@@ -110,7 +112,7 @@ class PatientPassportAction
                     $message = 'Patient record loaded successfully.';
                     $messageType = 'success';
                 } else {
-                    $message = 'Patient not found with UID: ' . htmlspecialchars($uid);
+                    $message = 'Patient not found with UID: ' . htmlspecialchars((string)$uid);
                     $messageType = 'warning';
                 }
             } else {

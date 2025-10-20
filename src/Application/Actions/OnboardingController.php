@@ -49,6 +49,7 @@ class OnboardingController
     public function submitEnquiry(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
+        $data = is_array($data) ? $data : [];
         $this->logger->info('Onboarding form submission received', [
             'data_keys' => array_keys($data),
             'gdpr_consent_value' => $data['gdpr_consent'] ?? 'NOT SET',
@@ -58,13 +59,15 @@ class OnboardingController
         $success = false;
 
         // Company name validation
-        if (empty($data['company_name']) || strlen(trim($data['company_name'])) < 2) {
+        $companyName = isset($data['company_name']) ? $data['company_name'] : '';
+        if (empty($companyName) || strlen(trim((string)$companyName)) < 2) {
             $errors['company_name'] = 'Company name is required (minimum 2 characters).';
         }
 
         // Company website validation (optional, but validate format if provided)
-        if (!empty($data['company_website'])) {
-            $website = trim($data['company_website']);
+        $companyWebsite = isset($data['company_website']) ? $data['company_website'] : '';
+        if (!empty($companyWebsite)) {
+            $website = trim((string)$companyWebsite);
             // Simple URL validation - just check if it looks like a URL
             if (!filter_var($website, FILTER_VALIDATE_URL) && !preg_match('/^https?:\/\/.+/', $website)) {
                 // Try adding http:// if not present
@@ -75,32 +78,37 @@ class OnboardingController
         }
 
         // Organization type validation
-        if (empty($data['organization_type'])) {
+        $organizationType = isset($data['organization_type']) ? $data['organization_type'] : '';
+        if (empty($organizationType)) {
             $errors['organization_type'] = 'Organization type is required.';
         }
 
         // Contact person validation
-        if (empty($data['contact_person']) || strlen(trim($data['contact_person'])) < 2) {
+        $contactPerson = isset($data['contact_person']) ? $data['contact_person'] : '';
+        if (empty($contactPerson) || strlen(trim((string)$contactPerson)) < 2) {
             $errors['contact_person'] = 'Contact person is required.';
         }
 
         // Email validation
-        if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        $email = isset($data['email']) ? $data['email'] : '';
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'A valid email is required.';
         }
 
         // Phone validation (optional, but validate format if provided)
-        if (!empty($data['phone'])) {
+        $phone = isset($data['phone']) ? $data['phone'] : '';
+        if (!empty($phone)) {
             // Remove spaces, dashes, parentheses for validation
-            $cleanPhone = preg_replace('/[\s\-\(\)\+]/', '', $data['phone']);
-            if (!preg_match('/^[0-9]{10,15}$/', $cleanPhone)) {
+            $cleanPhone = preg_replace('/[\s\-\(\)\+]/', '', (string)$phone);
+            if (!preg_match('/^[0-9]{10,15}$/', is_string($cleanPhone) ? $cleanPhone : '')) {
                 $errors['phone'] = 'Please enter a valid phone number (10-15 digits).';
             }
         }
 
         // GDPR consent validation (checkbox must be checked)
         // Checkboxes can send 'on', '1', 'true', or any truthy value
-        if (empty($data['gdpr_consent'])) {
+        $gdprConsent = isset($data['gdpr_consent']) ? $data['gdpr_consent'] : '';
+        if (empty($gdprConsent)) {
             $errors['gdpr_consent'] = 'You must agree to the Privacy Policy to continue.';
         }
 

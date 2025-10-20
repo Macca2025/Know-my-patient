@@ -44,25 +44,23 @@ class CookieConsentAction extends Action
     {
         try {
             $data = $this->getFormData();
-            
-            // Validate required fields
-            if (!isset($data['consent_type'])) {
+            if (!is_array($data) || !isset($data['consent_type'])) {
                 return $this->respondWithError('Consent type is required', 400);
             }
-            
+
             $consentType = (string) $data['consent_type'];
-            
+
             // Validate consent type
             if (!$this->cookieConsentService->isValidConsentType($consentType)) {
                 return $this->respondWithError('Invalid consent type', 400);
             }
-            
+
             // Get user ID if logged in
             $userId = $_SESSION['user_id'] ?? null;
-            
+
             // Get client IP address
             $ipAddress = $this->request->getServerParams()['REMOTE_ADDR'] ?? 'unknown';
-            
+
             // Log consent to database (optional)
             if ($userId) {
                 $this->cookieConsentService->logConsentToDatabase(
@@ -71,7 +69,7 @@ class CookieConsentAction extends Action
                     $ipAddress
                 );
             }
-            
+
             // Log the consent
             $this->logger->info('Cookie consent recorded', [
                 'user_id' => $userId,
@@ -79,20 +77,20 @@ class CookieConsentAction extends Action
                 'ip_address' => $ipAddress,
                 'user_agent' => $this->request->getServerParams()['HTTP_USER_AGENT'] ?? 'unknown'
             ]);
-            
+
             // Return success response
             return $this->respondWithData([
                 'success' => true,
                 'message' => 'Cookie consent recorded successfully',
                 'consent_type' => $consentType
             ]);
-            
+
         } catch (\Exception $e) {
             $this->logger->error('Error recording cookie consent', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return $this->respondWithError('Failed to record consent', 500);
         }
     }
@@ -110,9 +108,7 @@ class CookieConsentAction extends Action
             'success' => false,
             'error' => $message
         ]);
-        
-        $this->response->getBody()->write($payload);
-        
+        $this->response->getBody()->write(is_string($payload) ? $payload : '');
         return $this->response
             ->withHeader('Content-Type', 'application/json')
             ->withStatus($statusCode);

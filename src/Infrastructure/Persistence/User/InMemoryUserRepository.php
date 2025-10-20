@@ -15,6 +15,8 @@ class InMemoryUserRepository implements UserRepository
      */
     private array $users;
 
+
+
     /**
      * @param User[]|null $users
      */
@@ -47,5 +49,10 @@ class InMemoryUserRepository implements UserRepository
         }
 
         return $this->users[$id];
+    }
+
+    public function saveNhsVerificationToken(int $userId, string $token): void
+    {
+        // Method intentionally left blank; NHS verification tokens are not used in this implementation.
     }
 }

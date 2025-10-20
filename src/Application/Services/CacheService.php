@@ -35,13 +35,12 @@ class CacheService
         }
 
         $data = unserialize(file_get_contents($file));
-
-        if ($data['expires_at'] < time()) {
+        if (!is_array($data) || !isset($data['expires_at']) || $data['expires_at'] < time()) {
             unlink($file);
             return null;
         }
 
-        return $data['value'];
+        return $data['value'] ?? null;
     }
 
     /**
@@ -95,6 +94,9 @@ class CacheService
     public function flush(): void
     {
         $files = glob($this->cacheDir . '/*');
+        if (!is_array($files)) {
+            return;
+        }
         foreach ($files as $file) {
             if (is_file($file)) {
                 unlink($file);

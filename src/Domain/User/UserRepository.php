@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\User;
 
-interface UserRepository
-{
+interface UserRepository {
+
+    /**
+     * Save NHS verification token for a user
+     * @param int $userId
+     * @param string $token
+     */
+    public function saveNhsVerificationToken(int $userId, string $token): void;
     /**
      * @return User[]
      */

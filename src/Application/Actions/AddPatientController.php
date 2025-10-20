@@ -25,11 +25,12 @@ class AddPatientController
 
     public function addPatient(Request $request, Response $response): Response
     {
-        $userId = $this->sessionService->get('user_id');
-        $message = '';
-        $messageType = 'info';
-        $formData = [];
-        $currentUser = null;
+    $userId = $this->sessionService->get('user_id');
+    $message = '';
+    $messageType = 'info';
+    $formData = [];
+    /** @var array<string, mixed>|null $currentUser */
+    $currentUser = null;
 
         // Fetch logged-in user's full information
         if ($userId) {
@@ -39,7 +40,8 @@ class AddPatientController
                 WHERE id = ?
             ');
             $stmt->execute([$userId]);
-            $currentUser = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $currentUser = is_array($result) ? $result : null;
         }
 
         // Handle POST request (form submission)
@@ -49,10 +51,10 @@ class AddPatientController
 
         // Handle GET request (display form)
         // Check if we're editing an existing patient (from query parameter)
-        $queryParams = $request->getQueryParams();
-        $patientUid = $queryParams['patient_uid'] ?? null;
+    $queryParams = $request->getQueryParams();
+    $patientUid = is_array($queryParams) && isset($queryParams['patient_uid']) ? $queryParams['patient_uid'] : null;
 
-        if ($patientUid && $userId) {
+    if ($patientUid && $userId) {
             // Load specific patient for editing via patient_uid parameter
             $stmt = $this->pdo->prepare('
           SELECT * FROM patient_profiles 
@@ -60,8 +62,7 @@ class AddPatientController
             ');
             $stmt->execute([$patientUid, $userId, $userId]);
             $existingData = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-            if ($existingData) {
+            if (is_array($existingData)) {
                 $formData = $existingData;
                 $message = 'Editing patient profile. Update any fields and save changes.';
                 $messageType = 'info';
@@ -69,7 +70,7 @@ class AddPatientController
                 $message = 'Patient not found or you do not have permission to edit this patient.';
                 $messageType = 'danger';
             }
-        } elseif ($userId) {
+    } elseif ($userId) {
             // No patient_uid provided - check if user already has their own patient profile
             $stmt = $this->pdo->prepare('
           SELECT *
@@ -80,8 +81,7 @@ class AddPatientController
             ');
             $stmt->execute([$userId]);
             $existingProfile = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-            if ($existingProfile) {
+            if (is_array($existingProfile)) {
                 // User already has a profile - load it for editing
                 $formData = $existingProfile;
                 $message = 'Your existing patient profile is loaded below. Update any fields and save changes.';
@@ -125,11 +125,15 @@ class AddPatientController
     /**
      * @param array<string, mixed>|null $currentUser
      */
+    /**
+     * @param array<string, mixed>|null $currentUser
+     */
     private function handlePatientSubmission(Request $request, Response $response, ?array $currentUser = null): Response
     {
         $userId = $this->sessionService->get('user_id');
-        $data = $request->getParsedBody();
-        $uploadedFiles = $request->getUploadedFiles();
+    $data = $request->getParsedBody();
+    $data = is_array($data) ? $data : [];
+    $uploadedFiles = $request->getUploadedFiles();
 
         if (!$userId) {
             $this->sessionService->set('flash_message', 'You must be logged in to save patient data.');
@@ -141,18 +145,24 @@ class AddPatientController
         if (!$currentUser) {
             $stmt = $this->pdo->prepare('SELECT uid FROM users WHERE id = ?');
             $stmt->execute([$userId]);
-            $currentUser = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $currentUser = is_array($result) ? $result : null;
         }
 
         // Validate input data
 
         try {
             // Check if this is an edit or new patient
-            $isEdit = !empty($data['is_edit']) && !empty($data['patient_uid']);
+            $isEdit = (isset($data['is_edit']) && $data['is_edit']) && (isset($data['patient_uid']) && $data['patient_uid']);
 
             if ($isEdit) {
                 // Update existing patient
-                $patientUid = $data['patient_uid'];
+                $patientUid = isset($data['patient_uid']) ? $data['patient_uid'] : null;
+                if (!is_string($patientUid) || $patientUid === '') {
+                    $this->sessionService->set('flash_message', 'Invalid patient UID.');
+                    $this->sessionService->set('flash_type', 'danger');
+                    return $response->withHeader('Location', '/add-patient')->withStatus(302);
+                }
 
                 // Verify ownership
                 $stmt = $this->pdo->prepare('
@@ -189,7 +199,7 @@ class AddPatientController
             } else {
                 // Create new patient - but first check if user already has a profile
                 // Check by both user_id AND by patient_uid matching user's UID
-                $userUid = $currentUser['uid'] ?? null;
+                $userUid = is_array($currentUser) && isset($currentUser['uid']) ? $currentUser['uid'] : null;
 
                 if (!$userUid) {
                     $this->sessionService->set('flash_message', 'Unable to create patient profile. User UID not found.');
@@ -204,8 +214,7 @@ class AddPatientController
                 ');
                 $stmt->execute([$userId, $userUid]);
                 $existingProfile = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-                if ($existingProfile) {
+                if (is_array($existingProfile) && isset($existingProfile['patient_uid'])) {
                     // User already has a profile - redirect to edit it instead
                     $this->sessionService->set('flash_message', 'You already have a patient profile. Your existing profile has been loaded for editing.');
                     $this->sessionService->set('flash_type', 'info');
@@ -314,52 +323,58 @@ class AddPatientController
         ];
 
         foreach ($fileFields as $fileKey => $dbFields) {
-            if (isset($uploadedFiles[$fileKey]) && $uploadedFiles[$fileKey]->getError() === UPLOAD_ERR_OK) {
+            if (isset($uploadedFiles[$fileKey])) {
                 $uploadedFile = $uploadedFiles[$fileKey];
+                // Ensure $uploadedFile is an instance of UploadedFileInterface
+                if ($uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface && $uploadedFile->getError() === UPLOAD_ERR_OK) {
+                    // Validate file size (5MB)
+                    if ($uploadedFile->getSize() > 5 * 1024 * 1024) {
+                        continue;
+                    }
 
-                // Validate file size (5MB)
-                if ($uploadedFile->getSize() > 5 * 1024 * 1024) {
-                    continue;
+                    $clientFilename = $uploadedFile->getClientFilename();
+                    if (!is_string($clientFilename)) {
+                        continue;
+                    }
+                    // Get file extension
+                    $extension = pathinfo($clientFilename, PATHINFO_EXTENSION);
+
+                    // Allowed extensions for security
+                    $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+                    if (!in_array(strtolower((string)$extension), $allowedExtensions, true)) {
+                        continue;
+                    }
+
+                    // Create filename: UID_document-type.ext (e.g., USER123ABC_lpa_health.pdf)
+                    $documentType = str_replace('_document', '', $fileKey); // lpa_health, lpa_finance, respect
+                    $newFilename = $patientUid . '_' . $documentType . '.' . $extension;
+
+                    // Full path to save file
+                    $fullPath = $userUploadDir . '/' . $newFilename;
+
+                    // Delete old file if exists (when updating)
+                    if (file_exists($fullPath)) {
+                        unlink($fullPath);
+                    }
+
+                    // Move uploaded file to user's folder
+                    $uploadedFile->moveTo($fullPath);
+
+                    // Update database with file info
+                    // Store relative path for web access
+                    $relativePath = 'uploads/patient_documents/' . $patientUid . '/' . $newFilename;
+
+                    $stmt = $this->pdo->prepare("
+                        UPDATE patient_profiles 
+                        SET {$dbFields['name']} = :filename, {$dbFields['path']} = :filepath 
+                        WHERE patient_uid = :patient_uid
+                    ");
+                    $stmt->execute([
+                        'filename' => $clientFilename, // Original filename
+                        'filepath' => $relativePath,
+                        'patient_uid' => $patientUid
+                    ]);
                 }
-
-                // Get file extension
-                $extension = pathinfo($uploadedFile->getClientFilename(), PATHINFO_EXTENSION);
-
-                // Allowed extensions for security
-                $allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
-                if (!in_array(strtolower($extension), $allowedExtensions)) {
-                    continue;
-                }
-
-                // Create filename: UID_document-type.ext (e.g., USER123ABC_lpa_health.pdf)
-                $documentType = str_replace('_document', '', $fileKey); // lpa_health, lpa_finance, respect
-                $newFilename = $patientUid . '_' . $documentType . '.' . $extension;
-
-                // Full path to save file
-                $fullPath = $userUploadDir . '/' . $newFilename;
-
-                // Delete old file if exists (when updating)
-                if (file_exists($fullPath)) {
-                    unlink($fullPath);
-                }
-
-                // Move uploaded file to user's folder
-                $uploadedFile->moveTo($fullPath);
-
-                // Update database with file info
-                // Store relative path for web access
-                $relativePath = 'uploads/patient_documents/' . $patientUid . '/' . $newFilename;
-
-                $stmt = $this->pdo->prepare("
-                    UPDATE patient_profiles 
-                    SET {$dbFields['name']} = :filename, {$dbFields['path']} = :filepath 
-                    WHERE patient_uid = :patient_uid
-                ");
-                $stmt->execute([
-                    'filename' => $uploadedFile->getClientFilename(), // Original filename
-                    'filepath' => $relativePath,
-                    'patient_uid' => $patientUid
-                ]);
             }
         }
     }
@@ -377,9 +392,13 @@ class AddPatientController
             return $response->withHeader('Content-Type', 'application/json');
         }
 
+        if (!is_array($data)) {
+            $data = [];
+        }
+
         try {
-            $patientProfileId = $data['patient_profile_id'] ?? null;
-            $currentStep = $data['current_step'] ?? 1;
+            $patientProfileId = (is_array($data) && isset($data['patient_profile_id'])) ? $data['patient_profile_id'] : null;
+            $currentStep = (is_array($data) && isset($data['current_step'])) ? $data['current_step'] : 1;
 
             // Generate unique patient ID if this is a new record
             if (!$patientProfileId) {
@@ -446,9 +465,9 @@ class AddPatientController
             ];
 
             foreach ($allowedFields as $field) {
-                if (isset($data[$field])) {
+                if (is_array($data) && isset($data[$field])) {
                     // Sanitize input
-                    $value = trim($data[$field]);
+                    $value = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
 
                     // Only add non-empty values (allow empty strings for clearing fields)
                     $updateFields[] = "$field = ?";
@@ -458,7 +477,9 @@ class AddPatientController
 
             // Validate required fields if this is step 1
             if ($currentStep == 1) {
-                if (empty($data['patient_name']) || empty($data['date_of_birth'])) {
+                $patientName = is_array($data) && isset($data['patient_name']) ? $data['patient_name'] : null;
+                $dobValue = is_array($data) && isset($data['date_of_birth']) ? $data['date_of_birth'] : null;
+                if (empty($patientName) || empty($dobValue)) {
                     $response->getBody()->write(json_encode([
                         'success' => false,
                         'message' => 'Patient name and date of birth are required fields'
@@ -467,12 +488,20 @@ class AddPatientController
                 }
 
                 // Validate date of birth is not in the future
-                $dob = new \DateTime($data['date_of_birth']);
-                $today = new \DateTime();
-                if ($dob > $today) {
+                try {
+                    $dob = new \DateTime((string)$dobValue);
+                    $today = new \DateTime();
+                    if ($dob > $today) {
+                        $response->getBody()->write(json_encode([
+                            'success' => false,
+                            'message' => 'Date of birth cannot be in the future'
+                        ]));
+                        return $response->withHeader('Content-Type', 'application/json');
+                    }
+                } catch (\Exception $e) {
                     $response->getBody()->write(json_encode([
                         'success' => false,
-                        'message' => 'Date of birth cannot be in the future'
+                        'message' => 'Invalid date of birth format.'
                     ]));
                     return $response->withHeader('Content-Type', 'application/json');
                 }
@@ -485,7 +514,7 @@ class AddPatientController
                 $stmt->execute($updateValues);
 
                 // Log the action
-                $this->logAction($userId, 'patient_profile_updated', [
+                $this->logAction((string)$userId, 'patient_profile_updated', [
                     'patient_profile_id' => $patientProfileId,
                     'step' => $currentStep,
                     'fields_updated' => count($updateFields)
@@ -510,7 +539,7 @@ class AddPatientController
             ]));
         }
 
-        return $response->withHeader('Content-Type', 'application/json');
+    return $response->withHeader('Content-Type', 'application/json');
     }
 
     /**

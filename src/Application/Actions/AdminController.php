@@ -39,28 +39,33 @@ class AdminController
         // Frequently accessed by admins, but user data changes occasionally
         $allUsers = $this->cacheService->remember('admin_users_list', function () {
             $stmt = $this->pdo->query('SELECT id, email, first_name, last_name, role, active, created_at, updated_at FROM users ORDER BY created_at DESC');
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            if ($stmt === false) {
+                return [];
+            }
+            $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            return is_array($result) ? $result : [];
         }, 300);
 
         // Get selected role from GET param
-        $queryParams = $request->getQueryParams();
-        $selectedRole = isset($queryParams['role']) ? $queryParams['role'] : '';
+    $queryParams = $request->getQueryParams();
+    // $queryParams is always array due to Slim's getQueryParams() signature
+    $selectedRole = $queryParams['role'] ?? '';
 
         // Filter users if role selected
         $filteredUsers = $allUsers;
         if ($selectedRole) {
             $filteredUsers = array_values(array_filter($allUsers, function ($u) use ($selectedRole) {
-                return $u['role'] === $selectedRole;
+                return is_array($u) && isset($u['role']) && $u['role'] === $selectedRole;
             }));
         }
 
         // Pagination
         $perPage = 10;
         $page = isset($queryParams['page']) && is_numeric($queryParams['page']) && $queryParams['page'] > 0 ? (int)$queryParams['page'] : 1;
-        $totalUsers = count($filteredUsers);
-        $totalPages = (int) ceil($totalUsers / $perPage);
-        $start = ($page - 1) * $perPage;
-        $pagedUsers = array_slice($filteredUsers, $start, $perPage);
+    $totalUsers = is_array($filteredUsers) ? count($filteredUsers) : 0;
+    $totalPages = (int) ceil($totalUsers / $perPage);
+    $start = ($page - 1) * $perPage;
+    $pagedUsers = is_array($filteredUsers) ? array_slice($filteredUsers, $start, $perPage) : [];
 
         // User stats (always calculated from all users)
         $stats = [
@@ -74,21 +79,24 @@ class AdminController
         $now = new \DateTimeImmutable();
         $yesterday = $now->modify('-24 hours');
         foreach ($allUsers as $user) {
+            if (!is_array($user)) {
+                continue;
+            }
             $stats['total_users']++;
-            if ($user['role'] === 'admin') {
+            if (isset($user['role']) && $user['role'] === 'admin') {
                 $stats['admins']++;
             }
-            if ($user['role'] === 'patient') {
+            if (isset($user['role']) && $user['role'] === 'patient') {
                 $stats['patients']++;
             }
-            if ($user['role'] === 'nhs_user') {
+            if (isset($user['role']) && $user['role'] === 'nhs_user') {
                 $stats['nhs_users']++;
             }
-            if ($user['role'] === 'family') {
+            if (isset($user['role']) && $user['role'] === 'family') {
                 $stats['family']++;
             }
             if (!empty($user['last_login'])) {
-                $lastLogin = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $user['last_login']);
+                $lastLogin = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', (string)$user['last_login']);
                 if ($lastLogin && $lastLogin > $yesterday) {
                     $stats['active_24h']++;
                 }
@@ -131,19 +139,20 @@ class AdminController
             return $response;
         }
         $data = $request->getParsedBody();
+        $data = is_array($data) ? $data : [];
         $userId = isset($data['user_id']) ? (int)$data['user_id'] : 0;
         if ($userId > 0) {
             // Get user details before deletion for audit log
             $stmt = $this->pdo->prepare('SELECT email, first_name, last_name, role FROM users WHERE id = :id');
             $stmt->execute(['id' => $userId]);
             $deletedUser = $stmt->fetch(\PDO::FETCH_ASSOC);
-            
+            $deletedUser = is_array($deletedUser) ? $deletedUser : null;
             // Delete user
             $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = :id');
             $stmt->execute(['id' => $userId]);
 
             // Log audit event
-            if ($deletedUser) {
+            if ($deletedUser && isset($deletedUser['email'], $deletedUser['first_name'], $deletedUser['last_name'], $deletedUser['role'])) {
                 $stmt = $this->pdo->prepare(
                     'INSERT INTO audit_log (user_id, target_user_id, activity_type, description, ip_address) 
                      VALUES (?, ?, ?, ?, ?)'
@@ -175,6 +184,7 @@ class AdminController
             return $response;
         }
         $data = $request->getParsedBody();
+        $data = is_array($data) ? $data : [];
         $userId = isset($data['user_id']) ? (int)$data['user_id'] : 0;
         $action = isset($data['action']) ? $data['action'] : 'suspend';
         if ($userId > 0) {
@@ -182,7 +192,7 @@ class AdminController
             $stmt = $this->pdo->prepare('SELECT email, first_name, last_name, role FROM users WHERE id = :id');
             $stmt->execute(['id' => $userId]);
             $targetUser = $stmt->fetch(\PDO::FETCH_ASSOC);
-            
+            $targetUser = is_array($targetUser) ? $targetUser : null;
             if ($action === 'unsuspend') {
                 $stmt = $this->pdo->prepare('UPDATE users SET active = 1, suspended_at = NULL WHERE id = :id');
                 $stmt->execute(['id' => $userId]);
@@ -194,7 +204,7 @@ class AdminController
             }
 
             // Log audit event
-            if ($targetUser) {
+            if ($targetUser && isset($targetUser['email'], $targetUser['first_name'], $targetUser['last_name'], $targetUser['role'])) {
                 $stmt = $this->pdo->prepare(
                     'INSERT INTO audit_log (user_id, target_user_id, activity_type, description, ip_address) 
                      VALUES (?, ?, ?, ?, ?)'
@@ -207,86 +217,16 @@ class AdminController
                         'target_user_email' => $targetUser['email'],
                         'target_user_name' => $targetUser['first_name'] . ' ' . $targetUser['last_name'],
                         'target_user_role' => $targetUser['role'],
-                        'action' => $action,
                         'admin_user' => $this->session->get('user_email'),
                     ]),
                     $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                 ]);
             }
 
-            // Clear users cache after status change
+            // Clear users cache after suspension/unsuspension
             $this->cacheService->forget('admin_users_list');
         }
-        return $response->withHeader('Location', '/admin/users')->withStatus(302);
-    }
-
-    // Audit Log
-    public function auditDashboard(Request $request, Response $response): Response
-    {
-        if ($this->session->get('user_role') !== 'admin') {
-            $response = $response->withStatus(403);
-            $response->getBody()->write('<div class="container py-5"><h1>Forbidden</h1><p>Admins only.</p></div>');
-            return $response;
-        }
-        try {
-            $queryParams = $request->getQueryParams();
-            $search = isset($queryParams['search']) ? trim($queryParams['search']) : '';
-            $fromDate = isset($queryParams['from_date']) ? trim($queryParams['from_date']) : '';
-            $toDate = isset($queryParams['to_date']) ? trim($queryParams['to_date']) : '';
-
-            $sql = 'SELECT id, user_id, target_user_id, activity_type, description, ip_address, timestamp FROM audit_log WHERE 1=1';
-            $params = [];
-            if ($search !== '') {
-                $sql .= ' AND (user_id LIKE :search OR target_user_id LIKE :search OR description LIKE :search)';
-                $params['search'] = '%' . $search . '%';
-            }
-            if ($fromDate !== '') {
-                // Convert dd/mm/yyyy to yyyy-mm-dd
-                $fromParts = explode('/', $fromDate);
-                if (count($fromParts) === 3) {
-                    $fromDateSql = $fromParts[2] . '-' . $fromParts[1] . '-' . $fromParts[0];
-                    $sql .= ' AND timestamp >= :from_date';
-                    $params['from_date'] = $fromDateSql . ' 00:00:00';
-                }
-            }
-            if ($toDate !== '') {
-                $toParts = explode('/', $toDate);
-                if (count($toParts) === 3) {
-                    $toDateSql = $toParts[2] . '-' . $toParts[1] . '-' . $toParts[0];
-                    $sql .= ' AND timestamp <= :to_date';
-                    $params['to_date'] = $toDateSql . ' 23:59:59';
-                }
-            }
-            $sql .= ' ORDER BY timestamp DESC LIMIT 100';
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
-            $auditLogs = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $vars = [
-                'title' => 'Audit Management',
-                'description' => 'Audit Management admin page',
-                'canonical_url' => $request->getUri()->getPath(),
-                'app_name' => 'Know My Patient',
-                'company_logo' => 'images/logo.png',
-                'company_name' => 'Know My Patient',
-                'keywords' => 'admin, dashboard, know my patient',
-                'auditLogs' => $auditLogs,
-                'search' => $search,
-                'from_date' => $fromDate,
-                'to_date' => $toDate,
-            ];
-            $body = $this->twig->getEnvironment()->render('admin/audit_dashboard.html.twig', $vars);
-            $response->getBody()->write($body);
-            return $response;
-        } catch (\Throwable $e) {
-            $this->logger->error('Audit dashboard error: ' . $e->getMessage(), [
-                'exception' => $e,
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-            $response = $response->withStatus(500);
-            $response->getBody()->write('An error occurred while loading the audit dashboard. Please try again later.');
-            return $response;
-        }
+        return $response;
     }
 
     // Support Messages
@@ -310,7 +250,7 @@ class AdminController
 
         // Get all messages
         $stmt = $this->pdo->query('SELECT id, name, email, subject, message, status, ip_address, user_agent, created_at FROM support_messages ORDER BY created_at DESC');
-        $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    $messages = $stmt === false ? [] : $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         // Stats
         $total = 0;

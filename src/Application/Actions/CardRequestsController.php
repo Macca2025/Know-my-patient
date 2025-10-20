@@ -59,7 +59,7 @@ class CardRequestsController
             $stmt->execute(['user_id' => $userId]);
             $existingRequest = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-            if ($existingRequest) {
+            if (is_array($existingRequest)) {
                 $this->logger->warning('Existing card request found for user', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'You already have a card request in progress. Please wait for it to be processed.');
                 $this->sessionService->set('flash_type', 'warning');
@@ -70,9 +70,9 @@ class CardRequestsController
             $stmt = $this->pdo->prepare("SELECT uid FROM users WHERE id = ? LIMIT 1");
             $stmt->execute([$userId]);
             $userRecord = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $userUid = $userRecord['uid'] ?? null;
+            $userUid = is_array($userRecord) && isset($userRecord['uid']) ? $userRecord['uid'] : null;
 
-            if (!$userUid) {
+            if (!is_string($userUid) || $userUid === '') {
                 $this->logger->error('No UID found for user when attempting card request', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'Unable to process request. User UID not found.');
                 $this->sessionService->set('flash_type', 'danger');
@@ -89,18 +89,19 @@ class CardRequestsController
             );
             $stmt->execute(['user_id' => $userId]);
             $patientProfile = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-            if (!$patientProfile) {
+            if (!is_array($patientProfile)) {
                 $this->logger->warning('No patient profile found for card request', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'Please complete your patient profile before requesting a physical card.');
                 $this->sessionService->set('flash_type', 'danger');
                 return $response->withHeader('Location', '/add-patient')->withStatus(302);
             }
 
-            $this->logger->info('Patient profile found for card request', ['patient_uid' => $patientProfile['patient_uid']]);
+            $this->logger->info('Patient profile found for card request', ['patient_uid' => $patientProfile['patient_uid'] ?? null]);
 
             // Validate required fields
-            if (empty($patientProfile['address']) || empty($patientProfile['postcode'])) {
+            $address = isset($patientProfile['address']) ? $patientProfile['address'] : null;
+            $postcode = isset($patientProfile['postcode']) ? $patientProfile['postcode'] : null;
+            if (empty($address) || empty($postcode)) {
                 $this->logger->warning('Missing address or postcode in patient profile when requesting card', ['user_id' => $userId]);
                 $this->sessionService->set('flash_message', 'Please add your delivery address and postcode to your patient profile before requesting a card.');
                 $this->sessionService->set('flash_type', 'danger');
@@ -117,12 +118,12 @@ class CardRequestsController
 
             $params = [
                 'user_id' => $userId,
-                'patient_uid' => $patientProfile['patient_uid'],
+                'patient_uid' => isset($patientProfile['patient_uid']) ? $patientProfile['patient_uid'] : null,
                 'card_type' => 'standard',
-                'delivery_address' => $patientProfile['address'],
-                'delivery_postcode' => $patientProfile['postcode'],
-                'contact_phone' => $patientProfile['phone_number'] ?? null,
-                'contact_email' => $userEmail ?? null,
+                'delivery_address' => $address,
+                'delivery_postcode' => $postcode,
+                'contact_phone' => isset($patientProfile['phone_number']) ? $patientProfile['phone_number'] : null,
+                'contact_email' => isset($userEmail) ? $userEmail : null,
                 'status' => 'pending'
             ];
 
@@ -174,15 +175,13 @@ class CardRequestsController
             );
             $stmt->execute(['user_id' => $userId]);
             $pendingCardRequest = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-            if ($pendingCardRequest) {
+            if (is_array($pendingCardRequest)) {
                 $pendingCardRequest['patient_name'] = $pendingCardRequest['patient_name'] ?? 'Unknown';
                 return $pendingCardRequest;
             }
         } catch (\Exception $e) {
-            $this->logger->error('Error fetching pending card request', ['user_id' => $userId ?? null, 'error' => $e->getMessage()]);
+            $this->logger->error('Error fetching pending card request', ['user_id' => $userId, 'error' => $e->getMessage()]);
         }
-
         return null;
     }
 

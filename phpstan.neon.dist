@@ -1,7 +1,9 @@
+
 parameters:
   level: 6
   paths:
     - src
+  treatPhpDocTypesAsCertain: false
   ignoreErrors:
     # Ignore errors from third-party libraries if needed
     # - '#Call to an undefined method#'

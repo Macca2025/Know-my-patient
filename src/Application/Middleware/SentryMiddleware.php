@@ -47,7 +47,8 @@ class SentryMiddleware implements MiddlewareInterface
 
                 // Add user context if available
                 $session = $request->getAttribute('session');
-                if ($session && isset($session['user_id'])) {
+                $session = is_array($session) ? $session : [];
+                if (isset($session['user_id'])) {
                     $scope->setUser([
                         'id' => $session['user_id'],
                         'ip_address' => $this->getClientIp($request),

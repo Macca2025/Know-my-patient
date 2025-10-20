@@ -124,6 +124,7 @@ class ClinicalSafetyMiddleware implements MiddlewareInterface
     private function checkConcurrentEdit(ServerRequestInterface $request): void
     {
         $body = $request->getParsedBody();
+        $body = is_array($body) ? $body : [];
 
         if (isset($body['version']) && isset($body['patient_uid'])) {
             // Version will be checked in the controller

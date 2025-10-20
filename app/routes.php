@@ -14,6 +14,41 @@ return function (App $app) {
     });
 
     // --------------------
+    // NHS Email Verification Routes (GET/POST)
+    $app->get('/nhsverify', function ($request, $response, $args) use ($app) {
+        $userId = $_SESSION['user_id'] ?? null;
+        $pdo = $app->getContainer()->get(PDO::class);
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $request = $request->withAttribute('user', $user);
+        $controller = new \Application\Controllers\NHSVerifyController(
+            $app->getContainer()->get(\Slim\Views\Twig::class),
+            $app->getContainer()->get(\App\Application\Services\EmailService::class),
+            $app->getContainer()->get(\App\Domain\User\UserRepository::class)
+        );
+        return $controller->showVerifyPage($request, $response, $args);
+    });
+    $app->post('/nhsverify/send', function ($request, $response, $args) use ($app) {
+        $userId = $_SESSION['user_id'] ?? null;
+        $pdo = $app->getContainer()->get(PDO::class);
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $request = $request->withAttribute('user', $user);
+        $controller = new \Application\Controllers\NHSVerifyController(
+            $app->getContainer()->get(\Slim\Views\Twig::class),
+            $app->getContainer()->get(\App\Application\Services\EmailService::class),
+            $app->getContainer()->get(\App\Domain\User\UserRepository::class)
+        );
+        return $controller->sendVerification($request, $response, $args);
+    });
+    // Add confirm route if implemented
+    $app->get('/nhsverify/confirm', function ($request, $response, $args) use ($app) {
+        // TODO: Implement confirmVerification in NHSVerifyController if not present
+        $response->getBody()->write('NHS verification confirmation not yet implemented.');
+        return $response;
+    });
     // Health Check Endpoint (Public, for monitoring)
     // --------------------
     $app->get('/health', [\App\Application\Actions\HealthCheckAction::class, '__invoke'])

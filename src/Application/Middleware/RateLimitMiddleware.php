@@ -64,12 +64,12 @@ class RateLimitMiddleware implements MiddlewareInterface
         }
 
         $data = json_decode(file_get_contents($file), true);
-        if (!$data || $data['expires_at'] < time()) {
+        if (!is_array($data) || !isset($data['expires_at']) || $data['expires_at'] < time()) {
             unlink($file);
             return 0;
         }
 
-        return $data['attempts'];
+        return isset($data['attempts']) && is_int($data['attempts']) ? $data['attempts'] : 0;
     }
 
     private function incrementAttempts(string $key): void
